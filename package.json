@@ -5,6 +5,7 @@
   "description": "PhyAgentOS Forge plugin for Kimi Work and Kimi Code",
   "type": "module",
   "license": "MIT",
+  "packageManager": "pnpm@12.18.0",
   "engines": {
     "node": ">=22"
   },
