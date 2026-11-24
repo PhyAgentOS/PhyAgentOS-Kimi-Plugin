@@ -1,0 +1,23 @@
+{
+  "displayName": "PhyAgentOS Forge",
+  "shortDescription": "Connect Kimi to PhyAgentOS Forge robot simulation and hardware skills",
+  "longDescription": "Discover, install, diagnose, and run PhyAgentOS Forge robot and physics-simulation skill bundles (Dora dataflows, MuJoCo simulation, and Gateway Tool API) in Kimi Work Desktop and Kimi Code using an isolated ~/.kimi-code/forge home.",
+  "developerName": "PhyAgentOS",
+  "websiteURL": "https://github.com/PhyAgentOS",
+  "mcpOverrides": {
+    "forge": {
+      "displayName": "PhyAgentOS Forge MCP",
+      "description": "Exposes 41 Forge management and robot Gateway tools (environment checks, registry search, bundle install, Dora runtime control, invocation reconciliation, and model verification)"
+    }
+  },
+  "skillOverrides": {
+    "forge-usage": {
+      "displayName": "Forge Usage & Operations Guide",
+      "description": "How to manage Forge skills, profiles, runtimes, and Gateway tools safely"
+    },
+    "forge-skill-development": {
+      "displayName": "Forge Skill Development & Debugging",
+      "description": "Architecture, node repository catalog, bundle/dataflow wiring, and troubleshooting matrix"
+    }
+  }
+}

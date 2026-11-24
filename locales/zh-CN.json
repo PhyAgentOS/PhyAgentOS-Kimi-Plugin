@@ -1,0 +1,23 @@
+{
+  "displayName": "PhyAgentOS Forge",
+  "shortDescription": "连接 PhyAgentOS 具身智能与机器人仿真/真机技能生态",
+  "longDescription": "在 Kimi Work 桌面端与 Kimi Code 中检索、安装、诊断并运行 PhyAgentOS Forge 机器人与物理仿真技能包（Dora 数据流、MuJoCo 仿真与 Gateway Tool API），默认采用 ~/.kimi-code/forge 独立隔离目录。",
+  "developerName": "PhyAgentOS",
+  "websiteURL": "https://github.com/PhyAgentOS",
+  "mcpOverrides": {
+    "forge": {
+      "displayName": "PhyAgentOS Forge MCP",
+      "description": "提供 41 个 Forge 管理与机器人 Gateway 调用工具（环境体检、注册表检索、技能安装、Dora 启停、异步动作对账与模型校验）"
+    }
+  },
+  "skillOverrides": {
+    "forge-usage": {
+      "displayName": "Forge 技能运行与管理指南",
+      "description": "指导模型安全选择 forge_* 工具完成环境初始化、技能安装、仿真/真机运行与参数调优"
+    },
+    "forge-skill-development": {
+      "displayName": "Forge 机器人技能开发与排障手册",
+      "description": "涵盖 Forge 架构、节点仓库映射、bundle/dataflow 规范、跨平台与故障排查矩阵"
+    }
+  }
+}
