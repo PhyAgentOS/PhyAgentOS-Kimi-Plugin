@@ -13,7 +13,9 @@
     "build": "node ./scripts/build-mcp.mjs",
     "build:check": "node ./scripts/build-mcp.mjs --check",
     "validate": "node ./scripts/validate-plugin.mjs",
-    "test": "pnpm run build && pnpm run validate && node --test tests/*.test.mjs"
+    "benchmark:startup": "node ./scripts/benchmark-startup.mjs",
+    "test:unit": "node ./scripts/run-tests.mjs",
+    "test": "pnpm run build && pnpm run validate && pnpm run test:unit"
   },
   "dependencies": {
     "@x-era/forge-core": "0.2.0"

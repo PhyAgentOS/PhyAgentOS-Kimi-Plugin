@@ -78,6 +78,8 @@ For local-only node binaries not downloaded from the registry, unpack into `~/.k
 
 ## 4. Troubleshooting Matrix
 
+The entries below are suggestions for a subsequent user-authorized turn, not automatic recovery steps. Any failed Forge call ends the current turn; report the exact code and existing evidence without making further diagnostic, repair or retry calls.
+
 | Symptom / Code | Owning Layer | Diagnostic Evidence / Next Check |
 |---|---|---|
 | `FORGE_ENV_PLATFORM_UNSUPPORTED` | Host OS/arch | Precompiled nodes usually lock `linux/x86_64`; use Linux Kimi Code CLI or Kimi SSH `environment_id` |

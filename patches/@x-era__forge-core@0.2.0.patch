@@ -1,0 +1,212 @@
+diff --git a/lib/bootstrap.js b/lib/bootstrap.js
+index 95695a29d5fa0479527ddcb7a8cc40c09c3533bf..f900f9be55fb0e0de41a5dfcbcd8cd3e724079aa 100644
+--- a/lib/bootstrap.js
++++ b/lib/bootstrap.js
+@@ -1,6 +1,6 @@
+ import { execFile } from 'node:child_process';
+ import { existsSync } from 'node:fs';
+-import { chmod, copyFile, mkdir, rm, symlink } from 'node:fs/promises';
++import { chmod, copyFile, lstat, mkdir, rm, symlink } from 'node:fs/promises';
+ import { join, resolve } from 'node:path';
+ import { promisify } from 'node:util';
+ import { checkEnvironment, } from './environment.js';
+@@ -40,11 +40,23 @@ export async function bootstrapEnvironment(options) {
+     const steps = [];
+     const installer = await detectInstaller(options.python, env, exec);
+     // ---- 1. Directories ---------------------------------------------------
++    let privateModels = resolve(paths.models) === resolve(join(paths.home, 'models'));
++    if (privateModels) {
++        try {
++            privateModels = !(await lstat(paths.models)).isSymbolicLink();
++        }
++        catch (error) {
++            if (error.code !== 'ENOENT')
++                throw error;
++        }
++    }
+     const managedDirs = [
+         paths.home,
+         paths.skills,
+-        paths.models,
+-        join(paths.models, 'cache'),
++        // A non-default model root is a read-only shared asset, not managed storage.
++        ...(privateModels
++            ? [paths.models, join(paths.models, 'cache')]
++            : [join(paths.runtime, 'cache', 'models')]),
+         supportRoot,
+         supportBin,
+         paths.runtime,
+@@ -66,7 +78,7 @@ export async function bootstrapEnvironment(options) {
+                     id: 'directories',
+                     status: 'updated',
+                     target: paths.home,
+-                    detail: `ensured Forge directories under ${paths.home} and models root ${paths.models}`,
++                    detail: `ensured Forge directories under ${paths.home}; shared model roots are never created or written`,
+                 });
+             }
+             catch (error) {
+diff --git a/lib/download.js b/lib/download.js
+index 3abaedc92497bda29ca6f688a03f6369e5fd1dc4..15ba4841302a26339ec0c90e86cb3126cdbd215a 100644
+--- a/lib/download.js
++++ b/lib/download.js
+@@ -13,6 +13,7 @@ import { ForgeError } from './errors.js';
+  * is verified exactly like a fresh one.
+  */
+ export async function downloadFile(options) {
++    validateArtifactIntegrity(options);
+     await mkdir(dirname(options.dest), { recursive: true });
+     const part = `${options.dest}.part`;
+     const idleTimeoutMs = options.idleTimeoutMs ?? 120_000;
+@@ -102,7 +103,7 @@ export async function downloadFile(options) {
+     }
+     options.onProgress?.({ downloaded: info.size, total: options.size ?? info.size });
+     const digest = await hashFile(options.dest);
+-    if (options.sha256 !== undefined && digest !== options.sha256) {
++    if (options.sha256 !== undefined && digest !== options.sha256.toLowerCase()) {
+         await rm(options.dest, { force: true });
+         throw new ForgeError('FORGE_NODE_INTEGRITY', `sha256 mismatch: expected ${options.sha256}, got ${digest}`);
+     }
+@@ -122,7 +123,16 @@ async function ensureSpace(dir, needed) {
+         // statfs is best-effort; an unknown filesystem must not block the transfer.
+     }
+ }
+-async function hashFile(path) {
++/** Reject unpinned remote artifacts before any filesystem or network mutation. */
++export function validateArtifactIntegrity(artifact) {
++    if (typeof artifact.sha256 !== 'string' || !/^[a-f0-9]{64}$/i.test(artifact.sha256)) {
++        throw new ForgeError('FORGE_NODE_INTEGRITY', 'remote artifact requires a pinned SHA256 digest');
++    }
++    if (!Number.isSafeInteger(artifact.size) || artifact.size < 0) {
++        throw new ForgeError('FORGE_NODE_INTEGRITY', 'remote artifact requires a non-negative safe-integer byte length');
++    }
++}
++export async function hashFile(path) {
+     const hash = createHash('sha256');
+     const stream = createReadStream(path);
+     for await (const chunk of stream)
+diff --git a/lib/install.js b/lib/install.js
+index 3d07aeeb014c7b141470f226d1864532f66a5b49..546c6af4ae8f886721813fe15b26e1ef35a70ce5 100644
+--- a/lib/install.js
++++ b/lib/install.js
+@@ -1,8 +1,7 @@
+-import { createHash } from 'node:crypto';
+ import { lstat, mkdir, mkdtemp, rename, rm, stat } from 'node:fs/promises';
+ import { dirname, join, resolve } from 'node:path';
+ import { extractArchive } from './archive.js';
+-import { downloadFile } from './download.js';
++import { downloadFile, hashFile, validateArtifactIntegrity } from './download.js';
+ import { ForgeError } from './errors.js';
+ import { parseManifest } from './manifest.js';
+ /**
+@@ -213,19 +212,27 @@ async function directorySize(dir) {
+     return total;
+ }
+ async function fetchArchive(artifact, options) {
++    validateArtifactIntegrity(artifact);
+     await mkdir(options.cacheRoot, { recursive: true });
+-    const key = artifact.sha256 ?? createHash('sha256').update(artifact.url).digest('hex');
+-    const path = join(options.cacheRoot, `${key}.tar.gz`);
++    const path = join(options.cacheRoot, `${artifact.sha256.toLowerCase()}.tar.gz`);
++    let info;
+     try {
+-        const info = await stat(path);
+-        if (artifact.size === undefined || info.size === artifact.size) {
+-            options.onProgress?.('download', info.size, info.size);
+-            return { path, bytes: info.size, fromCache: true };
+-        }
+-        await rm(path, { force: true });
++        info = await stat(path);
+     }
+-    catch {
+-        // not cached yet
++    catch (error) {
++        if (error.code !== 'ENOENT')
++            throw error;
++    }
++    if (info !== undefined) {
++        if (!info.isFile() || info.size !== artifact.size) {
++            throw new ForgeError('FORGE_NODE_INTEGRITY', `cached archive size mismatch: expected ${artifact.size}, got ${info.size}`);
++        }
++        const digest = await hashFile(path);
++        if (digest !== artifact.sha256.toLowerCase()) {
++            throw new ForgeError('FORGE_NODE_INTEGRITY', `cached archive sha256 mismatch: expected ${artifact.sha256}, got ${digest}`);
++        }
++        options.onProgress?.('download', info.size, info.size);
++        return { path, bytes: info.size, fromCache: true };
+     }
+     options.onProgress?.('download', 0, artifact.size);
+     const transfer = await downloadFile({
+diff --git a/lib/runtime.js b/lib/runtime.js
+index 760c3ab6e9fe61eed3ea2f639434cc2ba9dfb2ec..b05433d4f6781a1fc03161a6c723f1d4a22ce60f 100644
+--- a/lib/runtime.js
++++ b/lib/runtime.js
+@@ -1,6 +1,6 @@
+ import { createHash } from 'node:crypto';
+ import { closeSync, existsSync, openSync, readFileSync, symlinkSync } from 'node:fs';
+-import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
++import { chmod, cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+ import { basename, dirname, isAbsolute, join, relative } from 'node:path';
+ import { execFile, spawn } from 'node:child_process';
+ import { promisify } from 'node:util';
+@@ -388,7 +388,10 @@ export class SkillRuntimeManager {
+             .slice(0, 16);
+         const envDir = join(this.paths.runtime, 'env', entry.name, profile.id, hash);
+         await rm(envDir, { recursive: true, force: true });
+-        await mkdir(join(envDir, 'bin'), { recursive: true });
++        // Establish a private boundary before copying config or injecting secrets.
++        await mkdir(envDir, { recursive: true, mode: 0o700 });
++        await chmod(envDir, 0o700);
++        await mkdir(join(envDir, 'bin'), { mode: 0o700 });
+         for (const [binary, path] of Object.entries(binaries)) {
+             symlinkSync(path, join(envDir, 'bin', binary));
+         }
+@@ -397,6 +400,7 @@ export class SkillRuntimeManager {
+             recursive: true,
+             filter: source => !/node_modules|\.git|(^|\/)nodes(\/|$)/.test(source),
+         });
++        await protectRuntimeTree(launch);
+         await rewritePlaceholders(launch, '${FORGE_RUNTIME_BIN}', join(envDir, 'bin'));
+         await rewritePlaceholders(launch, '${FORGE_MODELS_DIR}', this.paths.models);
+         // Dora renders neither PAOS_SKILL_* nor FORGE_FLOW_ID in node paths, so the
+@@ -428,7 +432,8 @@ export class SkillRuntimeManager {
+             modelsRoot: this.paths.models,
+             modelEnv,
+             artifacts: Object.fromEntries(Object.entries(entry.manifest.artifacts).map(([key, value]) => [key, value.artifactId])),
+-        }, null, 2));
++        }, null, 2), { mode: 0o600 });
++        await chmod(join(envDir, 'runtime-lock.json'), 0o600);
+         await mkdir(this.paths.logs, { recursive: true });
+         return envDir;
+     }
+@@ -493,6 +498,23 @@ export class SkillRuntimeManager {
+         await rename(temp, target);
+     }
+ }
++/** Restrict only copied runtime files; never follow links into source/assets. */
++async function protectRuntimeTree(root) {
++    await chmod(root, 0o700);
++    for (const entry of await readdir(root, { withFileTypes: true })) {
++        const path = join(root, entry.name);
++        if (entry.isDirectory()) {
++            await protectRuntimeTree(path);
++        }
++        else if (entry.isSymbolicLink()) {
++            throw new ForgeError('FORGE_ARCHIVE_UNSAFE', `runtime payload contains a symbolic link: ${path}`);
++        }
++        else if (entry.isFile()) {
++            const info = await stat(path);
++            await chmod(path, (info.mode & 0o111) !== 0 ? 0o700 : 0o600);
++        }
++    }
++}
+ async function rewritePlaceholders(root, needle, value) {
+     const entries = await readdir(root, { withFileTypes: true });
+     for (const entry of entries) {
+@@ -672,6 +694,7 @@ async function injectDataflowEnv(path, env) {
+             document.setIn(['nodes', index, 'env', name], value);
+         }
+     }
++    await chmod(path, 0o600);
+     await writeFile(path, String(document), { mode: 0o600 });
+ }
+ /** A coordinator is ready when `dora list` succeeds (works for 0.4.x and 1.x). */

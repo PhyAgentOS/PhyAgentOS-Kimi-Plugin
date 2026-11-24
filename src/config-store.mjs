@@ -1,5 +1,5 @@
 import { copyFile, mkdir, readFile, readdir, rename, stat, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 
 import { diffValues, ForgeError, mergeForgeRowConfig, validateConfig, withLock } from '@x-era/forge-core'
 
@@ -72,7 +72,7 @@ export class KimiConfigStore {
       const diff = diffValues(before.config, normalized)
       return {
         path: this.path,
-        ...(backup === undefined ? {} : { backup: backup.slice(backup.lastIndexOf('/') + 1) }),
+        ...(backup === undefined ? {} : { backup: basename(backup) }),
         changed: diff.length,
         diff,
         config: normalized,
@@ -122,7 +122,7 @@ export class KimiConfigStore {
         await stat(this.path)
         const prevPath = `${this.path}.bak-${stamp()}`
         await copyFile(this.path, prevPath)
-        previous = prevPath.slice(prevPath.lastIndexOf('/') + 1)
+        previous = basename(prevPath)
       } catch {
         previous = undefined
       }

@@ -29,14 +29,48 @@ PAOS Registry 中的多数预编译节点制品（如 `robot-control-sim`）锁�
 
 1. **Linux 原生运行**：直接在 `linux/x86_64` 工作站或机器人上位机使用 Kimi Code CLI / VS Code 安装本插件。
 2. **macOS / Windows 桌面端通过 SSH 操控远端 Linux 主机**：
-   在 `~/.kimi-code/config.toml` 中声明远端 SSH 环境：
+   - 先配置 `~/.ssh/config` 中的 `robot-box`，确保能免交互连接。
+   - 远端需要 Node.js `>=22`，以及与本机版本兼容的 Kimi Code 远程执行器。Kimi 不会自动安装执行器；`remoteBin` 应指向实际安装位置。执行器连接不等于已安装 Dora 或机器人技能。
+   - 将本仓库构建好的单文件复制到远端。下列命令中的用户名和目录为示例，按自己的主机修改：
+
+   ```sh
+   ssh robot-box 'mkdir -p /home/ubuntu/phyagentos-kimi/mcp'
+   scp mcp/forge-mcp.mjs robot-box:/home/ubuntu/phyagentos-kimi/mcp/forge-mcp.mjs
+   ssh robot-box 'node --version'
+   ```
+
+   本机 `~/.kimi-code/config.toml`：
+
    ```toml
    [environments.robot-box]
    type = "ssh"
-   host = "ubuntu@192.168.1.50"
+   host = "robot-box"
+   remoteBin = "/home/ubuntu/.kimi-code/bin/kimi"
    defaultCwd = "/home/ubuntu"
    ```
-   确保远端主机装有 Node `>=22`，在 `~/.kimi-code/mcp.json` 中为 `forge` 指定 `"environment_id": "robot-box"` 并指向远端插件脚本，即可在 Mac/Windows 桌面端用自然语言直接驱动远端 Linux 上的 Dora、MuJoCo 与真机节点。
+
+   本机 `~/.kimi-code/mcp.json` 中合并以下配置（保留已有其他服务）：
+
+   ```json
+   {
+     "mcpServers": {
+       "forge-remote": {
+         "command": "node",
+         "args": ["/home/ubuntu/phyagentos-kimi/mcp/forge-mcp.mjs"],
+         "environment_id": "robot-box",
+         "startupTimeoutMs": 60000,
+         "toolTimeoutMs": 180000,
+         "env": { "KIMI_FORGE_HOME": "/home/ubuntu/.kimi-code/forge" }
+       }
+     }
+   }
+   ```
+
+   为避免误用本机服务，保留插件的指令组件，但运行 `/plugins mcp disable phyagentos forge` 禁用其本机 MCP，再 `/reload` 或新建会话。在 `/mcp` 确认 `forge-remote` 已连接。
+
+   先让远端服务执行 `forge_config_read` 和 `forge_environment_check`，核对返回的平台和目录确为 Linux 远端；再按用户指令安装依赖、技能和启动仿真。`HOME`、PATH、技能、Dora 和 Gateway 均位于远端，本机目录不会自动同步。网关保持远端 loopback，无需开放公网端口。
+
+   排查顺序：SSH 登录 → 远端执行器路径/版本 → 远端 Node 与脚本绝对路径 → `/mcp` 状态 → 环境体检。若 Forge 调用失败，本轮停止，下一轮获得用户诊断指令后再执行后续检查。不要因 SSH 连接成功就认定仿真或硬件验收通过。
 
 ## 4. 隔离配置与本地大模型权重共享
 
@@ -62,6 +96,8 @@ PAOS Registry 中的多数预编译节点制品（如 `robot-control-sim`）锁�
 }
 ```
 
+显式指定的共享 `models.root` 应使用默认 `<home>/models` 之外的路径；初始化不会向该目录创建文件，缓存保留在隔离运行目录。模型库不存在时也不会替用户创建；相关模型缺失会由体检/预检报告。
+
 请通过 `forge_config_write` 修改配置（自动校验字段、以 `0600` 权限原子落盘、保留 `.bak-*` 备份并立即刷新当前 MCP 会话）。
 
 ## 5. 导出机器人技能到 Kimi `/skill:` 菜单
@@ -77,3 +113,11 @@ PAOS Registry 中的多数预编译节点制品（如 `robot-control-sim`）锁�
 - 对 Action / Session 调用 `forge_tool_call` 返回 `invocation_id` 仅代表网关已受理，**不代表物理动作已完成**，必须通过 `forge_invocation_read` 查询终态。
 - 遇到超时或 `unknown` 结果时，严禁盲目重发动作，须先核实机器人/仿真器状态。
 - 连接真实机械臂或移动底盘时，请将 Kimi Work 权限模式保持在 **「默认」** 或 **「手动允许」**，切勿开启无人值守全自动（YOLO）模式。
+
+## 7. 完整性、权限与验收边界
+
+远端技能包和节点制品必须提供 SHA256 与字节长度；命中技能归档缓存仍复核二者，不匹配即失败，不自动重下。用户明确指定的本地归档只做结构和安全解包校验，不声称具备可信远端摘要。
+
+新建运行实例在 POSIX 上采用私有目录 `0700`、普通文件 `0600`，可执行文件保留所有者执行权限 `0700`。Windows 的隐私边界依赖用户目录 ACL，应单独实机检查。已有运行实例不会因升级而自动重启或更改权限；需要在用户授权停止/启动后生成新的私有实例。
+
+参见[人工验收清单](acceptance_zh.md)与[Core 补丁说明](core-patches.md)。自动化使用模拟 Dora/Gateway，不代表真实 Kimi、MuJoCo 或硬件已验收。

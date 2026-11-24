@@ -17,3 +17,15 @@ Kimi Code 内核支持在 `~/.kimi-code/config.toml` 配置 `[environments.<id>]
 
 ## 3. 大容量模型权重目录只读复用
 运行时状态（`runtime/state.json`）必须按宿主隔离，但数十 GB 的本地模型权重（带 `receipt.json` SHA256 校验）为只读资产。用户可通过 `forge_config_write` 设置 `models.root`（或环境变量 `KIMI_FORGE_MODELS` / `DSH_FORGE_MODELS`）指向共享模型盘。
+
+
+## 4. 可复现配置与验收边界
+
+完整的执行器准备、脚本部署、`config.toml`、`mcp.json` 及本机服务禁用步骤见[中文使用手册](../usage_zh.md#3-跨平台说明与-ssh-连接远端-linux-机器人主机)。环境连接不代表目标已具备 Dora、技能、图形或硬件依赖；逐项结果记录在[验收清单](../acceptance_zh.md)。
+
+共享模型根（包括默认模型目录的符号链接）不由初始化管理；所需缓存留在隔离 runtime。Windows POSIX 权限测试的跳过不代表用户目录 ACL 已验收。
+
+## 5. 二期 HTTP MCP
+
+当前入口仅提供 stdio，不接受 `--http`，不附带监听公网的 Gateway 或反向代理。
+未来如加入 Streamable HTTP，应独立设计认证、TLS、网络边界、会话所有权和物理动作审批；本期不以未实现的接口宣称支持纯云端 Kimi Web。

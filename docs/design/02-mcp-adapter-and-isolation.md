@@ -23,3 +23,76 @@
 - 继承 `@x-era/forge-mcp@0.2.0` 的 39 个工具，并补齐 `forge_skill_package` 与 `forge_skill_install_local`，共 41 个工具；
 - 所有文件路径入参统一经 `expandUserPath()` 展开前导 `~`；
 - 启动时将 `console.log` / `console.info` / `console.warn` 重定向至 `stderr`，保证 `stdout` 仅输出纯净的按行 JSON-RPC 2.0 报文；支持 `2024-11-05` 至 `2025-11-25` MCP 协议版本握手协商。
+
+## 5. 配置结构与错误行为
+
+`config.json` 的字段白名单由 Core `validateConfig` 校验。典型配置如下；`home` 只能通过环境变量控制，不能写入 JSON：
+
+```json
+{
+  "skills": { "roots": ["/data/forge-skills"] },
+  "models": { "root": "/data/shared-models" },
+  "registry": { "url": "https://paos-resource-platform.dev.x-era.com", "tokenEnv": "FORGE_REGISTRY_TOKEN", "timeoutMs": 20000 },
+  "runtime": { "dora": "/opt/forge/dora", "dora1": "/opt/forge/dora1", "startTimeoutMs": 120000 },
+  "gateway": { "callTimeoutMs": 15000 }
+}
+```
+
+同步工具异常返回 MCP `isError: true`，正文含 `ok: false`、`code` 和原始 `message`。
+诊断报告中的失败检查、初始化报告的 `ok: false`、安装任务的 `state: failed` 也应视为失败，不能仅检查 MCP 标志。
+`forge_skill_install` 返回任务的 `id`，随后作为 `job_id` 查询或取消。
+安装和配置修改共用写锁，因此配置刷新可能等待下载完成或用户取消；刷新保留任务对象和历史状态，不自动取消任务。
+
+## 6. 全部 MCP 工具映射
+
+除配置工具外，下面的方法均属于 `ForgeOperations`。路径参数在适配层展开；Gateway 工具按名称调用，不复制成静态 MCP 工具。
+
+| MCP 工具 | 实际入口 |
+|---|---|
+| `forge_skill_list` | `list()` |
+| `forge_skill_search` | `search(query)` |
+| `forge_skill_inspect` | `inspect(name)` |
+| `forge_skill_read` | `read(name)` |
+| `forge_skill_install` | `install(name, nodes, version)` |
+| `forge_skill_install_local` | `installLocal(path)` |
+| `forge_skill_package` | `packageSkill(name, options)` |
+| `forge_skill_versions` | `listSkillVersions(name)` |
+| `forge_install_status` | `jobStatus(job_id)` / `jobList(10)` |
+| `forge_install_cancel` | `cancelJob(job_id)` |
+| `forge_skill_update` | `update(name, apply, version)` |
+| `forge_skill_remove` | `remove(name)` |
+| `forge_profile_files` | `profileTree()`，按技能过滤 |
+| `forge_profile_read` | `profileRead(name, profile, file)` |
+| `forge_profile_write` | `profileWrite(name, profile, file, content)` |
+| `forge_repo_search` | `listRepositories(query, category)` |
+| `forge_repo_info` | `repository(id_or_node)` |
+| `forge_node_source` | `nodeSource(artifact_id, file, refresh)` |
+| `forge_skill_docs` | `skillDocs(name)` / `readSkillDoc(name, file)` |
+| `forge_skill_validate` | `validateLocalBundle(path)` |
+| `forge_node_info` | `nodeInfo(artifact_id)` |
+| `forge_skill_doctor` | `doctor(name, profile)` |
+| `forge_doctor_report` | `doctorReport(name)` |
+| `forge_environment_check` | `environmentCheck(options)` |
+| `forge_environment_setup` | `environmentSetup(options)`，成功后刷新实例 |
+| `forge_config_read` | `KimiConfigStore.read()` |
+| `forge_config_write` | `KimiConfigStore.write(config, options)`，随后刷新 |
+| `forge_config_restore` | `KimiConfigStore.restore(backup)`，随后刷新 |
+| `forge_runtime_start` | `runtimeStart(name, profile, mode)` |
+| `forge_runtime_status` | `runtimeStatus(name)` |
+| `forge_runtime_stop` | `runtimeStop(name, force)` |
+| `forge_runtime_logs` | `runtimeLogs(name, lines)` |
+| `forge_tool_context` | `toolContext(name, tool_id)` |
+| `forge_tool_call` | `toolCall(name, tool_id, arguments)` |
+| `forge_invocation_read` | `invocationRead(name, invocation_id)` |
+| `forge_cache_summary` | `cacheSummary()` |
+| `forge_cache_gc` | `cacheGc(dry_run)` |
+| `forge_model_search` | `modelSearch(query)` |
+| `forge_model_info` | `modelInfo(id, revision)` |
+| `forge_model_verify` | `modelVerify(id, revision)` |
+| `forge_skill_export` | `exportPortable(name, outDir)` |
+
+## 7. 构建与本地补丁
+
+esbuild 目标为 Node 22 ESM，依赖内联入 `mcp/forge-mcp.mjs`。构建输入包括
+`pnpm-workspace.yaml` 声明的 Core 补丁，安装必须使用 pnpm。补丁与产物、锁文件须一并提交。
+`pnpm run build:check` 检查产物漂移；不要手改打包产物。补丁细节见[维护说明](../core-patches.md)。

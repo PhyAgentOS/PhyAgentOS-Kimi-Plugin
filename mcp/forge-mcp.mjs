@@ -7366,14 +7366,14 @@ var require_dist = __commonJS({
 import { createInterface } from "node:readline";
 import { join as join18 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/bootstrap.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/bootstrap.js
 import { execFile as execFile2 } from "node:child_process";
 import { existsSync as existsSync2 } from "node:fs";
-import { chmod, copyFile as copyFile2, mkdir as mkdir2, rm as rm2, symlink } from "node:fs/promises";
+import { chmod, copyFile as copyFile2, lstat, mkdir as mkdir2, rm as rm2, symlink } from "node:fs/promises";
 import { join as join5, resolve as resolve3 } from "node:path";
 import { promisify as promisify2 } from "node:util";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/environment.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/environment.js
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, readdir as readdir2, readFile as readFile2, rm, stat as stat2, statfs, writeFile } from "node:fs/promises";
@@ -7381,7 +7381,7 @@ import { connect } from "node:net";
 import { join as join3 } from "node:path";
 import { promisify } from "node:util";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/models.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/models.js
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { readdir, readFile, stat } from "node:fs/promises";
@@ -7793,7 +7793,7 @@ async function statSafe(path) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/paths.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/paths.js
 import { homedir } from "node:os";
 import { join as join2, resolve } from "node:path";
 var FORGE_MODELS_ENV = "DSH_FORGE_MODELS";
@@ -7823,7 +7823,7 @@ function forgePaths(home2, modelsRoot) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/environment.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/environment.js
 var execFileAsync = promisify(execFile);
 var MIN_NODE_MAJOR = 22;
 var DORA_REFERENCE_MINOR = "0.4";
@@ -8445,13 +8445,13 @@ async function isDirectory(path) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/settings.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/settings.js
 var import_yaml = __toESM(require_dist(), 1);
 import { copyFile, readFile as readFile3, readdir as readdir3, rename, stat as stat3, writeFile as writeFile2 } from "node:fs/promises";
 import { homedir as homedir2 } from "node:os";
 import { join as join4, resolve as resolve2 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/errors.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/errors.js
 var ForgeError = class extends Error {
   code;
   path;
@@ -8474,7 +8474,7 @@ var ErrorCode = {
   registryUnavailable: "FORGE_REGISTRY_UNAVAILABLE"
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/settings.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/settings.js
 var FORGE_ROW_ID = "forge-skill";
 var DshProfileStore = class {
   root;
@@ -8724,7 +8724,7 @@ function stamp() {
   return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}-${String(now.getMilliseconds()).padStart(3, "0")}-${backupCounter}`;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/bootstrap.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/bootstrap.js
 var execFileAsync2 = promisify2(execFile2);
 var DEFAULT_DORA_VERSION = "0.4.1";
 var DEFAULT_DORA1_VERSION = "1.0.1";
@@ -8745,11 +8745,20 @@ async function bootstrapEnvironment(options) {
     requested.add("profileConfig");
   const steps = [];
   const installer = await detectInstaller(options.python, env, exec);
+  let privateModels = resolve3(paths.models) === resolve3(join5(paths.home, "models"));
+  if (privateModels) {
+    try {
+      privateModels = !(await lstat(paths.models)).isSymbolicLink();
+    } catch (error) {
+      if (error.code !== "ENOENT")
+        throw error;
+    }
+  }
   const managedDirs = [
     paths.home,
     paths.skills,
-    paths.models,
-    join5(paths.models, "cache"),
+    // A non-default model root is a read-only shared asset, not managed storage.
+    ...privateModels ? [paths.models, join5(paths.models, "cache")] : [join5(paths.runtime, "cache", "models")],
     supportRoot,
     supportBin,
     paths.runtime
@@ -8770,7 +8779,7 @@ async function bootstrapEnvironment(options) {
           id: "directories",
           status: "updated",
           target: paths.home,
-          detail: `ensured Forge directories under ${paths.home} and models root ${paths.models}`
+          detail: `ensured Forge directories under ${paths.home}; shared model roots are never created or written`
         });
       } catch (error) {
         steps.push({
@@ -9127,11 +9136,11 @@ var defaultExec2 = async (file, args, options) => {
   return { stdout, stderr };
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/catalog.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/catalog.js
 import { readdir as readdir4, readFile as readFile4, stat as stat4 } from "node:fs/promises";
 import { join as join6 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/forge-version.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/forge-version.js
 var SUPPORTED_FORGE_VERSIONS = ["1", "2"];
 var DEFAULT_FORGE_VERSION = "1";
 function isForgeGeneration(value) {
@@ -9145,7 +9154,7 @@ function unsupportedForgeVersionDetail(value) {
   return `bundle targets Forge ${value}; this build implements ${supported}`;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/manifest.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/manifest.js
 var import_yaml2 = __toESM(require_dist(), 1);
 var MANIFEST_VERSION = 2;
 var SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -9444,7 +9453,7 @@ function isHttpUrl(value) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/catalog.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/catalog.js
 var SAFE_NAME = /^[a-z0-9][a-z0-9-]*$/;
 var ForgeCatalog = class {
   root;
@@ -9567,12 +9576,12 @@ function isMissing(error) {
   return typeof error === "object" && error !== null && error.code === "ENOENT";
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/operations.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/operations.js
 var import_yaml6 = __toESM(require_dist(), 1);
 import { mkdir as mkdir13, readFile as readFile13, readdir as readdir10, rm as rm9, stat as stat13, writeFile as writeFile9 } from "node:fs/promises";
 import { join as join15 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/diff.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/diff.js
 function diffValues(before, after, prefix = "") {
   const left = flatten(before, prefix);
   const right = flatten(after, prefix);
@@ -9602,7 +9611,7 @@ function flatten(value, prefix) {
   return result;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/validate.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/validate.js
 import { readFile as readFile5, stat as stat5 } from "node:fs/promises";
 import { isAbsolute, join as join7, resolve as resolve4, sep } from "node:path";
 async function validateBundle(root) {
@@ -9709,7 +9718,7 @@ function archName() {
   return process.arch;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/tool-client.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/tool-client.js
 var ForgeToolClient = class {
   gatewayUrl;
   timeoutMs;
@@ -9806,7 +9815,7 @@ var ForgeToolClient = class {
   }
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/doctor.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/doctor.js
 async function diagnoseSkill(options) {
   const entry = await options.catalog.load(options.skill);
   if (entry === void 0) {
@@ -9860,7 +9869,7 @@ async function diagnoseSkill(options) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/events.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/events.js
 import { appendFile, mkdir as mkdir3 } from "node:fs/promises";
 import { dirname } from "node:path";
 var EventLog = class {
@@ -9883,10 +9892,10 @@ var EventLog = class {
   }
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/package.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/package.js
 import { createHash as createHash2 } from "node:crypto";
 import { createReadStream as createReadStream2 } from "node:fs";
-import { lstat, mkdir as mkdir4, readFile as readFile6, readdir as readdir5, rename as rename2, rm as rm3, stat as stat6, writeFile as writeFile3 } from "node:fs/promises";
+import { lstat as lstat2, mkdir as mkdir4, readFile as readFile6, readdir as readdir5, rename as rename2, rm as rm3, stat as stat6, writeFile as writeFile3 } from "node:fs/promises";
 import { join as join8, relative, sep as sep2 } from "node:path";
 
 // node_modules/.pnpm/tar@7.5.23/node_modules/tar/dist/esm/index.min.js
@@ -12858,7 +12867,7 @@ var To = (s3) => {
   s3.mtimeCache || (s3.mtimeCache = /* @__PURE__ */ new Map()), s3.filter = t ? (e, i) => t(e, i) && !((s3.mtimeCache?.get(e) ?? i.mtime ?? 0) > (i.mtime ?? 0)) : (e, i) => !((s3.mtimeCache?.get(e) ?? i.mtime ?? 0) > (i.mtime ?? 0));
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/package.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/package.js
 var EXCLUDED_PARTS = /* @__PURE__ */ new Set([
   ".git",
   ".hg",
@@ -12930,7 +12939,7 @@ async function collect(bundleDir, includeVenv) {
       const parts = relative(bundleDir, absolute).split(sep2);
       if (isExcluded(parts, includeVenv))
         continue;
-      const info = await lstat(absolute);
+      const info = await lstat2(absolute);
       if (info.isSymbolicLink()) {
         throw new ForgeError("FORGE_PACKAGE_INVALID", `symlinks are not allowed in a bundle: ${parts.join("/")}`);
       }
@@ -13021,12 +13030,11 @@ async function packageSkill(options) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/install.js
-import { createHash as createHash4 } from "node:crypto";
-import { lstat as lstat2, mkdir as mkdir6, mkdtemp, rename as rename4, rm as rm5, stat as stat8 } from "node:fs/promises";
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/install.js
+import { lstat as lstat3, mkdir as mkdir6, mkdtemp, rename as rename4, rm as rm5, stat as stat8 } from "node:fs/promises";
 import { dirname as dirname3, join as join9, resolve as resolve5 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/archive.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/archive.js
 import { isAbsolute as isAbsolute2, posix } from "node:path";
 async function extractArchive(file, cwd) {
   const violations = [];
@@ -13053,7 +13061,7 @@ async function extractArchive(file, cwd) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/download.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/download.js
 import { createHash as createHash3 } from "node:crypto";
 import { createWriteStream, existsSync as existsSync3 } from "node:fs";
 import { createReadStream as createReadStream3 } from "node:fs";
@@ -13062,6 +13070,7 @@ import { dirname as dirname2 } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 async function downloadFile(options) {
+  validateArtifactIntegrity(options);
   await mkdir5(dirname2(options.dest), { recursive: true });
   const part = `${options.dest}.part`;
   const idleTimeoutMs = options.idleTimeoutMs ?? 12e4;
@@ -13143,7 +13152,7 @@ async function downloadFile(options) {
   }
   options.onProgress?.({ downloaded: info.size, total: options.size ?? info.size });
   const digest = await hashFile(options.dest);
-  if (options.sha256 !== void 0 && digest !== options.sha256) {
+  if (options.sha256 !== void 0 && digest !== options.sha256.toLowerCase()) {
     await rm4(options.dest, { force: true });
     throw new ForgeError("FORGE_NODE_INTEGRITY", `sha256 mismatch: expected ${options.sha256}, got ${digest}`);
   }
@@ -13161,6 +13170,14 @@ async function ensureSpace(dir, needed) {
       throw error;
   }
 }
+function validateArtifactIntegrity(artifact) {
+  if (typeof artifact.sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(artifact.sha256)) {
+    throw new ForgeError("FORGE_NODE_INTEGRITY", "remote artifact requires a pinned SHA256 digest");
+  }
+  if (!Number.isSafeInteger(artifact.size) || artifact.size < 0) {
+    throw new ForgeError("FORGE_NODE_INTEGRITY", "remote artifact requires a non-negative safe-integer byte length");
+  }
+}
 async function hashFile(path) {
   const hash = createHash3("sha256");
   const stream = createReadStream3(path);
@@ -13169,7 +13186,7 @@ async function hashFile(path) {
   return hash.digest("hex");
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/install.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/install.js
 async function installSkill(name, options) {
   options.onProgress?.("resolve");
   const artifact = await options.registry.skill(name, options.version);
@@ -13327,23 +13344,32 @@ async function directorySize(dir) {
   let total = 0;
   for (const entry of await readdir12(dir, { withFileTypes: true })) {
     const absolute = join9(dir, entry.name);
-    const info = await lstat2(absolute);
+    const info = await lstat3(absolute);
     total += info.isDirectory() ? await directorySize(absolute) : info.size;
   }
   return total;
 }
 async function fetchArchive(artifact, options) {
+  validateArtifactIntegrity(artifact);
   await mkdir6(options.cacheRoot, { recursive: true });
-  const key = artifact.sha256 ?? createHash4("sha256").update(artifact.url).digest("hex");
-  const path = join9(options.cacheRoot, `${key}.tar.gz`);
+  const path = join9(options.cacheRoot, `${artifact.sha256.toLowerCase()}.tar.gz`);
+  let info;
   try {
-    const info = await stat8(path);
-    if (artifact.size === void 0 || info.size === artifact.size) {
-      options.onProgress?.("download", info.size, info.size);
-      return { path, bytes: info.size, fromCache: true };
+    info = await stat8(path);
+  } catch (error) {
+    if (error.code !== "ENOENT")
+      throw error;
+  }
+  if (info !== void 0) {
+    if (!info.isFile() || info.size !== artifact.size) {
+      throw new ForgeError("FORGE_NODE_INTEGRITY", `cached archive size mismatch: expected ${artifact.size}, got ${info.size}`);
     }
-    await rm5(path, { force: true });
-  } catch {
+    const digest = await hashFile(path);
+    if (digest !== artifact.sha256.toLowerCase()) {
+      throw new ForgeError("FORGE_NODE_INTEGRITY", `cached archive sha256 mismatch: expected ${artifact.sha256}, got ${digest}`);
+    }
+    options.onProgress?.("download", info.size, info.size);
+    return { path, bytes: info.size, fromCache: true };
   }
   options.onProgress?.("download", 0, artifact.size);
   const transfer = await downloadFile({
@@ -13368,7 +13394,7 @@ function slug(value) {
   return value.replace(/[^a-z0-9-]+/gi, "-");
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/jobs.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/jobs.js
 import { randomUUID } from "node:crypto";
 import { mkdir as mkdir7, readFile as readFile7, readdir as readdir6, rename as rename5, writeFile as writeFile4 } from "node:fs/promises";
 import { join as join10 } from "node:path";
@@ -13500,7 +13526,7 @@ var JobRunner = class {
   }
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/lock.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/lock.js
 import { open, readFile as readFile8, rm as rm6, stat as stat9 } from "node:fs/promises";
 import { mkdir as mkdir8 } from "node:fs/promises";
 import { dirname as dirname4 } from "node:path";
@@ -13557,7 +13583,7 @@ function isAlive(pid) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/portable.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/portable.js
 var import_yaml3 = __toESM(require_dist(), 1);
 import { cp, mkdir as mkdir9, readFile as readFile9, writeFile as writeFile5 } from "node:fs/promises";
 import { join as join11 } from "node:path";
@@ -13605,7 +13631,7 @@ ${body}`;
   return { path: target, skill: entry.name, profiles };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/repositories.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/repositories.js
 var REPOSITORY_CATALOG = [
   {
     id: "forge",
@@ -13886,7 +13912,7 @@ function findRepository(idOrNode) {
   return REPOSITORY_CATALOG.find((entry) => entry.id.toLowerCase() === needle) ?? REPOSITORY_CATALOG.find((entry) => entry.nodes.some((node) => node.toLowerCase() === needle));
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/registry.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/registry.js
 var DEFAULT_REGISTRY_URL = "https://paos-resource-platform.dev.x-era.com";
 var ForgeRegistryClient = class {
   baseUrl;
@@ -14001,16 +14027,16 @@ function artifactFrom(value, name) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/runtime.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/runtime.js
 var import_yaml4 = __toESM(require_dist(), 1);
-import { createHash as createHash5 } from "node:crypto";
+import { createHash as createHash4 } from "node:crypto";
 import { closeSync, existsSync as existsSync4, openSync, readFileSync, symlinkSync } from "node:fs";
-import { cp as cp2, mkdir as mkdir11, readdir as readdir8, readFile as readFile11, rm as rm8, stat as stat11, writeFile as writeFile7 } from "node:fs/promises";
+import { chmod as chmod2, cp as cp2, mkdir as mkdir11, readdir as readdir8, readFile as readFile11, rm as rm8, stat as stat11, writeFile as writeFile7 } from "node:fs/promises";
 import { basename, dirname as dirname5, isAbsolute as isAbsolute3, join as join13, relative as relative2 } from "node:path";
 import { execFile as execFile3, spawn } from "node:child_process";
 import { promisify as promisify3 } from "node:util";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/nodes.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/nodes.js
 import { mkdir as mkdir10, readFile as readFile10, readdir as readdir7, rename as rename6, rm as rm7, stat as stat10, writeFile as writeFile6 } from "node:fs/promises";
 import { join as join12 } from "node:path";
 var NodeStore = class {
@@ -14190,7 +14216,7 @@ function archName2() {
   return process.arch;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/runtime.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/runtime.js
 var execFileAsync3 = promisify3(execFile3);
 var SkillRuntimeManager = class {
   paths;
@@ -14539,10 +14565,12 @@ var SkillRuntimeManager = class {
     }
   }
   async materialize(entry, profile, binaries, flow, modelEnv = {}) {
-    const hash = createHash5("sha256").update(entry.manifest.version).update(profile.id).update(readFileSync(join13(entry.dir, profile.dataflow))).digest("hex").slice(0, 16);
+    const hash = createHash4("sha256").update(entry.manifest.version).update(profile.id).update(readFileSync(join13(entry.dir, profile.dataflow))).digest("hex").slice(0, 16);
     const envDir = join13(this.paths.runtime, "env", entry.name, profile.id, hash);
     await rm8(envDir, { recursive: true, force: true });
-    await mkdir11(join13(envDir, "bin"), { recursive: true });
+    await mkdir11(envDir, { recursive: true, mode: 448 });
+    await chmod2(envDir, 448);
+    await mkdir11(join13(envDir, "bin"), { mode: 448 });
     for (const [binary, path] of Object.entries(binaries)) {
       symlinkSync(path, join13(envDir, "bin", binary));
     }
@@ -14551,6 +14579,7 @@ var SkillRuntimeManager = class {
       recursive: true,
       filter: (source) => !/node_modules|\.git|(^|\/)nodes(\/|$)/.test(source)
     });
+    await protectRuntimeTree(launch);
     await rewritePlaceholders(launch, "${FORGE_RUNTIME_BIN}", join13(envDir, "bin"));
     await rewritePlaceholders(launch, "${FORGE_MODELS_DIR}", this.paths.models);
     await rewritePlaceholders(launch, "${PAOS_SKILL_ROOT}", entry.dir);
@@ -14578,7 +14607,8 @@ var SkillRuntimeManager = class {
       modelsRoot: this.paths.models,
       modelEnv,
       artifacts: Object.fromEntries(Object.entries(entry.manifest.artifacts).map(([key, value]) => [key, value.artifactId]))
-    }, null, 2));
+    }, null, 2), { mode: 384 });
+    await chmod2(join13(envDir, "runtime-lock.json"), 384);
     await mkdir11(this.paths.logs, { recursive: true });
     return envDir;
   }
@@ -14641,6 +14671,20 @@ var SkillRuntimeManager = class {
     await rename9(temp, target);
   }
 };
+async function protectRuntimeTree(root) {
+  await chmod2(root, 448);
+  for (const entry of await readdir8(root, { withFileTypes: true })) {
+    const path = join13(root, entry.name);
+    if (entry.isDirectory()) {
+      await protectRuntimeTree(path);
+    } else if (entry.isSymbolicLink()) {
+      throw new ForgeError("FORGE_ARCHIVE_UNSAFE", `runtime payload contains a symbolic link: ${path}`);
+    } else if (entry.isFile()) {
+      const info = await stat11(path);
+      await chmod2(path, (info.mode & 73) !== 0 ? 448 : 384);
+    }
+  }
+}
 async function rewritePlaceholders(root, needle, value) {
   const entries = await readdir8(root, { withFileTypes: true });
   for (const entry of entries) {
@@ -14793,6 +14837,7 @@ async function injectDataflowEnv(path, env) {
       document.setIn(["nodes", index, "env", name], value);
     }
   }
+  await chmod2(path, 384);
   await writeFile7(path, String(document), { mode: 384 });
 }
 async function coordinatorReady(dora) {
@@ -14856,7 +14901,7 @@ async function killByFlow(flow, force = false) {
   return remaining.length;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/skill-files.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/skill-files.js
 var import_yaml5 = __toESM(require_dist(), 1);
 import { copyFile as copyFile3, mkdir as mkdir12, readdir as readdir9, readFile as readFile12, rename as rename7, stat as stat12, writeFile as writeFile8 } from "node:fs/promises";
 import { join as join14, relative as relative3, resolve as resolve6, sep as sep3 } from "node:path";
@@ -14994,7 +15039,7 @@ async function walk(dir) {
   return paths;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/operations.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=50abbfc8198265e747f802fce565cea6db5a841a695ecc0f5e0dd70093b2b9c7/node_modules/@x-era/forge-core/lib/operations.js
 var ForgeOperations = class {
   paths;
   catalog;
@@ -15724,7 +15769,7 @@ function normalizeSourcePath(file) {
 
 // src/config-store.mjs
 import { copyFile as copyFile4, mkdir as mkdir14, readFile as readFile14, readdir as readdir11, rename as rename8, stat as stat14, writeFile as writeFile10 } from "node:fs/promises";
-import { join as join16 } from "node:path";
+import { basename as basename2, join as join16 } from "node:path";
 var CONFIG_FILE = "config.json";
 var backupSeq = 0;
 function stamp2() {
@@ -15782,7 +15827,7 @@ var KimiConfigStore = class {
       const diff = diffValues(before.config, normalized);
       return {
         path: this.path,
-        ...backup === void 0 ? {} : { backup: backup.slice(backup.lastIndexOf("/") + 1) },
+        ...backup === void 0 ? {} : { backup: basename2(backup) },
         changed: diff.length,
         diff,
         config: normalized,
@@ -15828,7 +15873,7 @@ var KimiConfigStore = class {
         await stat14(this.path);
         const prevPath = `${this.path}.bak-${stamp2()}`;
         await copyFile4(this.path, prevPath);
-        previous = prevPath.slice(prevPath.lastIndexOf("/") + 1);
+        previous = basename2(prevPath);
       } catch {
         previous = void 0;
       }
