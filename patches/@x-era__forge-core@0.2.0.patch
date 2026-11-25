@@ -1,3 +1,163 @@
+diff --git a/lib/archive.d.ts b/lib/archive.d.ts
+index c305952782adf3fe475a86ef9d9300a28d45d804..6a40d395001a661d58460afda86871172fc3cdca 100644
+--- a/lib/archive.d.ts
++++ b/lib/archive.d.ts
+@@ -1,8 +1,4 @@
+-/**
+- * Extract a gzipped tar into `cwd`, rejecting entries that could escape it.
+- *
+- * The archive is third-party input: absolute paths, `..` traversal, symlinks and
+- * hard links are refused instead of silently skipped, so a hostile bundle fails
+- * the install rather than leaving partial state.
+- */
+-export declare function extractArchive(file: string, cwd: string): Promise<void>;
++/** Extract into an empty directory; node archives may allow validated internal symlinks. */
++export declare function extractArchive(file: string, cwd: string, options?: {
++    allowInternalLinks?: boolean;
++}): Promise<void>;
+diff --git a/lib/archive.js b/lib/archive.js
+index 9d0871199590e07e4b54726d237225cdb40cc680..720b7433a385a7902f0171cb7797bd52a76a36dc 100644
+--- a/lib/archive.js
++++ b/lib/archive.js
+@@ -1,34 +1,110 @@
+-import { isAbsolute, posix } from 'node:path';
+-import { x as untar } from 'tar';
++import { lstat, mkdir, readdir, realpath, rm, symlink } from 'node:fs/promises';
++import { dirname, isAbsolute, join, posix, relative, resolve, win32 } from 'node:path';
++import { t as list, x as untar } from 'tar';
+ import { ForgeError } from './errors.js';
+-/**
+- * Extract a gzipped tar into `cwd`, rejecting entries that could escape it.
+- *
+- * The archive is third-party input: absolute paths, `..` traversal, symlinks and
+- * hard links are refused instead of silently skipped, so a hostile bundle fails
+- * the install rather than leaving partial state.
+- */
+-export async function extractArchive(file, cwd) {
++
++/** Skill bundles reject links; node archives may opt into validated internal symlinks. */
++export async function extractArchive(file, cwd, options = {}) {
++    const unsafe = message => new ForgeError('FORGE_ARCHIVE_UNSAFE', message);
++    const root = resolve(cwd);
++    if (!(await lstat(root)).isDirectory() || (await readdir(root)).length !== 0)
++        throw unsafe('extraction requires an empty, non-symlink directory');
++    const entries = new Map();
++    const links = new Map();
+     const violations = [];
+-    await untar({
+-        file,
+-        cwd,
+-        strict: true,
+-        filter: (path, entry) => {
+-            const normalized = posix.normalize(path.replace(/^\.\//, ''));
+-            if (isAbsolute(normalized) || normalized.startsWith('../') || normalized === '..') {
+-                violations.push(`path escapes archive root: ${path}`);
+-                return false;
++    const safePath = path => typeof path === 'string' && path.length > 0
++        && !path.includes('\\') && !path.includes('\0') && !path.includes(':')
++        && !isAbsolute(path) && !win32.isAbsolute(path) && !/^[a-z]:/i.test(path);
++    // Inspect the entire archive before creating files. In particular, no archive
++    // entry may be written beneath a symlink, regardless of tar entry order.
++    await list({ file, strict: true, onReadEntry: entry => {
++        const path = posix.normalize(entry.path);
++        if (!safePath(entry.path) || entry.path.split('/').includes('..')) {
++            violations.push(`path escapes archive root: ${entry.path}`);
++            return;
++        }
++        const name = path.replace(/\/$/, '');
++        if (name === '.' || name === '') {
++            if (entry.type !== 'Directory') violations.push('archive root must be a directory');
++            return;
++        }
++        const previous = entries.get(name);
++        if (previous !== undefined && !(previous === 'Directory' && entry.type === 'Directory'))
++            violations.push(`duplicate archive entry: ${name}`);
++        entries.set(name, entry.type);
++        if (entry.type === 'SymbolicLink' && options.allowInternalLinks === true) {
++            const target = entry.linkpath;
++            const normalized = posix.normalize(posix.join(posix.dirname(name), target));
++            if (!safePath(target) || normalized === '..' || normalized.startsWith('../'))
++                violations.push(`link target escapes archive root: ${name}`);
++            else
++                links.set(name, target);
++        }
++        else if (entry.type === 'SymbolicLink' || entry.type === 'Link')
++            violations.push(`link entries are not allowed: ${name}`);
++        else if (!['File', 'OldFile', 'Directory'].includes(entry.type))
++            violations.push(`unsupported archive entry: ${name} (${entry.type})`);
++    } });
++    for (const name of entries.keys()) {
++        let parent = posix.dirname(name);
++        while (parent !== '.') {
++            if (entries.has(parent) && entries.get(parent) !== 'Directory') {
++                violations.push(`archive entry has a non-directory parent: ${name}`);
++                break;
+             }
+-            const type = entry.type;
+-            if (type === 'SymbolicLink' || type === 'Link') {
+-                violations.push(`link entries are not allowed: ${path}`);
+-                return false;
++            parent = posix.dirname(parent);
++        }
++    }
++    if (violations.length > 0)
++        throw unsafe(violations.slice(0, 3).join('; '));
++    const created = [];
++    try {
++        // Symlinks are deliberately not handed to tar: create them only after
++        // every ordinary file has been extracted, so extraction cannot follow one.
++        await untar({ file, cwd: root, strict: true,
++            filter: (_path, entry) => ['File', 'OldFile', 'Directory'].includes(entry.type) });
++        for (const [name, target] of links) {
++            const path = join(root, name);
++            await mkdir(dirname(path), { recursive: true });
++            await symlink(target, path);
++            created.push(path);
++        }
++        const canonicalRoot = await realpath(root);
++        for (const name of links.keys()) {
++            let target;
++            try {
++                target = await realpath(join(root, name));
++            }
++            catch {
++                throw unsafe(`dangling or cyclic symbolic link: ${name}`);
+             }
+-            return true;
+-        },
+-    });
+-    if (violations.length > 0) {
+-        throw new ForgeError('FORGE_ARCHIVE_UNSAFE', violations.slice(0, 3).join('; '));
++            const path = relative(canonicalRoot, target);
++            if (isAbsolute(path) || path === '..' || path.startsWith('../') || path.startsWith('..\\'))
++                throw unsafe(`link target escapes archive root: ${name}`);
++        }
++        // realpath catches file-link cycles, but directory aliases can also form
++        // traversal cycles (for example `child/up -> ..`) without an ELOOP.
++        const visited = new Set();
++        const active = new Set();
++        async function visit(directory) {
++            const canonical = await realpath(directory);
++            if (active.has(canonical))
++                throw unsafe(`cyclic directory symbolic link: ${relative(root, directory)}`);
++            if (visited.has(canonical)) return;
++            active.add(canonical);
++            for (const entry of await readdir(canonical, { withFileTypes: true })) {
++                const child = join(canonical, entry.name);
++                if (entry.isDirectory() || (entry.isSymbolicLink() && (await lstat(await realpath(child))).isDirectory()))
++                    await visit(child);
++            }
++            active.delete(canonical);
++            visited.add(canonical);
++        }
++        if (links.size > 0) await visit(root);
++    }
++    catch (error) {
++        for (const path of created.reverse())
++            await rm(path, { force: true }).catch(() => undefined);
++        throw error;
+     }
+ }
 diff --git a/lib/bootstrap.js b/lib/bootstrap.js
 index 95695a29d5fa0479527ddcb7a8cc40c09c3533bf..f900f9be55fb0e0de41a5dfcbcd8cd3e724079aa 100644
 --- a/lib/bootstrap.js
@@ -136,6 +296,50 @@ index 3d07aeeb014c7b141470f226d1864532f66a5b49..546c6af4ae8f886721813fe15b26e1ef
      }
      options.onProgress?.('download', 0, artifact.size);
      const transfer = await downloadFile({
+diff --git a/lib/nodes.js b/lib/nodes.js
+index 99e0a90137b15fb7402885720d165602cfaebbd1..edd8f84d25794863bd08557b7c701ddd9af51f37 100644
+--- a/lib/nodes.js
++++ b/lib/nodes.js
+@@ -135,20 +135,26 @@ export class NodeStore {
+         const staging = `${target}.staging-${process.pid}`;
+         await rm(staging, { recursive: true, force: true });
+         await mkdir(staging, { recursive: true });
+-        await extractArchive(archive, staging);
+-        if (!(await isExecutable(join(staging, lock.entrypoint)))) {
++        try {
++            await extractArchive(archive, staging, { allowInternalLinks: true });
++            if (!(await isExecutable(join(staging, lock.entrypoint)))) {
++                throw new ForgeError('FORGE_NODE_ENTRYPOINT', `${lock.artifactId} has no executable ${lock.entrypoint}`);
++            }
++            const metadata = {
++                artifactId: lock.artifactId,
++                ...(expected === undefined ? {} : { sha256: expected }),
++                ...(lock.version === undefined ? {} : { version: lock.version }),
++                verifiedAt: new Date().toISOString(),
++            };
++            // Do not write verification metadata through an archive-supplied link.
++            await rm(join(staging, '.artifact.json'), { force: true });
++            await writeFile(join(staging, '.artifact.json'), JSON.stringify(metadata, null, 2));
++            await rm(target, { recursive: true, force: true });
++            await rename(staging, target);
++        }
++        finally {
+             await rm(staging, { recursive: true, force: true });
+-            throw new ForgeError('FORGE_NODE_ENTRYPOINT', `${lock.artifactId} has no executable ${lock.entrypoint}`);
+-        }
+-        const metadata = {
+-            artifactId: lock.artifactId,
+-            ...(expected === undefined ? {} : { sha256: expected }),
+-            ...(lock.version === undefined ? {} : { version: lock.version }),
+-            verifiedAt: new Date().toISOString(),
+-        };
+-        await writeFile(join(staging, '.artifact.json'), JSON.stringify(metadata, null, 2));
+-        await rm(target, { recursive: true, force: true });
+-        await rename(staging, target);
++        }
+         await rm(archive, { force: true });
+         return transfer.bytes;
+     }
 diff --git a/lib/runtime.js b/lib/runtime.js
 index 760c3ab6e9fe61eed3ea2f639434cc2ba9dfb2ec..b05433d4f6781a1fc03161a6c723f1d4a22ce60f 100644
 --- a/lib/runtime.js

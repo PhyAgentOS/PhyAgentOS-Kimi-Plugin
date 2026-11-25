@@ -14,6 +14,16 @@ The patched dependency is used both by source tests and by the single-file MCP b
 | Shared models | A model root outside the default `<home>/models` is treated as read-only; managed model cache directories stay under the isolated runtime | Core regression tests and the managed MCP runtime test |
 | Runtime secrets | Create the instance directory as `0700`, restrict copied files to `0600` (owner-executable files to `0700`), and explicitly restrict the injected dataflow and runtime lock | `tests/core-hardening.test.mjs` |
 | Links | Treat a symlinked default model root as shared; reject symbolic links in copied runtime payloads before substitution or secret injection | `tests/core-hardening.test.mjs` |
+| Node archive links | Opt in to relative internal symlinks for node artifacts only; preflight entries, forbid writes through links, validate final targets and directory cycles, and clean failed staging | `tests/archive-links.test.mjs` |
+
+Node artifacts may contain relative symbolic links whose final targets exist
+inside the extracted artifact. Hard links, absolute or escaping targets, dangling
+links, file and directory cycles, duplicate non-directory entries, and archive
+entries below a link are rejected. Ordinary files are extracted before any links
+are created. Skill bundle archives still reject all links; runtime payload copying
+keeps its existing link restrictions. Node binaries run from the node store, so
+their validated library links are not copied through that runtime payload path.
+Windows symlink creation still depends on host privileges and needs acceptance.
 
 Local archives supplied to `forge_skill_install_local` still receive structural and
 safe-extraction validation. They have no trusted remote digest; they are not covered
