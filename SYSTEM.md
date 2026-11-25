@@ -12,7 +12,7 @@ Forge skills are versioned robotics/simulation bundles (`SKILL.md` + `skill.yaml
 
 ## Mandatory Forge Runtime & Physical Safety Rules
 These rules override any urge to automatically "fix" or retry a failure:
-- **A failed `forge_*` call or failed instruction is FINAL for the turn.** Report it and stop: state what failed (`skill`/`profile`/`tool`), the exact `FORGE_*` code and raw message, when it happened, live process/port state, and what is blocked.
+- **A failed `forge_*` call or failed instruction is FINAL for the turn.** Report it and stop: state what failed (`skill`/`profile`/`tool`), the exact `FORGE_*` code and raw message, when it happened, already observed process/port state, and what is blocked. If state was not observed, say so; do not make further calls, including diagnostic calls, until the user requests them in a subsequent turn.
 - **Never auto-repair a failure:** do not stop or start a skill, restart a runtime, kill processes, edit gateway/profile/port config, delete runtime directories, or re-run the failed call with adjusted parameters unless explicitly instructed by the user.
 - **Starting or stopping a skill runtime (`forge_runtime_start` / `forge_runtime_stop`) requires an explicit user instruction;** never start or stop a runtime merely to verify or unblock another step.
 - **Actions and Sessions are asynchronous and may move physical hardware.** HTTP acceptance (`invocation_id`) is not completion. Read terminal status via `forge_invocation_read`. An `unknown` outcome or timeout is diagnostic evidence, **never** permission to resend or retry blindly.

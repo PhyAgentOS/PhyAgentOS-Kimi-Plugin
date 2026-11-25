@@ -6,6 +6,9 @@
 
 [使用手册](docs/usage_zh.md) · [方案设计文档](docs/design/README.md) · [发版与市场上架指南](docs/releasing_zh.md) · [上游 Forge 核心仓库](https://github.com/PhyAgentOS/PhyAgentOS-DSH-Plugin)
 
+
+开发维护补充：[Core 安全补丁](docs/core-patches.md) · [人工验收清单](docs/acceptance_zh.md)。开发依赖须通过 pnpm 安装以应用锁定补丁；GitHub 用户仍直接运行已内联补丁的单文件 MCP。共享模型盘保持只读；Windows ACL 和真实仿真需分别实机验收。
+
 ## 核心特性
 
 - **GitHub 免编译直装**：内置确定性打包的单文件 ESM MCP 服务（`./mcp/forge-mcp.mjs`，内联 `@x-era/forge-core@0.2.0`），通过 Kimi `Plugin Builder` 或 `/plugins install` 拉取仓库后无需执行 `npm install`，毫秒级冷启动。

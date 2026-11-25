@@ -27,3 +27,12 @@ Per Kimi's official marketplace workflow:
      1. Run `/phyagentos:env` → verifies `forge_environment_check` and isolated `~/.kimi-code/forge` path.
      2. Run `/phyagentos:skills` → verifies live anonymous query against `https://paos-resource-platform.dev.x-era.com/v1/skills`.
      3. Ask *"Search Forge node repositories for mujoco and read its repository info"* → verifies `forge_repo_search` and `forge_repo_info`.
+
+
+## 3. Patch, Acceptance and Release Evidence
+
+Read the [core patch maintenance notes](core-patches.md) before upgrading. Rebase or explicitly remove each patch; do not bundle an npm-installed, unpatched dependency. Commit patches, workspace config, lockfile, source, tests and the rebuilt server together.
+
+After full gates and the platform CI matrix pass, complete the [manual acceptance matrix](acceptance_en.md). Reviewers should obtain an actual node artifact ID and exercise `forge_node_info` / `forge_node_source`, not just the static repository catalog.
+
+Record the immutable Release, marketplace submission receipt and official decision separately. These instructions do not assert that publication or approval has occurred.

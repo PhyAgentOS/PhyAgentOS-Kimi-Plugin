@@ -23,7 +23,7 @@ test('config store writes 0600 JSON, merges updates, creates backups and restore
     assert.equal(w1.config.models.root, '/data/shared-models')
 
     const fileStat = await stat(join(home, 'config.json'))
-    assert.equal(fileStat.mode & 0o777, 0o600)
+    if (process.platform !== 'win32') assert.equal(fileStat.mode & 0o777, 0o600)
 
     const w2 = await store.write({ runtime: { dora: '/opt/bin/dora' } })
     assert.ok(w2.backup?.startsWith('config.json.bak-'))

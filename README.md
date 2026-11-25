@@ -6,6 +6,9 @@ Kimi plugin for installing, inspecting, diagnosing, and running [PhyAgentOS Forg
 
 [User Guide](docs/usage_en.md) · [Design Docs](docs/design/README.md) · [Release & Marketplace Guide](docs/releasing_en.md) · [Upstream Forge Core](https://github.com/PhyAgentOS/PhyAgentOS-DSH-Plugin)
 
+
+Maintenance: [Core security patch](docs/core-patches.md) · [Acceptance checklist](docs/acceptance_en.md). Install development dependencies with pnpm so the tracked patch is applied; end users still run the self-contained bundled MCP. Shared model roots remain read-only. Windows ACLs and real simulation require separate host acceptance.
+
 ## Highlights
 
 - **Zero-Compile GitHub Install:** Ships a deterministic single-file ESM MCP server (`./mcp/forge-mcp.mjs` bundling `@x-era/forge-core@0.2.0`) — installs straight from GitHub or a local folder with no `npm install` step at plugin load time.

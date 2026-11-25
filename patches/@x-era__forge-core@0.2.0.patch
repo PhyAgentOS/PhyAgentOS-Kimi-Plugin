@@ -1,0 +1,499 @@
+diff --git a/lib/archive.d.ts b/lib/archive.d.ts
+index c305952782adf3fe475a86ef9d9300a28d45d804..dabeca5a4de3698a6203b3f19b597dac7642be3a 100644
+--- a/lib/archive.d.ts
++++ b/lib/archive.d.ts
+@@ -1,8 +1,8 @@
+-/**
+- * Extract a gzipped tar into `cwd`, rejecting entries that could escape it.
+- *
+- * The archive is third-party input: absolute paths, `..` traversal, symlinks and
+- * hard links are refused instead of silently skipped, so a hostile bundle fails
+- * the install rather than leaving partial state.
+- */
+-export declare function extractArchive(file: string, cwd: string): Promise<void>;
++/** Extract into an empty directory; node archives may allow validated internal symlinks. */
++export declare function extractArchive(file: string, cwd: string, options?: {
++    allowInternalLinks?: boolean;
++    nodeArtifact?: {
++        artifactType: 'executable_tar_gz' | 'directory_tar_gz';
++        entrypoint: string;
++    };
++}): Promise<void>;
+diff --git a/lib/archive.js b/lib/archive.js
+index 9d0871199590e07e4b54726d237225cdb40cc680..31c1f929f132c9d4f2c4fbc767c04459b5e4755f 100644
+--- a/lib/archive.js
++++ b/lib/archive.js
+@@ -1,34 +1,147 @@
+-import { isAbsolute, posix } from 'node:path';
+-import { x as untar } from 'tar';
++import { lstat, mkdir, readdir, realpath, rm, symlink } from 'node:fs/promises';
++import { dirname, isAbsolute, join, posix, relative, resolve, win32 } from 'node:path';
++import { t as list, x as untar } from 'tar';
+ import { ForgeError } from './errors.js';
+-/**
+- * Extract a gzipped tar into `cwd`, rejecting entries that could escape it.
+- *
+- * The archive is third-party input: absolute paths, `..` traversal, symlinks and
+- * hard links are refused instead of silently skipped, so a hostile bundle fails
+- * the install rather than leaving partial state.
+- */
+-export async function extractArchive(file, cwd) {
++
++/** Skill bundles reject links; node archives may opt into validated internal symlinks. */
++export async function extractArchive(file, cwd, options = {}) {
++    const unsafe = message => new ForgeError('FORGE_ARCHIVE_UNSAFE', message);
++    const root = resolve(cwd);
++    if (!(await lstat(root)).isDirectory() || (await readdir(root)).length !== 0)
++        throw unsafe('extraction requires an empty, non-symlink directory');
++    const node = options.nodeArtifact;
++    if (node !== undefined && (!['executable_tar_gz', 'directory_tar_gz'].includes(node.artifactType)
++        || typeof node.entrypoint !== 'string' || !node.entrypoint.trim()
++        || ['.', '..', '.artifact.json'].includes(node.entrypoint)
++        || ['/', '\\', ':', '\0'].some(char => node.entrypoint.includes(char))))
++        throw unsafe('invalid node artifact type or entrypoint name');
++    const entries = new Map();
++    const modes = new Map();
++    let entryCount = 0;
++    const links = new Map();
+     const violations = [];
+-    await untar({
+-        file,
+-        cwd,
+-        strict: true,
+-        filter: (path, entry) => {
+-            const normalized = posix.normalize(path.replace(/^\.\//, ''));
+-            if (isAbsolute(normalized) || normalized.startsWith('../') || normalized === '..') {
+-                violations.push(`path escapes archive root: ${path}`);
+-                return false;
++    const safePath = path => typeof path === 'string' && path.length > 0
++        && !path.includes('\\') && !path.includes('\0') && !path.includes(':')
++        && !isAbsolute(path) && !win32.isAbsolute(path) && !/^[a-z]:/i.test(path);
++    // Inspect the entire archive before creating files. In particular, no archive
++    // entry may be written beneath a symlink, regardless of tar entry order.
++    try {
++    await list({ file, strict: true, onReadEntry: entry => {
++        entryCount++;
++        if (node?.artifactType === 'directory_tar_gz' && entryCount > 50000) {
++            if (entryCount === 50001) violations.push('directory node archive exceeds 50000 entries');
++            return;
++        }
++        const path = posix.normalize(entry.path);
++        if (!safePath(entry.path) || entry.path.split('/').includes('..')) {
++            violations.push(`path escapes archive root: ${entry.path}`);
++            return;
++        }
++        const name = path.replace(/\/$/, '');
++        if (name === '.' || name === '') {
++            if (node !== undefined) violations.push('node archives must not contain a wrapper root entry');
++            if (entry.type !== 'Directory') violations.push('archive root must be a directory');
++            return;
++        }
++        const previous = entries.get(name);
++        if (previous !== undefined && !(previous === 'Directory' && entry.type === 'Directory'))
++            violations.push(`duplicate archive entry: ${name}`);
++        entries.set(name, entry.type);
++        modes.set(name, entry.mode ?? 0);
++        const allowLinks = node === undefined ? options.allowInternalLinks === true
++            : node.artifactType === 'directory_tar_gz';
++        if (entry.type === 'SymbolicLink' && allowLinks) {
++            const target = entry.linkpath;
++            const normalized = posix.normalize(posix.join(posix.dirname(name), target));
++            if (!safePath(target) || normalized === '..' || normalized.startsWith('../'))
++                violations.push(`link target escapes archive root: ${name}`);
++            else
++                links.set(name, target);
++        }
++        else if (entry.type === 'SymbolicLink' || entry.type === 'Link')
++            violations.push(`link entries are not allowed: ${name}`);
++        else if (!['File', 'OldFile', 'Directory'].includes(entry.type))
++            violations.push(`unsupported archive entry: ${name} (${entry.type})`);
++    } });
++    }
++    catch (error) {
++        throw unsafe(`invalid tar archive: ${error.message}`);
++    }
++    for (const name of entries.keys()) {
++        let parent = posix.dirname(name);
++        while (parent !== '.') {
++            if (entries.has(parent) && entries.get(parent) !== 'Directory') {
++                violations.push(`archive entry has a non-directory parent: ${name}`);
++                break;
+             }
+-            const type = entry.type;
+-            if (type === 'SymbolicLink' || type === 'Link') {
+-                violations.push(`link entries are not allowed: ${path}`);
+-                return false;
++            parent = posix.dirname(parent);
++        }
++    }
++    if (node !== undefined) {
++        const directory = node.artifactType === 'directory_tar_gz';
++        const executable = directory ? `${node.entrypoint}/${node.entrypoint}` : node.entrypoint;
++        for (const [name, type] of entries) {
++            if (directory ? name !== node.entrypoint && !name.startsWith(`${node.entrypoint}/`)
++                : name !== node.entrypoint || !['File', 'OldFile'].includes(type))
++                violations.push(`invalid ${node.artifactType} layout: ${name}`);
++        }
++        if (directory && entries.has(node.entrypoint) && entries.get(node.entrypoint) !== 'Directory')
++            violations.push(`node root must be a directory: ${node.entrypoint}`);
++        if (!['File', 'OldFile'].includes(entries.get(executable)) || !(modes.get(executable) & 0o111))
++            violations.push(`node entrypoint must be an executable regular file: ${executable}`);
++        if (!directory && (entries.size !== 1 || entryCount !== 1))
++            violations.push('executable node archive must contain exactly one regular file');
++    }
++    if (violations.length > 0)
++        throw unsafe(violations.slice(0, 3).join('; '));
++    const created = [];
++    try {
++        // Symlinks are deliberately not handed to tar: create them only after
++        // every ordinary file has been extracted, so extraction cannot follow one.
++        await untar({ file, cwd: root, strict: true,
++            filter: (_path, entry) => ['File', 'OldFile', 'Directory'].includes(entry.type) });
++        for (const [name, target] of links) {
++            const path = join(root, name);
++            await mkdir(dirname(path), { recursive: true });
++            await symlink(target, path);
++            created.push(path);
++        }
++        const canonicalRoot = await realpath(root);
++        for (const name of links.keys()) {
++            let target;
++            try {
++                target = await realpath(join(root, name));
+             }
+-            return true;
+-        },
+-    });
+-    if (violations.length > 0) {
+-        throw new ForgeError('FORGE_ARCHIVE_UNSAFE', violations.slice(0, 3).join('; '));
++            catch {
++                throw unsafe(`dangling or cyclic symbolic link: ${name}`);
++            }
++            const path = relative(canonicalRoot, target);
++            if (isAbsolute(path) || path === '..' || path.startsWith('../') || path.startsWith('..\\'))
++                throw unsafe(`link target escapes archive root: ${name}`);
++        }
++        // realpath catches file-link cycles, but directory aliases can also form
++        // traversal cycles (for example `child/up -> ..`) without an ELOOP.
++        const visited = new Set();
++        const active = new Set();
++        async function visit(directory) {
++            const canonical = await realpath(directory);
++            if (active.has(canonical))
++                throw unsafe(`cyclic directory symbolic link: ${relative(root, directory)}`);
++            if (visited.has(canonical)) return;
++            active.add(canonical);
++            for (const entry of await readdir(canonical, { withFileTypes: true })) {
++                const child = join(canonical, entry.name);
++                if (entry.isDirectory() || (entry.isSymbolicLink() && (await lstat(await realpath(child))).isDirectory()))
++                    await visit(child);
++            }
++            active.delete(canonical);
++            visited.add(canonical);
++        }
++        if (links.size > 0) await visit(root);
++    }
++    catch (error) {
++        for (const path of created.reverse())
++            await rm(path, { force: true }).catch(() => undefined);
++        throw error;
+     }
+ }
+diff --git a/lib/bootstrap.js b/lib/bootstrap.js
+index 95695a29d5fa0479527ddcb7a8cc40c09c3533bf..f900f9be55fb0e0de41a5dfcbcd8cd3e724079aa 100644
+--- a/lib/bootstrap.js
++++ b/lib/bootstrap.js
+@@ -1,6 +1,6 @@
+ import { execFile } from 'node:child_process';
+ import { existsSync } from 'node:fs';
+-import { chmod, copyFile, mkdir, rm, symlink } from 'node:fs/promises';
++import { chmod, copyFile, lstat, mkdir, rm, symlink } from 'node:fs/promises';
+ import { join, resolve } from 'node:path';
+ import { promisify } from 'node:util';
+ import { checkEnvironment, } from './environment.js';
+@@ -40,11 +40,23 @@ export async function bootstrapEnvironment(options) {
+     const steps = [];
+     const installer = await detectInstaller(options.python, env, exec);
+     // ---- 1. Directories ---------------------------------------------------
++    let privateModels = resolve(paths.models) === resolve(join(paths.home, 'models'));
++    if (privateModels) {
++        try {
++            privateModels = !(await lstat(paths.models)).isSymbolicLink();
++        }
++        catch (error) {
++            if (error.code !== 'ENOENT')
++                throw error;
++        }
++    }
+     const managedDirs = [
+         paths.home,
+         paths.skills,
+-        paths.models,
+-        join(paths.models, 'cache'),
++        // A non-default model root is a read-only shared asset, not managed storage.
++        ...(privateModels
++            ? [paths.models, join(paths.models, 'cache')]
++            : [join(paths.runtime, 'cache', 'models')]),
+         supportRoot,
+         supportBin,
+         paths.runtime,
+@@ -66,7 +78,7 @@ export async function bootstrapEnvironment(options) {
+                     id: 'directories',
+                     status: 'updated',
+                     target: paths.home,
+-                    detail: `ensured Forge directories under ${paths.home} and models root ${paths.models}`,
++                    detail: `ensured Forge directories under ${paths.home}; shared model roots are never created or written`,
+                 });
+             }
+             catch (error) {
+diff --git a/lib/download.js b/lib/download.js
+index 3abaedc92497bda29ca6f688a03f6369e5fd1dc4..15ba4841302a26339ec0c90e86cb3126cdbd215a 100644
+--- a/lib/download.js
++++ b/lib/download.js
+@@ -13,6 +13,7 @@ import { ForgeError } from './errors.js';
+  * is verified exactly like a fresh one.
+  */
+ export async function downloadFile(options) {
++    validateArtifactIntegrity(options);
+     await mkdir(dirname(options.dest), { recursive: true });
+     const part = `${options.dest}.part`;
+     const idleTimeoutMs = options.idleTimeoutMs ?? 120_000;
+@@ -102,7 +103,7 @@ export async function downloadFile(options) {
+     }
+     options.onProgress?.({ downloaded: info.size, total: options.size ?? info.size });
+     const digest = await hashFile(options.dest);
+-    if (options.sha256 !== undefined && digest !== options.sha256) {
++    if (options.sha256 !== undefined && digest !== options.sha256.toLowerCase()) {
+         await rm(options.dest, { force: true });
+         throw new ForgeError('FORGE_NODE_INTEGRITY', `sha256 mismatch: expected ${options.sha256}, got ${digest}`);
+     }
+@@ -122,7 +123,16 @@ async function ensureSpace(dir, needed) {
+         // statfs is best-effort; an unknown filesystem must not block the transfer.
+     }
+ }
+-async function hashFile(path) {
++/** Reject unpinned remote artifacts before any filesystem or network mutation. */
++export function validateArtifactIntegrity(artifact) {
++    if (typeof artifact.sha256 !== 'string' || !/^[a-f0-9]{64}$/i.test(artifact.sha256)) {
++        throw new ForgeError('FORGE_NODE_INTEGRITY', 'remote artifact requires a pinned SHA256 digest');
++    }
++    if (!Number.isSafeInteger(artifact.size) || artifact.size < 0) {
++        throw new ForgeError('FORGE_NODE_INTEGRITY', 'remote artifact requires a non-negative safe-integer byte length');
++    }
++}
++export async function hashFile(path) {
+     const hash = createHash('sha256');
+     const stream = createReadStream(path);
+     for await (const chunk of stream)
+diff --git a/lib/install.js b/lib/install.js
+index 3d07aeeb014c7b141470f226d1864532f66a5b49..546c6af4ae8f886721813fe15b26e1ef35a70ce5 100644
+--- a/lib/install.js
++++ b/lib/install.js
+@@ -1,8 +1,7 @@
+-import { createHash } from 'node:crypto';
+ import { lstat, mkdir, mkdtemp, rename, rm, stat } from 'node:fs/promises';
+ import { dirname, join, resolve } from 'node:path';
+ import { extractArchive } from './archive.js';
+-import { downloadFile } from './download.js';
++import { downloadFile, hashFile, validateArtifactIntegrity } from './download.js';
+ import { ForgeError } from './errors.js';
+ import { parseManifest } from './manifest.js';
+ /**
+@@ -213,19 +212,27 @@ async function directorySize(dir) {
+     return total;
+ }
+ async function fetchArchive(artifact, options) {
++    validateArtifactIntegrity(artifact);
+     await mkdir(options.cacheRoot, { recursive: true });
+-    const key = artifact.sha256 ?? createHash('sha256').update(artifact.url).digest('hex');
+-    const path = join(options.cacheRoot, `${key}.tar.gz`);
++    const path = join(options.cacheRoot, `${artifact.sha256.toLowerCase()}.tar.gz`);
++    let info;
+     try {
+-        const info = await stat(path);
+-        if (artifact.size === undefined || info.size === artifact.size) {
+-            options.onProgress?.('download', info.size, info.size);
+-            return { path, bytes: info.size, fromCache: true };
+-        }
+-        await rm(path, { force: true });
++        info = await stat(path);
+     }
+-    catch {
+-        // not cached yet
++    catch (error) {
++        if (error.code !== 'ENOENT')
++            throw error;
++    }
++    if (info !== undefined) {
++        if (!info.isFile() || info.size !== artifact.size) {
++            throw new ForgeError('FORGE_NODE_INTEGRITY', `cached archive size mismatch: expected ${artifact.size}, got ${info.size}`);
++        }
++        const digest = await hashFile(path);
++        if (digest !== artifact.sha256.toLowerCase()) {
++            throw new ForgeError('FORGE_NODE_INTEGRITY', `cached archive sha256 mismatch: expected ${artifact.sha256}, got ${digest}`);
++        }
++        options.onProgress?.('download', info.size, info.size);
++        return { path, bytes: info.size, fromCache: true };
+     }
+     options.onProgress?.('download', 0, artifact.size);
+     const transfer = await downloadFile({
+diff --git a/lib/nodes.js b/lib/nodes.js
+index 99e0a90137b15fb7402885720d165602cfaebbd1..99b3041c76352744768f43c221c561d3d1c1b75c 100644
+--- a/lib/nodes.js
++++ b/lib/nodes.js
+@@ -1,4 +1,4 @@
+-import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
++import { lstat, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
+ import { join } from 'node:path';
+ import { extractArchive } from './archive.js';
+ import { downloadFile } from './download.js';
+@@ -22,7 +22,7 @@ export class NodeStore {
+     /** Read-only cache inspection; never downloads. */
+     async inspect(lock, binary = lock.nodeId) {
+         const dir = join(this.root, lock.artifactId);
+-        const entrypoint = join(dir, lock.entrypoint);
++        const entrypoint = nodeEntrypoint(dir, lock);
+         if (!(await isExecutable(entrypoint))) {
+             return { artifactId: lock.artifactId, entrypoint, state: 'missing', detail: `${binary}: ${dir} is not installed` };
+         }
+@@ -113,6 +113,7 @@ export class NodeStore {
+         return { removed, freedBytes, kept };
+     }
+     async download(lock, hooks) {
++        const expectedEntrypoint = nodeEntrypoint('', lock);
+         if (lock.platform !== process.platform || lock.arch !== archName()) {
+             throw new ForgeError('FORGE_NODE_PLATFORM', `${lock.artifactId} targets ${lock.platform}/${lock.arch}`);
+         }
+@@ -135,20 +136,26 @@ export class NodeStore {
+         const staging = `${target}.staging-${process.pid}`;
+         await rm(staging, { recursive: true, force: true });
+         await mkdir(staging, { recursive: true });
+-        await extractArchive(archive, staging);
+-        if (!(await isExecutable(join(staging, lock.entrypoint)))) {
++        try {
++            await extractArchive(archive, staging, { nodeArtifact: lock });
++            if (!(await isExecutable(join(staging, expectedEntrypoint)))) {
++                throw new ForgeError('FORGE_NODE_ENTRYPOINT', `${lock.artifactId} has no executable ${lock.entrypoint}`);
++            }
++            const metadata = {
++                artifactId: lock.artifactId,
++                ...(expected === undefined ? {} : { sha256: expected }),
++                ...(lock.version === undefined ? {} : { version: lock.version }),
++                verifiedAt: new Date().toISOString(),
++            };
++            // Do not write verification metadata through an archive-supplied link.
++            await rm(join(staging, '.artifact.json'), { force: true });
++            await writeFile(join(staging, '.artifact.json'), JSON.stringify(metadata, null, 2));
++            await rm(target, { recursive: true, force: true });
++            await rename(staging, target);
++        }
++        finally {
+             await rm(staging, { recursive: true, force: true });
+-            throw new ForgeError('FORGE_NODE_ENTRYPOINT', `${lock.artifactId} has no executable ${lock.entrypoint}`);
+-        }
+-        const metadata = {
+-            artifactId: lock.artifactId,
+-            ...(expected === undefined ? {} : { sha256: expected }),
+-            ...(lock.version === undefined ? {} : { version: lock.version }),
+-            verifiedAt: new Date().toISOString(),
+-        };
+-        await writeFile(join(staging, '.artifact.json'), JSON.stringify(metadata, null, 2));
+-        await rm(target, { recursive: true, force: true });
+-        await rename(staging, target);
++        }
+         await rm(archive, { force: true });
+         return transfer.bytes;
+     }
+@@ -177,9 +184,17 @@ async function directorySize(path) {
+     }
+     return total;
+ }
++function nodeEntrypoint(root, lock) {
++    const name = lock.entrypoint;
++    if (!['executable_tar_gz', 'directory_tar_gz'].includes(lock.artifactType)
++        || typeof name !== 'string' || !name.trim() || ['.', '..', '.artifact.json'].includes(name)
++        || ['/', '\\', ':', '\0'].some(char => name.includes(char)))
++        throw new ForgeError('FORGE_NODE_ENTRYPOINT', 'node entrypoint must be a single filename with a supported artifact type');
++    return lock.artifactType === 'directory_tar_gz' ? join(root, name, name) : join(root, name);
++}
+ async function isExecutable(path) {
+     try {
+-        const info = await stat(path);
++        const info = await lstat(path);
+         return info.isFile() && (info.mode & 0o111) !== 0;
+     }
+     catch {
+diff --git a/lib/runtime.js b/lib/runtime.js
+index 760c3ab6e9fe61eed3ea2f639434cc2ba9dfb2ec..b05433d4f6781a1fc03161a6c723f1d4a22ce60f 100644
+--- a/lib/runtime.js
++++ b/lib/runtime.js
+@@ -1,6 +1,6 @@
+ import { createHash } from 'node:crypto';
+ import { closeSync, existsSync, openSync, readFileSync, symlinkSync } from 'node:fs';
+-import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
++import { chmod, cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+ import { basename, dirname, isAbsolute, join, relative } from 'node:path';
+ import { execFile, spawn } from 'node:child_process';
+ import { promisify } from 'node:util';
+@@ -388,7 +388,10 @@ export class SkillRuntimeManager {
+             .slice(0, 16);
+         const envDir = join(this.paths.runtime, 'env', entry.name, profile.id, hash);
+         await rm(envDir, { recursive: true, force: true });
+-        await mkdir(join(envDir, 'bin'), { recursive: true });
++        // Establish a private boundary before copying config or injecting secrets.
++        await mkdir(envDir, { recursive: true, mode: 0o700 });
++        await chmod(envDir, 0o700);
++        await mkdir(join(envDir, 'bin'), { mode: 0o700 });
+         for (const [binary, path] of Object.entries(binaries)) {
+             symlinkSync(path, join(envDir, 'bin', binary));
+         }
+@@ -397,6 +400,7 @@ export class SkillRuntimeManager {
+             recursive: true,
+             filter: source => !/node_modules|\.git|(^|\/)nodes(\/|$)/.test(source),
+         });
++        await protectRuntimeTree(launch);
+         await rewritePlaceholders(launch, '${FORGE_RUNTIME_BIN}', join(envDir, 'bin'));
+         await rewritePlaceholders(launch, '${FORGE_MODELS_DIR}', this.paths.models);
+         // Dora renders neither PAOS_SKILL_* nor FORGE_FLOW_ID in node paths, so the
+@@ -428,7 +432,8 @@ export class SkillRuntimeManager {
+             modelsRoot: this.paths.models,
+             modelEnv,
+             artifacts: Object.fromEntries(Object.entries(entry.manifest.artifacts).map(([key, value]) => [key, value.artifactId])),
+-        }, null, 2));
++        }, null, 2), { mode: 0o600 });
++        await chmod(join(envDir, 'runtime-lock.json'), 0o600);
+         await mkdir(this.paths.logs, { recursive: true });
+         return envDir;
+     }
+@@ -493,6 +498,23 @@ export class SkillRuntimeManager {
+         await rename(temp, target);
+     }
+ }
++/** Restrict only copied runtime files; never follow links into source/assets. */
++async function protectRuntimeTree(root) {
++    await chmod(root, 0o700);
++    for (const entry of await readdir(root, { withFileTypes: true })) {
++        const path = join(root, entry.name);
++        if (entry.isDirectory()) {
++            await protectRuntimeTree(path);
++        }
++        else if (entry.isSymbolicLink()) {
++            throw new ForgeError('FORGE_ARCHIVE_UNSAFE', `runtime payload contains a symbolic link: ${path}`);
++        }
++        else if (entry.isFile()) {
++            const info = await stat(path);
++            await chmod(path, (info.mode & 0o111) !== 0 ? 0o700 : 0o600);
++        }
++    }
++}
+ async function rewritePlaceholders(root, needle, value) {
+     const entries = await readdir(root, { withFileTypes: true });
+     for (const entry of entries) {
+@@ -672,6 +694,7 @@ async function injectDataflowEnv(path, env) {
+             document.setIn(['nodes', index, 'env', name], value);
+         }
+     }
++    await chmod(path, 0o600);
+     await writeFile(path, String(document), { mode: 0o600 });
+ }
+ /** A coordinator is ready when `dora list` succeeds (works for 0.4.x and 1.x). */

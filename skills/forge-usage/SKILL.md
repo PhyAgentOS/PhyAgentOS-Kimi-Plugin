@@ -41,10 +41,10 @@ Forge manages versioned robot and simulation *skills* (`SKILL.md` + `skill.yaml`
 1. **Look before acting.** Call `forge_skill_list` / `forge_skill_inspect` rather than guessing skill names or profile IDs (e.g. `mujoco-piper`).
 2. **Isolated home & shared models.** Kimi stores state in `~/.kimi-code/forge` so it never conflicts with DSH (`~/.dsh/forge`). To reuse an existing multi-GB model directory read-only, set `models.root` via `forge_config_write`.
 3. **Cross-platform awareness.** Precompiled node artifacts in the registry primarily target `linux/x86_64`. On macOS/Windows desktops, catalog/search/source/profile tools work locally; to run `linux/x86_64` MuJoCo or robot nodes from Kimi Desktop, attach Kimi's SSH `environment_id` to a Linux host or run Kimi Code CLI on Linux.
-4. **Installs are asynchronous jobs.** `forge_skill_install` returns a `job_id`; poll `forge_install_status` until `state` is no longer `running`.
+4. **Installs are asynchronous jobs.** `forge_skill_install` returns an `id`; pass it as `job_id` to `forge_install_status` until `state` is no longer `running`.
 5. **Read before writing a profile.** `forge_profile_write` replaces the entire file, creates a backup, and returns a `diff` plus `restartRequired: true`. Ask before restarting an active runtime.
 6. **Actions are asynchronous and physical.** `forge_tool_call` on an Action/Session returns an `invocation_id`; check `forge_invocation_read`. Never blind-retry a timeout or `unknown` outcome — real profiles move physical hardware.
-7. **Diagnose with `FORGE_*` codes.** When a call fails, stop, run `forge_skill_doctor` if diagnostic read-only evidence is needed, and report the exact `FORGE_*` code and hint without auto-repairing.
+7. **Failure ends the turn.** When a call fails, report the exact `FORGE_*` code, raw message and already collected evidence, then stop. Do not call `forge_skill_doctor` or any other tool after failure in the same turn. Offer diagnostic steps as not executed; wait for the user's subsequent request.
 
 ## Typical Sequences
 

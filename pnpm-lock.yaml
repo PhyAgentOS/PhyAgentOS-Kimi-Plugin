@@ -162,13 +162,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@x-era/forge-core@0.2.0': ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9
+
 importers:
 
   .:
     dependencies:
       '@x-era/forge-core':
         specifier: 0.2.0
-        version: 0.2.0
+        version: 0.2.0(patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9)
     devDependencies:
       esbuild:
         specifier: ^0.25.0
@@ -454,7 +457,7 @@ snapshots:
     dependencies:
       minipass: 7.1.3
 
-  '@x-era/forge-core@0.2.0':
+  '@x-era/forge-core@0.2.0(patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9)':
     dependencies:
       tar: 7.5.23
       yaml: 2.9.1

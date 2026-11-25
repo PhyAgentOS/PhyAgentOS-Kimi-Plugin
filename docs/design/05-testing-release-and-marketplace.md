@@ -10,3 +10,15 @@
 通过 Kimi 插件详情页右上角 `✉️` → **「申请发布到官方市场」** 提交时附带：
 - 宿主范围说明：支持 `desktop`（Kimi Work / Kimi Code Desktop）与 `cli`（Kimi Code CLI），依赖本机或 SSH 远端 `Node.js >=22`；
 - 零真机 3 分钟审核员验收脚本：`/phyagentos:env`（离线/在线环境体检）→ `/phyagentos:skills`（公网免鉴权 Registry 检索）→ `forge_repo_search`（节点仓库检索）。
+
+
+## 3. 新增回归与实机验收记录
+
+- `tests/core-hardening.test.mjs`：缓存校验、必需完整性元数据、只读模型盘、POSIX 权限和符号链接边界。
+- `tests/mcp-runtime.test.mjs`：模拟 Dora/Gateway 的真实子进程启动、Query/Action/unknown 对账、持锁下载取消与刷新后任务保留。
+- `scripts/run-tests.mjs`：跨平台枚举测试文件，避免 Windows shell 通配符差异。
+- CI 增加 macOS/Windows Node 22、Linux Node 24；POSIX 专属场景在 Windows 明确跳过，实际结果以本次提交的 CI 为准。
+- `pnpm run benchmark:startup` 提供离线 initialize 测量，输出 50ms 目标结果，不以估计值替代测量。
+
+完整人工验收矩阵及证据要求见[验收清单](../acceptance_zh.md)。文件存在或模拟测试通过不等于 Kimi Work、SSH、MuJoCo 已实测；未执行行保持待执行。
+源码修复不自动创建 Release 或发送市场申请；发布维护者须附上该提交的门禁、实机日志及申请回执。

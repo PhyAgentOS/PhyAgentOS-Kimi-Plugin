@@ -14,3 +14,19 @@
 前期调研与总体规划存档：
 - [phyagentos_kimi_plugin_feasibility.md](../phyagentos_kimi_plugin_feasibility.md)
 - [phyagentos_kimi_plugin_plan.md](../phyagentos_kimi_plugin_plan.md)
+
+## 术语与职责边界
+
+| 术语 | 本项目中的含义 | 负责层 |
+|---|---|---|
+| Kimi Plugin | 清单、指令、命令和 MCP 服务的安装单元 | 本仓库 |
+| Kimi Skill | 指导模型操作的 `SKILL.md`，不直接执行机器人代码 | `skills/` 或用户技能目录 |
+| Forge Skill Bundle | 包含 `skill.yaml`、说明、profiles 和资产的版本化机器人能力包 | Registry / 技能作者；Core 管理 |
+| Profile | 一个技能包内的具体部署配置 | 技能包 |
+| Flow | 一次实际的 Dora 数据流执行 | Dora / Core 运行管理器 |
+| Gateway | 暴露工具 schema、调用和异步状态的 HTTP 节点 | 运行中的技能 |
+
+本仓库维护 Kimi 清单、MCP 参数映射、独立配置、路径和操作指令；上游
+`PhyAgentOS-DSH-Plugin` 中发布的 Core 负责资源与运行管理，`forge` 等节点仓库负责协议、策略、仿真和硬件节点。
+当前锁定 Core 的三个安全/兼容性缺陷由[本地依赖补丁](../core-patches.md)修复；不修改外部上游仓库。
+人工验证结果独立记录在[验收清单](../acceptance_zh.md)，未执行的项目不视为已通过。

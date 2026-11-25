@@ -1,69 +1,16 @@
 import assert from 'node:assert/strict'
-import { spawn } from 'node:child_process'
 import { chmod, cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
-import { createInterface } from 'node:readline'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
+import { isolatedEnvironment, startMcp } from './helpers/mcp.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
-function startMcp(cwd, env) {
-  const child = spawn(process.execPath, ['./mcp/forge-mcp.mjs'], {
-    cwd,
-    env,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  })
-  const pending = new Map()
-  let nextId = 1
-  const stderrLines = []
-
-  createInterface({ input: child.stderr }).on('line', line => stderrLines.push(line))
-  createInterface({ input: child.stdout }).on('line', line => {
-    const msg = JSON.parse(line)
-    const waiter = pending.get(msg.id)
-    if (waiter) {
-      pending.delete(msg.id)
-      waiter(msg)
-    }
-  })
-
-  return {
-    stderrLines,
-    notify(method, params = {}) {
-      child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', method, params })}\n`)
-    },
-    request(method, params = {}) {
-      const id = nextId++
-      return new Promise((resolveReply, rejectReply) => {
-        const timer = setTimeout(() => {
-          pending.delete(id)
-          rejectReply(new Error(`MCP timeout waiting for ${method} (stderr: ${stderrLines.join(' | ')})`))
-        }, 15000)
-        pending.set(id, msg => {
-          clearTimeout(timer)
-          resolveReply(msg)
-        })
-        child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id, method, params })}\n`)
-      })
-    },
-    async callTool(name, args = {}) {
-      const reply = await this.request('tools/call', { name, arguments: args })
-      assert.equal(reply.error, undefined)
-      return {
-        isError: reply.result.isError,
-        payload: JSON.parse(reply.result.content[0].text),
-      }
-    },
-    async close() {
-      child.stdin.end()
-      await new Promise(r => child.once('exit', r))
-    },
-  }
-}
-
-test('managed plugin copy runs without node_modules, isolates ~/.kimi-code/forge and reloads dora in-session', async () => {
+test('managed plugin copy runs without node_modules, isolates ~/.kimi-code/forge and reloads dora in-session', {
+  skip: process.platform === 'win32' && 'Mock Dora executables use POSIX shell; Windows runtime needs host acceptance',
+}, async () => {
   const sandbox = await mkdtemp(join(tmpdir(), 'kimi-plugin-e2e-'))
   try {
     const fakeUserHome = join(sandbox, 'user-home')
@@ -79,14 +26,7 @@ test('managed plugin copy runs without node_modules, isolates ~/.kimi-code/forge
       await cp(join(repoRoot, item), join(managedDir, item), { recursive: true })
     }
 
-    const mcp = startMcp(managedDir, {
-      ...process.env,
-      HOME: fakeUserHome,
-      KIMI_CODE_HOME: fakeKimiHome,
-      DSH_HOME: '',
-      DSH_FORGE_HOME: '',
-      KIMI_FORGE_HOME: '',
-    })
+    const mcp = startMcp(managedDir, isolatedEnvironment(fakeUserHome, fakeKimiHome))
 
     try {
       // 1. Protocol negotiation & notifications
@@ -103,6 +43,14 @@ test('managed plugin copy runs without node_modules, isolates ~/.kimi-code/forge
       assert.equal(names.length, 41)
       assert.ok(names.includes('forge_skill_package'))
       assert.ok(names.includes('forge_skill_install_local'))
+      const mapping = await readFile(join(repoRoot, 'docs', 'design', '02-mcp-adapter-and-isolation.md'), 'utf8')
+      const documented = [...mapping.matchAll(/^\| `(forge_[a-z_]+)` \|/gm)].map(match => match[1])
+      assert.equal(new Set(names).size, 41)
+      assert.deepEqual([...names].sort(), documented.sort())
+      for (const entry of listReply.result.tools) {
+        assert.equal(entry.inputSchema.type, 'object')
+        for (const required of entry.inputSchema.required) assert.ok(required in entry.inputSchema.properties)
+      }
 
       // 3. Offline environment check points strictly to ~/.kimi-code/forge
       const envBefore = await mcp.callTool('forge_environment_check', { offline: true })

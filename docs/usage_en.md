@@ -29,14 +29,48 @@ Most precompiled node binaries in the PAOS Registry lock `linux/x86_64`. You hav
 
 1. **Direct on Linux:** Install Kimi Code CLI on your `linux/x86_64` workstation/robot PC and install this plugin directly.
 2. **Remote SSH from Kimi Desktop (macOS / Windows):**
-   Declare your Linux robot/GPU machine in `~/.kimi-code/config.toml`:
+   Configure a non-interactive `robot-box` SSH alias first. The target needs Node.js >=22 and a compatible Kimi Code remote executor; Kimi does not install the executor automatically. Set `remoteBin` to its actual location. Installing the executor does not install Dora or skills.
+
+   Copy the prebuilt, self-contained server (adapt these example paths):
+
+   ```sh
+   ssh robot-box 'mkdir -p /home/ubuntu/phyagentos-kimi/mcp'
+   scp mcp/forge-mcp.mjs robot-box:/home/ubuntu/phyagentos-kimi/mcp/forge-mcp.mjs
+   ssh robot-box 'node --version'
+   ```
+
+   Local `~/.kimi-code/config.toml`:
+
    ```toml
    [environments.robot-box]
    type = "ssh"
-   host = "ubuntu@192.168.1.50"
+   host = "robot-box"
+   remoteBin = "/home/ubuntu/.kimi-code/bin/kimi"
    defaultCwd = "/home/ubuntu"
    ```
-   Copy or install the plugin onto the remote host (or override `mcpServers.forge` in `~/.kimi-code/mcp.json` with `"environment_id": "robot-box"` and Node `>=22` on the remote machine). Kimi Desktop will execute `forge-mcp.mjs`, Dora, MuJoCo, and hardware adapters directly on `robot-box`.
+
+   Merge into local `~/.kimi-code/mcp.json`, retaining other servers:
+
+   ```json
+   {
+     "mcpServers": {
+       "forge-remote": {
+         "command": "node",
+         "args": ["/home/ubuntu/phyagentos-kimi/mcp/forge-mcp.mjs"],
+         "environment_id": "robot-box",
+         "startupTimeoutMs": 60000,
+         "toolTimeoutMs": 180000,
+         "env": { "KIMI_FORGE_HOME": "/home/ubuntu/.kimi-code/forge" }
+       }
+     }
+   }
+   ```
+
+   Keep the plugin's instruction components, disable its local server with `/plugins mcp disable phyagentos forge`, then `/reload` or open a new session. Confirm `forge-remote` in `/mcp`.
+
+   First call `forge_config_read` and `forge_environment_check` on the remote service and verify the returned platform and paths. Install dependencies/skills and start simulation only as instructed. HOME, PATH, Dora and loopback Gateway all belong to the target; local files are not automatically synchronized. No public Gateway port is needed.
+
+   Troubleshoot SSH login, executor path/version, remote Node and server path, MCP connection, then environment readiness. A failed Forge call ends that turn; further diagnostics require the user's subsequent instruction. SSH connectivity alone does not certify a simulation or robot.
 
 ## 4. Configuration & Shared Model Weights
 
@@ -62,6 +96,8 @@ Kimi Forge settings live in `~/.kimi-code/forge/config.json`:
 }
 ```
 
+Use a non-default `models.root` for shared read-only weights. Bootstrap never creates that root or files inside it; managed caches stay under the isolated runtime. A missing shared root is reported by model checks rather than created.
+
 Always update settings through `forge_config_write` (which validates keys, writes atomically with `0600` permissions, saves a `.bak-*` backup, and reloads the live MCP session).
 
 ## 5. Exporting Robot Bundles as Native Kimi Skills
@@ -77,3 +113,11 @@ This calls `forge_skill_export` with `kimi_skills: true`, writing `~/.kimi-code/
 - `forge_tool_call` on an Action or Session returns HTTP acceptance (`invocation_id`), **not** physical completion. Always check `forge_invocation_read`.
 - Never blind-retry a timed-out or `unknown` physical action; reconcile robot/simulator state first.
 - Keep Kimi Work permissions in **Default** or **Manual Approval** mode when connected to physical robot hardware (avoid unattended full-auto/YOLO mode).
+
+## 7. Integrity, Permissions and Acceptance
+
+Remote skill/node artifacts require a pinned SHA256 and byte length. Cached skill archives are rechecked; mismatch fails without automatic redownload. Explicit local archives receive structural and safe-extraction checks, not a trusted remote-digest guarantee.
+
+New POSIX runtime instances use private `0700` directories, `0600` regular files, and `0700` owner-executable files. Windows relies on private-profile ACLs and needs host acceptance. Upgrading does not restart or alter existing instances; a user-authorized stop/start creates a new protected instance.
+
+See the [acceptance checklist](acceptance_en.md) and [core patch notes](core-patches.md). Synthetic Dora/Gateway tests do not certify real Kimi, MuJoCo or hardware execution.

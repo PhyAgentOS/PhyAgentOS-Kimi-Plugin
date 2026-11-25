@@ -7364,16 +7364,16 @@ var require_dist = __commonJS({
 
 // src/forge-mcp.mjs
 import { createInterface } from "node:readline";
-import { join as join18 } from "node:path";
+import { join as join19 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/bootstrap.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/bootstrap.js
 import { execFile as execFile2 } from "node:child_process";
 import { existsSync as existsSync2 } from "node:fs";
-import { chmod, copyFile as copyFile2, mkdir as mkdir2, rm as rm2, symlink } from "node:fs/promises";
+import { chmod, copyFile as copyFile2, lstat, mkdir as mkdir2, rm as rm2, symlink } from "node:fs/promises";
 import { join as join5, resolve as resolve3 } from "node:path";
 import { promisify as promisify2 } from "node:util";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/environment.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/environment.js
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, readdir as readdir2, readFile as readFile2, rm, stat as stat2, statfs, writeFile } from "node:fs/promises";
@@ -7381,7 +7381,7 @@ import { connect } from "node:net";
 import { join as join3 } from "node:path";
 import { promisify } from "node:util";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/models.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/models.js
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { readdir, readFile, stat } from "node:fs/promises";
@@ -7793,7 +7793,7 @@ async function statSafe(path) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/paths.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/paths.js
 import { homedir } from "node:os";
 import { join as join2, resolve } from "node:path";
 var FORGE_MODELS_ENV = "DSH_FORGE_MODELS";
@@ -7823,7 +7823,7 @@ function forgePaths(home2, modelsRoot) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/environment.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/environment.js
 var execFileAsync = promisify(execFile);
 var MIN_NODE_MAJOR = 22;
 var DORA_REFERENCE_MINOR = "0.4";
@@ -8445,13 +8445,13 @@ async function isDirectory(path) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/settings.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/settings.js
 var import_yaml = __toESM(require_dist(), 1);
 import { copyFile, readFile as readFile3, readdir as readdir3, rename, stat as stat3, writeFile as writeFile2 } from "node:fs/promises";
 import { homedir as homedir2 } from "node:os";
 import { join as join4, resolve as resolve2 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/errors.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/errors.js
 var ForgeError = class extends Error {
   code;
   path;
@@ -8474,7 +8474,7 @@ var ErrorCode = {
   registryUnavailable: "FORGE_REGISTRY_UNAVAILABLE"
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/settings.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/settings.js
 var FORGE_ROW_ID = "forge-skill";
 var DshProfileStore = class {
   root;
@@ -8724,7 +8724,7 @@ function stamp() {
   return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}-${String(now.getMilliseconds()).padStart(3, "0")}-${backupCounter}`;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/bootstrap.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/bootstrap.js
 var execFileAsync2 = promisify2(execFile2);
 var DEFAULT_DORA_VERSION = "0.4.1";
 var DEFAULT_DORA1_VERSION = "1.0.1";
@@ -8745,11 +8745,20 @@ async function bootstrapEnvironment(options) {
     requested.add("profileConfig");
   const steps = [];
   const installer = await detectInstaller(options.python, env, exec);
+  let privateModels = resolve3(paths.models) === resolve3(join5(paths.home, "models"));
+  if (privateModels) {
+    try {
+      privateModels = !(await lstat(paths.models)).isSymbolicLink();
+    } catch (error) {
+      if (error.code !== "ENOENT")
+        throw error;
+    }
+  }
   const managedDirs = [
     paths.home,
     paths.skills,
-    paths.models,
-    join5(paths.models, "cache"),
+    // A non-default model root is a read-only shared asset, not managed storage.
+    ...privateModels ? [paths.models, join5(paths.models, "cache")] : [join5(paths.runtime, "cache", "models")],
     supportRoot,
     supportBin,
     paths.runtime
@@ -8770,7 +8779,7 @@ async function bootstrapEnvironment(options) {
           id: "directories",
           status: "updated",
           target: paths.home,
-          detail: `ensured Forge directories under ${paths.home} and models root ${paths.models}`
+          detail: `ensured Forge directories under ${paths.home}; shared model roots are never created or written`
         });
       } catch (error) {
         steps.push({
@@ -9127,11 +9136,11 @@ var defaultExec2 = async (file, args, options) => {
   return { stdout, stderr };
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/catalog.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/catalog.js
 import { readdir as readdir4, readFile as readFile4, stat as stat4 } from "node:fs/promises";
 import { join as join6 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/forge-version.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/forge-version.js
 var SUPPORTED_FORGE_VERSIONS = ["1", "2"];
 var DEFAULT_FORGE_VERSION = "1";
 function isForgeGeneration(value) {
@@ -9145,7 +9154,7 @@ function unsupportedForgeVersionDetail(value) {
   return `bundle targets Forge ${value}; this build implements ${supported}`;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/manifest.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/manifest.js
 var import_yaml2 = __toESM(require_dist(), 1);
 var MANIFEST_VERSION = 2;
 var SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -9444,7 +9453,7 @@ function isHttpUrl(value) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/catalog.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/catalog.js
 var SAFE_NAME = /^[a-z0-9][a-z0-9-]*$/;
 var ForgeCatalog = class {
   root;
@@ -9567,12 +9576,12 @@ function isMissing(error) {
   return typeof error === "object" && error !== null && error.code === "ENOENT";
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/operations.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/operations.js
 var import_yaml6 = __toESM(require_dist(), 1);
-import { mkdir as mkdir13, readFile as readFile13, readdir as readdir10, rm as rm9, stat as stat13, writeFile as writeFile9 } from "node:fs/promises";
-import { join as join15 } from "node:path";
+import { mkdir as mkdir14, readFile as readFile13, readdir as readdir11, rm as rm10, stat as stat13, writeFile as writeFile9 } from "node:fs/promises";
+import { join as join16 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/diff.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/diff.js
 function diffValues(before, after, prefix = "") {
   const left = flatten(before, prefix);
   const right = flatten(after, prefix);
@@ -9602,7 +9611,7 @@ function flatten(value, prefix) {
   return result;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/validate.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/validate.js
 import { readFile as readFile5, stat as stat5 } from "node:fs/promises";
 import { isAbsolute, join as join7, resolve as resolve4, sep } from "node:path";
 async function validateBundle(root) {
@@ -9674,10 +9683,10 @@ async function validateBundle(root) {
     }
   }
   for (const profile of Object.values(manifest.profiles)) {
-    for (const relative4 of [profile.dataflow, ...profile.requiredAssets]) {
-      const target = resolve4(dir, relative4);
-      if (isAbsolute(relative4) || !target.startsWith(dir + sep)) {
-        add(relative4, "FORGE_MANIFEST_INVALID", "path escapes the bundle root");
+    for (const relative5 of [profile.dataflow, ...profile.requiredAssets]) {
+      const target = resolve4(dir, relative5);
+      if (isAbsolute(relative5) || !target.startsWith(dir + sep)) {
+        add(relative5, "FORGE_MANIFEST_INVALID", "path escapes the bundle root");
       }
     }
   }
@@ -9709,7 +9718,7 @@ function archName() {
   return process.arch;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/tool-client.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/tool-client.js
 var ForgeToolClient = class {
   gatewayUrl;
   timeoutMs;
@@ -9806,7 +9815,7 @@ var ForgeToolClient = class {
   }
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/doctor.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/doctor.js
 async function diagnoseSkill(options) {
   const entry = await options.catalog.load(options.skill);
   if (entry === void 0) {
@@ -9860,7 +9869,7 @@ async function diagnoseSkill(options) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/events.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/events.js
 import { appendFile, mkdir as mkdir3 } from "node:fs/promises";
 import { dirname } from "node:path";
 var EventLog = class {
@@ -9883,10 +9892,10 @@ var EventLog = class {
   }
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/package.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/package.js
 import { createHash as createHash2 } from "node:crypto";
 import { createReadStream as createReadStream2 } from "node:fs";
-import { lstat, mkdir as mkdir4, readFile as readFile6, readdir as readdir5, rename as rename2, rm as rm3, stat as stat6, writeFile as writeFile3 } from "node:fs/promises";
+import { lstat as lstat2, mkdir as mkdir4, readFile as readFile6, readdir as readdir5, rename as rename2, rm as rm3, stat as stat6, writeFile as writeFile3 } from "node:fs/promises";
 import { join as join8, relative, sep as sep2 } from "node:path";
 
 // node_modules/.pnpm/tar@7.5.23/node_modules/tar/dist/esm/index.min.js
@@ -12858,7 +12867,7 @@ var To = (s3) => {
   s3.mtimeCache || (s3.mtimeCache = /* @__PURE__ */ new Map()), s3.filter = t ? (e, i) => t(e, i) && !((s3.mtimeCache?.get(e) ?? i.mtime ?? 0) > (i.mtime ?? 0)) : (e, i) => !((s3.mtimeCache?.get(e) ?? i.mtime ?? 0) > (i.mtime ?? 0));
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/package.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/package.js
 var EXCLUDED_PARTS = /* @__PURE__ */ new Set([
   ".git",
   ".hg",
@@ -12930,7 +12939,7 @@ async function collect(bundleDir, includeVenv) {
       const parts = relative(bundleDir, absolute).split(sep2);
       if (isExcluded(parts, includeVenv))
         continue;
-      const info = await lstat(absolute);
+      const info = await lstat2(absolute);
       if (info.isSymbolicLink()) {
         throw new ForgeError("FORGE_PACKAGE_INVALID", `symlinks are not allowed in a bundle: ${parts.join("/")}`);
       }
@@ -13021,48 +13030,153 @@ async function packageSkill(options) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/install.js
-import { createHash as createHash4 } from "node:crypto";
-import { lstat as lstat2, mkdir as mkdir6, mkdtemp, rename as rename4, rm as rm5, stat as stat8 } from "node:fs/promises";
-import { dirname as dirname3, join as join9, resolve as resolve5 } from "node:path";
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/install.js
+import { lstat as lstat4, mkdir as mkdir7, mkdtemp, rename as rename4, rm as rm6, stat as stat8 } from "node:fs/promises";
+import { dirname as dirname4, join as join10, resolve as resolve6 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/archive.js
-import { isAbsolute as isAbsolute2, posix } from "node:path";
-async function extractArchive(file, cwd) {
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/archive.js
+import { lstat as lstat3, mkdir as mkdir5, readdir as readdir6, realpath, rm as rm4, symlink as symlink2 } from "node:fs/promises";
+import { dirname as dirname2, isAbsolute as isAbsolute2, join as join9, posix, relative as relative2, resolve as resolve5, win32 } from "node:path";
+async function extractArchive(file, cwd, options = {}) {
+  const unsafe = (message) => new ForgeError("FORGE_ARCHIVE_UNSAFE", message);
+  const root = resolve5(cwd);
+  if (!(await lstat3(root)).isDirectory() || (await readdir6(root)).length !== 0)
+    throw unsafe("extraction requires an empty, non-symlink directory");
+  const node = options.nodeArtifact;
+  if (node !== void 0 && (!["executable_tar_gz", "directory_tar_gz"].includes(node.artifactType) || typeof node.entrypoint !== "string" || !node.entrypoint.trim() || [".", "..", ".artifact.json"].includes(node.entrypoint) || ["/", "\\", ":", "\0"].some((char) => node.entrypoint.includes(char))))
+    throw unsafe("invalid node artifact type or entrypoint name");
+  const entries = /* @__PURE__ */ new Map();
+  const modes = /* @__PURE__ */ new Map();
+  let entryCount = 0;
+  const links = /* @__PURE__ */ new Map();
   const violations = [];
-  await So({
-    file,
-    cwd,
-    strict: true,
-    filter: (path, entry) => {
-      const normalized = posix.normalize(path.replace(/^\.\//, ""));
-      if (isAbsolute2(normalized) || normalized.startsWith("../") || normalized === "..") {
-        violations.push(`path escapes archive root: ${path}`);
-        return false;
+  const safePath = (path) => typeof path === "string" && path.length > 0 && !path.includes("\\") && !path.includes("\0") && !path.includes(":") && !isAbsolute2(path) && !win32.isAbsolute(path) && !/^[a-z]:/i.test(path);
+  try {
+    await Ct({ file, strict: true, onReadEntry: (entry) => {
+      entryCount++;
+      if (node?.artifactType === "directory_tar_gz" && entryCount > 5e4) {
+        if (entryCount === 50001) violations.push("directory node archive exceeds 50000 entries");
+        return;
       }
-      const type = entry.type;
-      if (type === "SymbolicLink" || type === "Link") {
-        violations.push(`link entries are not allowed: ${path}`);
-        return false;
+      const path = posix.normalize(entry.path);
+      if (!safePath(entry.path) || entry.path.split("/").includes("..")) {
+        violations.push(`path escapes archive root: ${entry.path}`);
+        return;
       }
-      return true;
+      const name = path.replace(/\/$/, "");
+      if (name === "." || name === "") {
+        if (node !== void 0) violations.push("node archives must not contain a wrapper root entry");
+        if (entry.type !== "Directory") violations.push("archive root must be a directory");
+        return;
+      }
+      const previous = entries.get(name);
+      if (previous !== void 0 && !(previous === "Directory" && entry.type === "Directory"))
+        violations.push(`duplicate archive entry: ${name}`);
+      entries.set(name, entry.type);
+      modes.set(name, entry.mode ?? 0);
+      const allowLinks = node === void 0 ? options.allowInternalLinks === true : node.artifactType === "directory_tar_gz";
+      if (entry.type === "SymbolicLink" && allowLinks) {
+        const target = entry.linkpath;
+        const normalized = posix.normalize(posix.join(posix.dirname(name), target));
+        if (!safePath(target) || normalized === ".." || normalized.startsWith("../"))
+          violations.push(`link target escapes archive root: ${name}`);
+        else
+          links.set(name, target);
+      } else if (entry.type === "SymbolicLink" || entry.type === "Link")
+        violations.push(`link entries are not allowed: ${name}`);
+      else if (!["File", "OldFile", "Directory"].includes(entry.type))
+        violations.push(`unsupported archive entry: ${name} (${entry.type})`);
+    } });
+  } catch (error) {
+    throw unsafe(`invalid tar archive: ${error.message}`);
+  }
+  for (const name of entries.keys()) {
+    let parent = posix.dirname(name);
+    while (parent !== ".") {
+      if (entries.has(parent) && entries.get(parent) !== "Directory") {
+        violations.push(`archive entry has a non-directory parent: ${name}`);
+        break;
+      }
+      parent = posix.dirname(parent);
     }
-  });
-  if (violations.length > 0) {
-    throw new ForgeError("FORGE_ARCHIVE_UNSAFE", violations.slice(0, 3).join("; "));
+  }
+  if (node !== void 0) {
+    const directory = node.artifactType === "directory_tar_gz";
+    const executable = directory ? `${node.entrypoint}/${node.entrypoint}` : node.entrypoint;
+    for (const [name, type] of entries) {
+      if (directory ? name !== node.entrypoint && !name.startsWith(`${node.entrypoint}/`) : name !== node.entrypoint || !["File", "OldFile"].includes(type))
+        violations.push(`invalid ${node.artifactType} layout: ${name}`);
+    }
+    if (directory && entries.has(node.entrypoint) && entries.get(node.entrypoint) !== "Directory")
+      violations.push(`node root must be a directory: ${node.entrypoint}`);
+    if (!["File", "OldFile"].includes(entries.get(executable)) || !(modes.get(executable) & 73))
+      violations.push(`node entrypoint must be an executable regular file: ${executable}`);
+    if (!directory && (entries.size !== 1 || entryCount !== 1))
+      violations.push("executable node archive must contain exactly one regular file");
+  }
+  if (violations.length > 0)
+    throw unsafe(violations.slice(0, 3).join("; "));
+  const created = [];
+  try {
+    await So({
+      file,
+      cwd: root,
+      strict: true,
+      filter: (_path, entry) => ["File", "OldFile", "Directory"].includes(entry.type)
+    });
+    for (const [name, target] of links) {
+      const path = join9(root, name);
+      await mkdir5(dirname2(path), { recursive: true });
+      await symlink2(target, path);
+      created.push(path);
+    }
+    const canonicalRoot = await realpath(root);
+    for (const name of links.keys()) {
+      let target;
+      try {
+        target = await realpath(join9(root, name));
+      } catch {
+        throw unsafe(`dangling or cyclic symbolic link: ${name}`);
+      }
+      const path = relative2(canonicalRoot, target);
+      if (isAbsolute2(path) || path === ".." || path.startsWith("../") || path.startsWith("..\\"))
+        throw unsafe(`link target escapes archive root: ${name}`);
+    }
+    const visited = /* @__PURE__ */ new Set();
+    const active = /* @__PURE__ */ new Set();
+    async function visit(directory) {
+      const canonical = await realpath(directory);
+      if (active.has(canonical))
+        throw unsafe(`cyclic directory symbolic link: ${relative2(root, directory)}`);
+      if (visited.has(canonical)) return;
+      active.add(canonical);
+      for (const entry of await readdir6(canonical, { withFileTypes: true })) {
+        const child = join9(canonical, entry.name);
+        if (entry.isDirectory() || entry.isSymbolicLink() && (await lstat3(await realpath(child))).isDirectory())
+          await visit(child);
+      }
+      active.delete(canonical);
+      visited.add(canonical);
+    }
+    if (links.size > 0) await visit(root);
+  } catch (error) {
+    for (const path of created.reverse())
+      await rm4(path, { force: true }).catch(() => void 0);
+    throw error;
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/download.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/download.js
 import { createHash as createHash3 } from "node:crypto";
 import { createWriteStream, existsSync as existsSync3 } from "node:fs";
 import { createReadStream as createReadStream3 } from "node:fs";
-import { mkdir as mkdir5, rename as rename3, rm as rm4, stat as stat7, statfs as statfs2 } from "node:fs/promises";
-import { dirname as dirname2 } from "node:path";
+import { mkdir as mkdir6, rename as rename3, rm as rm5, stat as stat7, statfs as statfs2 } from "node:fs/promises";
+import { dirname as dirname3 } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 async function downloadFile(options) {
-  await mkdir5(dirname2(options.dest), { recursive: true });
+  validateArtifactIntegrity(options);
+  await mkdir6(dirname3(options.dest), { recursive: true });
   const part = `${options.dest}.part`;
   const idleTimeoutMs = options.idleTimeoutMs ?? 12e4;
   let offset = 0;
@@ -13072,7 +13186,7 @@ async function downloadFile(options) {
     offset = 0;
   }
   if (options.size !== void 0)
-    await ensureSpace(dirname2(options.dest), Math.max(options.size - offset, 0));
+    await ensureSpace(dirname3(options.dest), Math.max(options.size - offset, 0));
   const controller = new AbortController();
   const abort = (reason) => {
     controller.abort(reason instanceof Error ? reason : new Error(String(reason)));
@@ -13106,7 +13220,7 @@ async function downloadFile(options) {
       if (offset > 0) {
         resumed = false;
         offset = 0;
-        await rm4(part, { force: true });
+        await rm5(part, { force: true });
       }
     } else {
       throw new ForgeError("FORGE_REGISTRY_UNAVAILABLE", `download failed: HTTP ${response.status}`);
@@ -13138,13 +13252,13 @@ async function downloadFile(options) {
   }
   const info = await stat7(options.dest);
   if (options.size !== void 0 && info.size !== options.size) {
-    await rm4(options.dest, { force: true });
+    await rm5(options.dest, { force: true });
     throw new ForgeError("FORGE_NODE_INTEGRITY", `size mismatch: expected ${options.size}, got ${info.size}`);
   }
   options.onProgress?.({ downloaded: info.size, total: options.size ?? info.size });
   const digest = await hashFile(options.dest);
-  if (options.sha256 !== void 0 && digest !== options.sha256) {
-    await rm4(options.dest, { force: true });
+  if (options.sha256 !== void 0 && digest !== options.sha256.toLowerCase()) {
+    await rm5(options.dest, { force: true });
     throw new ForgeError("FORGE_NODE_INTEGRITY", `sha256 mismatch: expected ${options.sha256}, got ${digest}`);
   }
   return { path: options.dest, bytes: info.size, sha256: digest, resumed };
@@ -13161,6 +13275,14 @@ async function ensureSpace(dir, needed) {
       throw error;
   }
 }
+function validateArtifactIntegrity(artifact) {
+  if (typeof artifact.sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(artifact.sha256)) {
+    throw new ForgeError("FORGE_NODE_INTEGRITY", "remote artifact requires a pinned SHA256 digest");
+  }
+  if (!Number.isSafeInteger(artifact.size) || artifact.size < 0) {
+    throw new ForgeError("FORGE_NODE_INTEGRITY", "remote artifact requires a non-negative safe-integer byte length");
+  }
+}
 async function hashFile(path) {
   const hash = createHash3("sha256");
   const stream = createReadStream3(path);
@@ -13169,14 +13291,14 @@ async function hashFile(path) {
   return hash.digest("hex");
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/install.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/install.js
 async function installSkill(name, options) {
   options.onProgress?.("resolve");
   const artifact = await options.registry.skill(name, options.version);
   const archive = await fetchArchive(artifact, options);
-  await mkdir6(options.skillsRoot, { recursive: true });
-  const staging = await mkdtemp(join9(options.skillsRoot, `.staging-${slug(name)}-`));
-  const target = join9(options.skillsRoot, name);
+  await mkdir7(options.skillsRoot, { recursive: true });
+  const staging = await mkdtemp(join10(options.skillsRoot, `.staging-${slug(name)}-`));
+  const target = join10(options.skillsRoot, name);
   const backup = `${target}.old-${Date.now()}`;
   try {
     await extractArchive(archive.path, staging);
@@ -13192,7 +13314,7 @@ async function installSkill(name, options) {
     if (options.version !== void 0 && parsed.manifest.version !== options.version) {
       throw new ForgeError("FORGE_MANIFEST_INVALID", `registry served version ${parsed.manifest.version}, requested ${options.version}`);
     }
-    await rm5(backup, { recursive: true, force: true });
+    await rm6(backup, { recursive: true, force: true });
     let hadPrevious = false;
     try {
       await stat8(target);
@@ -13209,7 +13331,7 @@ async function installSkill(name, options) {
         await rename4(backup, target).catch(() => void 0);
       throw error;
     }
-    await rm5(backup, { recursive: true, force: true });
+    await rm6(backup, { recursive: true, force: true });
     return {
       name,
       version: parsed.manifest.version,
@@ -13218,11 +13340,11 @@ async function installSkill(name, options) {
       bytes: archive.bytes
     };
   } finally {
-    await rm5(staging, { recursive: true, force: true }).catch(() => void 0);
+    await rm6(staging, { recursive: true, force: true }).catch(() => void 0);
   }
 }
 async function installFromArchive(archivePath, options) {
-  const source = resolve5(archivePath);
+  const source = resolve6(archivePath);
   let info;
   try {
     info = await stat8(source);
@@ -13233,8 +13355,8 @@ async function installFromArchive(archivePath, options) {
     throw new ForgeError("FORGE_INSTALL_SOURCE_MISSING", `not a file: ${source}`);
   }
   options.onProgress?.("extract");
-  await mkdir6(options.skillsRoot, { recursive: true });
-  const staging = await mkdtemp(join9(options.skillsRoot, `.skill-install-`));
+  await mkdir7(options.skillsRoot, { recursive: true });
+  const staging = await mkdtemp(join10(options.skillsRoot, `.skill-install-`));
   try {
     await extractArchive(source, staging);
     const payload = await resolvePayloadRoot(staging);
@@ -13249,7 +13371,7 @@ async function installFromArchive(archivePath, options) {
       throw new ForgeError("FORGE_MANIFEST_INVALID", "installed bundles must use SKILL.md");
     }
     try {
-      await stat8(join9(payload, "SKILL.md"));
+      await stat8(join10(payload, "SKILL.md"));
     } catch {
       throw new ForgeError("FORGE_MANIFEST_INVALID", "archive root must contain SKILL.md");
     }
@@ -13257,15 +13379,15 @@ async function installFromArchive(archivePath, options) {
       throw new ForgeError("FORGE_SKILL_RUNNING", `skill "${manifest.name}" is running; stop it before replacing its bundle`);
     }
     options.onProgress?.("swap");
-    const target = join9(options.skillsRoot, manifest.name);
+    const target = join10(options.skillsRoot, manifest.name);
     let replaced;
     let backup;
     const existing = await stat8(target).catch(() => void 0);
     if (existing !== void 0) {
       const stamp3 = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
       const previousVersion = await currentVersion(target);
-      backup = join9(options.skillsRoot, ".backups", manifest.name, `${previousVersion}-${stamp3}`);
-      await mkdir6(dirname3(backup), { recursive: true });
+      backup = join10(options.skillsRoot, ".backups", manifest.name, `${previousVersion}-${stamp3}`);
+      await mkdir7(dirname4(backup), { recursive: true });
       await rename4(target, backup);
       replaced = await directorySize(target).catch(() => void 0) ?? existing.size;
     }
@@ -13284,13 +13406,13 @@ async function installFromArchive(archivePath, options) {
       ...replaced === void 0 ? {} : { replaced }
     };
   } finally {
-    await rm5(staging, { recursive: true, force: true }).catch(() => void 0);
+    await rm6(staging, { recursive: true, force: true }).catch(() => void 0);
   }
 }
 async function resolvePayloadRoot(extracted) {
   const hasManifest = async (dir) => {
     try {
-      await stat8(join9(dir, "skill.yaml"));
+      await stat8(join10(dir, "skill.yaml"));
       return true;
     } catch {
       return false;
@@ -13298,11 +13420,11 @@ async function resolvePayloadRoot(extracted) {
   };
   if (await hasManifest(extracted))
     return extracted;
-  const { readdir: readdir12 } = await import("node:fs/promises");
-  const entries = await readdir12(extracted, { withFileTypes: true });
+  const { readdir: readdir13 } = await import("node:fs/promises");
+  const entries = await readdir13(extracted, { withFileTypes: true });
   const directories = entries.filter((entry) => entry.isDirectory());
   if (directories.length === 1 && entries.length === 1) {
-    const candidate = join9(extracted, directories[0].name);
+    const candidate = join10(extracted, directories[0].name);
     if (await hasManifest(candidate))
       return candidate;
   }
@@ -13311,7 +13433,7 @@ async function resolvePayloadRoot(extracted) {
 async function currentVersion(dir) {
   const { readFile: readFile15 } = await import("node:fs/promises");
   try {
-    const text = await readFile15(join9(dir, "skill.yaml"), "utf8");
+    const text = await readFile15(join10(dir, "skill.yaml"), "utf8");
     const match = /^version:[ \t]*(.+)$/m.exec(text);
     if (match !== null) {
       const value = match[1].trim().replace(/^['"]|['"]$/g, "");
@@ -13323,27 +13445,36 @@ async function currentVersion(dir) {
   return "unknown";
 }
 async function directorySize(dir) {
-  const { readdir: readdir12 } = await import("node:fs/promises");
+  const { readdir: readdir13 } = await import("node:fs/promises");
   let total = 0;
-  for (const entry of await readdir12(dir, { withFileTypes: true })) {
-    const absolute = join9(dir, entry.name);
-    const info = await lstat2(absolute);
+  for (const entry of await readdir13(dir, { withFileTypes: true })) {
+    const absolute = join10(dir, entry.name);
+    const info = await lstat4(absolute);
     total += info.isDirectory() ? await directorySize(absolute) : info.size;
   }
   return total;
 }
 async function fetchArchive(artifact, options) {
-  await mkdir6(options.cacheRoot, { recursive: true });
-  const key = artifact.sha256 ?? createHash4("sha256").update(artifact.url).digest("hex");
-  const path = join9(options.cacheRoot, `${key}.tar.gz`);
+  validateArtifactIntegrity(artifact);
+  await mkdir7(options.cacheRoot, { recursive: true });
+  const path = join10(options.cacheRoot, `${artifact.sha256.toLowerCase()}.tar.gz`);
+  let info;
   try {
-    const info = await stat8(path);
-    if (artifact.size === void 0 || info.size === artifact.size) {
-      options.onProgress?.("download", info.size, info.size);
-      return { path, bytes: info.size, fromCache: true };
+    info = await stat8(path);
+  } catch (error) {
+    if (error.code !== "ENOENT")
+      throw error;
+  }
+  if (info !== void 0) {
+    if (!info.isFile() || info.size !== artifact.size) {
+      throw new ForgeError("FORGE_NODE_INTEGRITY", `cached archive size mismatch: expected ${artifact.size}, got ${info.size}`);
     }
-    await rm5(path, { force: true });
-  } catch {
+    const digest = await hashFile(path);
+    if (digest !== artifact.sha256.toLowerCase()) {
+      throw new ForgeError("FORGE_NODE_INTEGRITY", `cached archive sha256 mismatch: expected ${artifact.sha256}, got ${digest}`);
+    }
+    options.onProgress?.("download", info.size, info.size);
+    return { path, bytes: info.size, fromCache: true };
   }
   options.onProgress?.("download", 0, artifact.size);
   const transfer = await downloadFile({
@@ -13359,7 +13490,7 @@ async function fetchArchive(artifact, options) {
 async function readManifestFile(dir) {
   const { readFile: readFile15 } = await import("node:fs/promises");
   try {
-    return await readFile15(join9(dir, "skill.yaml"), "utf8");
+    return await readFile15(join10(dir, "skill.yaml"), "utf8");
   } catch {
     throw new ForgeError("FORGE_MANIFEST_INVALID", "archive does not contain skill.yaml at its root");
   }
@@ -13368,10 +13499,10 @@ function slug(value) {
   return value.replace(/[^a-z0-9-]+/gi, "-");
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/jobs.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/jobs.js
 import { randomUUID } from "node:crypto";
-import { mkdir as mkdir7, readFile as readFile7, readdir as readdir6, rename as rename5, writeFile as writeFile4 } from "node:fs/promises";
-import { join as join10 } from "node:path";
+import { mkdir as mkdir8, readFile as readFile7, readdir as readdir7, rename as rename5, writeFile as writeFile4 } from "node:fs/promises";
+import { join as join11 } from "node:path";
 var JobRunner = class {
   root;
   jobs = /* @__PURE__ */ new Map();
@@ -13453,7 +13584,7 @@ var JobRunner = class {
     if (live !== void 0)
       return { ...live };
     try {
-      return JSON.parse(await readFile7(join10(this.root, `${id}.json`), "utf8"));
+      return JSON.parse(await readFile7(join11(this.root, `${id}.json`), "utf8"));
     } catch {
       return void 0;
     }
@@ -13462,7 +13593,7 @@ var JobRunner = class {
   async list(limit = 20) {
     let names = [];
     try {
-      names = (await readdir6(this.root)).filter((name) => name.endsWith(".json"));
+      names = (await readdir7(this.root)).filter((name) => name.endsWith(".json"));
     } catch {
       names = [];
     }
@@ -13489,8 +13620,8 @@ var JobRunner = class {
   async persist(record) {
     const previous = this.writes.get(record.id) ?? Promise.resolve();
     const next = previous.then(async () => {
-      await mkdir7(this.root, { recursive: true });
-      const target = join10(this.root, `${record.id}.json`);
+      await mkdir8(this.root, { recursive: true });
+      const target = join11(this.root, `${record.id}.json`);
       const temp = `${target}.tmp-${process.pid}`;
       await writeFile4(temp, JSON.stringify({ ...record }, null, 2));
       await rename5(temp, target);
@@ -13500,15 +13631,15 @@ var JobRunner = class {
   }
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/lock.js
-import { open, readFile as readFile8, rm as rm6, stat as stat9 } from "node:fs/promises";
-import { mkdir as mkdir8 } from "node:fs/promises";
-import { dirname as dirname4 } from "node:path";
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/lock.js
+import { open, readFile as readFile8, rm as rm7, stat as stat9 } from "node:fs/promises";
+import { mkdir as mkdir9 } from "node:fs/promises";
+import { dirname as dirname5 } from "node:path";
 async function withLock(path, task, options = {}) {
   const timeoutMs = options.timeoutMs ?? 6e4;
   const staleMs = options.staleMs ?? 10 * 6e4;
   const deadline = Date.now() + timeoutMs;
-  await mkdir8(dirname4(path), { recursive: true });
+  await mkdir9(dirname5(path), { recursive: true });
   for (; ; ) {
     try {
       const handle2 = await open(path, "wx", 384);
@@ -13522,7 +13653,7 @@ async function withLock(path, task, options = {}) {
       if (error.code !== "EEXIST")
         throw error;
       if (await isStale(path, staleMs)) {
-        await rm6(path, { force: true });
+        await rm7(path, { force: true });
         continue;
       }
       if (Date.now() > deadline) {
@@ -13534,7 +13665,7 @@ async function withLock(path, task, options = {}) {
   try {
     return await task();
   } finally {
-    await rm6(path, { force: true });
+    await rm7(path, { force: true });
   }
 }
 async function isStale(path, staleMs) {
@@ -13557,12 +13688,12 @@ function isAlive(pid) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/portable.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/portable.js
 var import_yaml3 = __toESM(require_dist(), 1);
-import { cp, mkdir as mkdir9, readFile as readFile9, writeFile as writeFile5 } from "node:fs/promises";
-import { join as join11 } from "node:path";
+import { cp, mkdir as mkdir10, readFile as readFile9, writeFile as writeFile5 } from "node:fs/promises";
+import { join as join12 } from "node:path";
 async function exportPortableSkill(entry, outDir) {
-  const body = await readFile9(join11(entry.dir, entry.manifest.skillDocument), "utf8").catch(() => void 0);
+  const body = await readFile9(join12(entry.dir, entry.manifest.skillDocument), "utf8").catch(() => void 0);
   if (body === void 0) {
     throw new ForgeError("FORGE_SKILL_DOC_MISSING", `${entry.name} has no ${entry.manifest.skillDocument}`);
   }
@@ -13590,13 +13721,13 @@ ${(0, import_yaml3.stringify)(frontmatter)}---
 
 ${preamble}
 ${body}`;
-  const target = join11(outDir, entry.name);
-  await mkdir9(join11(target, "profiles"), { recursive: true });
-  await writeFile5(join11(target, "SKILL.md"), document);
-  await cp(join11(entry.dir, "skill.yaml"), join11(target, "skill.yaml"));
+  const target = join12(outDir, entry.name);
+  await mkdir10(join12(target, "profiles"), { recursive: true });
+  await writeFile5(join12(target, "SKILL.md"), document);
+  await cp(join12(entry.dir, "skill.yaml"), join12(target, "skill.yaml"));
   for (const profile of Object.values(entry.manifest.profiles)) {
-    const source = join11(entry.dir, "profiles", profile.id);
-    await cp(source, join11(target, "profiles", profile.id), { recursive: true }).catch(() => void 0);
+    const source = join12(entry.dir, "profiles", profile.id);
+    await cp(source, join12(target, "profiles", profile.id), { recursive: true }).catch(() => void 0);
   }
   const parsed = (0, import_yaml3.parse)(document.split("---")[1] ?? "");
   if (typeof parsed?.name !== "string" || typeof parsed?.description !== "string") {
@@ -13605,7 +13736,7 @@ ${body}`;
   return { path: target, skill: entry.name, profiles };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/repositories.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/repositories.js
 var REPOSITORY_CATALOG = [
   {
     id: "forge",
@@ -13886,7 +14017,7 @@ function findRepository(idOrNode) {
   return REPOSITORY_CATALOG.find((entry) => entry.id.toLowerCase() === needle) ?? REPOSITORY_CATALOG.find((entry) => entry.nodes.some((node) => node.toLowerCase() === needle));
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/registry.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/registry.js
 var DEFAULT_REGISTRY_URL = "https://paos-resource-platform.dev.x-era.com";
 var ForgeRegistryClient = class {
   baseUrl;
@@ -14001,18 +14132,18 @@ function artifactFrom(value, name) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/runtime.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/runtime.js
 var import_yaml4 = __toESM(require_dist(), 1);
-import { createHash as createHash5 } from "node:crypto";
+import { createHash as createHash4 } from "node:crypto";
 import { closeSync, existsSync as existsSync4, openSync, readFileSync, symlinkSync } from "node:fs";
-import { cp as cp2, mkdir as mkdir11, readdir as readdir8, readFile as readFile11, rm as rm8, stat as stat11, writeFile as writeFile7 } from "node:fs/promises";
-import { basename, dirname as dirname5, isAbsolute as isAbsolute3, join as join13, relative as relative2 } from "node:path";
+import { chmod as chmod2, cp as cp2, mkdir as mkdir12, readdir as readdir9, readFile as readFile11, rm as rm9, stat as stat11, writeFile as writeFile7 } from "node:fs/promises";
+import { basename, dirname as dirname6, isAbsolute as isAbsolute3, join as join14, relative as relative3 } from "node:path";
 import { execFile as execFile3, spawn } from "node:child_process";
 import { promisify as promisify3 } from "node:util";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/nodes.js
-import { mkdir as mkdir10, readFile as readFile10, readdir as readdir7, rename as rename6, rm as rm7, stat as stat10, writeFile as writeFile6 } from "node:fs/promises";
-import { join as join12 } from "node:path";
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/nodes.js
+import { lstat as lstat5, mkdir as mkdir11, readFile as readFile10, readdir as readdir8, rename as rename6, rm as rm8, stat as stat10, writeFile as writeFile6 } from "node:fs/promises";
+import { join as join13 } from "node:path";
 var NodeStore = class {
   root;
   registry;
@@ -14024,14 +14155,14 @@ var NodeStore = class {
   }
   /** Read-only cache inspection; never downloads. */
   async inspect(lock, binary = lock.nodeId) {
-    const dir = join12(this.root, lock.artifactId);
-    const entrypoint = join12(dir, lock.entrypoint);
+    const dir = join13(this.root, lock.artifactId);
+    const entrypoint = nodeEntrypoint(dir, lock);
     if (!await isExecutable(entrypoint)) {
       return { artifactId: lock.artifactId, entrypoint, state: "missing", detail: `${binary}: ${dir} is not installed` };
     }
     let metadata;
     try {
-      metadata = JSON.parse(await readFile10(join12(dir, ".artifact.json"), "utf8"));
+      metadata = JSON.parse(await readFile10(join13(dir, ".artifact.json"), "utf8"));
     } catch {
       metadata = void 0;
     }
@@ -14071,14 +14202,14 @@ var NodeStore = class {
     let totalBytes = 0;
     let entries;
     try {
-      entries = await readdir7(this.root, { withFileTypes: true });
+      entries = await readdir8(this.root, { withFileTypes: true });
     } catch {
       return { artifacts, totalBytes };
     }
     for (const entry of entries) {
       if (!entry.isDirectory())
         continue;
-      const bytes = await directorySize2(join12(this.root, entry.name));
+      const bytes = await directorySize2(join13(this.root, entry.name));
       artifacts.push({ id: entry.name, bytes });
       totalBytes += bytes;
     }
@@ -14091,7 +14222,7 @@ var NodeStore = class {
     let freedBytes = 0;
     let entries;
     try {
-      entries = await readdir7(this.root, { withFileTypes: true });
+      entries = await readdir8(this.root, { withFileTypes: true });
     } catch {
       return { removed, freedBytes, kept };
     }
@@ -14102,15 +14233,16 @@ var NodeStore = class {
         kept.push(entry.name);
         continue;
       }
-      const path = join12(this.root, entry.name);
+      const path = join13(this.root, entry.name);
       freedBytes += await directorySize2(path);
       if (!dryRun)
-        await rm7(path, { recursive: true, force: true });
+        await rm8(path, { recursive: true, force: true });
       removed.push(entry.name);
     }
     return { removed, freedBytes, kept };
   }
   async download(lock, hooks) {
+    const expectedEntrypoint = nodeEntrypoint("", lock);
     if (lock.platform !== process.platform || lock.arch !== archName2()) {
       throw new ForgeError("FORGE_NODE_PLATFORM", `${lock.artifactId} targets ${lock.platform}/${lock.arch}`);
     }
@@ -14119,8 +14251,8 @@ var NodeStore = class {
       throw new ForgeError("FORGE_NODE_INTEGRITY", `registry digest for ${lock.artifactId} disagrees with the skill lock`);
     }
     const expected = lock.sha256 ?? artifact.sha256;
-    await mkdir10(this.cacheRoot, { recursive: true });
-    const archive = join12(this.cacheRoot, `${lock.artifactId}.tar.gz`);
+    await mkdir11(this.cacheRoot, { recursive: true });
+    const archive = join13(this.cacheRoot, `${lock.artifactId}.tar.gz`);
     const transfer = await downloadFile({
       url: artifact.url,
       dest: archive,
@@ -14129,25 +14261,29 @@ var NodeStore = class {
       signal: hooks.signal,
       onProgress: (progress) => hooks.onProgress?.(lock.artifactId, progress.downloaded, progress.total)
     });
-    const target = join12(this.root, lock.artifactId);
+    const target = join13(this.root, lock.artifactId);
     const staging = `${target}.staging-${process.pid}`;
-    await rm7(staging, { recursive: true, force: true });
-    await mkdir10(staging, { recursive: true });
-    await extractArchive(archive, staging);
-    if (!await isExecutable(join12(staging, lock.entrypoint))) {
-      await rm7(staging, { recursive: true, force: true });
-      throw new ForgeError("FORGE_NODE_ENTRYPOINT", `${lock.artifactId} has no executable ${lock.entrypoint}`);
+    await rm8(staging, { recursive: true, force: true });
+    await mkdir11(staging, { recursive: true });
+    try {
+      await extractArchive(archive, staging, { nodeArtifact: lock });
+      if (!await isExecutable(join13(staging, expectedEntrypoint))) {
+        throw new ForgeError("FORGE_NODE_ENTRYPOINT", `${lock.artifactId} has no executable ${lock.entrypoint}`);
+      }
+      const metadata = {
+        artifactId: lock.artifactId,
+        ...expected === void 0 ? {} : { sha256: expected },
+        ...lock.version === void 0 ? {} : { version: lock.version },
+        verifiedAt: (/* @__PURE__ */ new Date()).toISOString()
+      };
+      await rm8(join13(staging, ".artifact.json"), { force: true });
+      await writeFile6(join13(staging, ".artifact.json"), JSON.stringify(metadata, null, 2));
+      await rm8(target, { recursive: true, force: true });
+      await rename6(staging, target);
+    } finally {
+      await rm8(staging, { recursive: true, force: true });
     }
-    const metadata = {
-      artifactId: lock.artifactId,
-      ...expected === void 0 ? {} : { sha256: expected },
-      ...lock.version === void 0 ? {} : { version: lock.version },
-      verifiedAt: (/* @__PURE__ */ new Date()).toISOString()
-    };
-    await writeFile6(join12(staging, ".artifact.json"), JSON.stringify(metadata, null, 2));
-    await rm7(target, { recursive: true, force: true });
-    await rename6(staging, target);
-    await rm7(archive, { force: true });
+    await rm8(archive, { force: true });
     return transfer.bytes;
   }
 };
@@ -14155,12 +14291,12 @@ async function directorySize2(path) {
   let total = 0;
   let entries;
   try {
-    entries = await readdir7(path, { withFileTypes: true });
+    entries = await readdir8(path, { withFileTypes: true });
   } catch {
     return 0;
   }
   for (const entry of entries) {
-    const child = join12(path, entry.name);
+    const child = join13(path, entry.name);
     if (entry.isDirectory())
       total += await directorySize2(child);
     else {
@@ -14172,9 +14308,15 @@ async function directorySize2(path) {
   }
   return total;
 }
+function nodeEntrypoint(root, lock) {
+  const name = lock.entrypoint;
+  if (!["executable_tar_gz", "directory_tar_gz"].includes(lock.artifactType) || typeof name !== "string" || !name.trim() || [".", "..", ".artifact.json"].includes(name) || ["/", "\\", ":", "\0"].some((char) => name.includes(char)))
+    throw new ForgeError("FORGE_NODE_ENTRYPOINT", "node entrypoint must be a single filename with a supported artifact type");
+  return lock.artifactType === "directory_tar_gz" ? join13(root, name, name) : join13(root, name);
+}
 async function isExecutable(path) {
   try {
-    const info = await stat10(path);
+    const info = await lstat5(path);
     return info.isFile() && (info.mode & 73) !== 0;
   } catch {
     return false;
@@ -14190,7 +14332,7 @@ function archName2() {
   return process.arch;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/runtime.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/runtime.js
 var execFileAsync3 = promisify3(execFile3);
 var SkillRuntimeManager = class {
   paths;
@@ -14204,11 +14346,11 @@ var SkillRuntimeManager = class {
   constructor(options) {
     this.options = options;
     this.paths = forgePaths(options.home, options.modelsRoot);
-    this.nodes = new NodeStore(this.paths.nodes, options.registry, join13(this.paths.runtime, "cache"));
+    this.nodes = new NodeStore(this.paths.nodes, options.registry, join14(this.paths.runtime, "cache"));
     this.models = new ModelStore(this.paths.models);
-    const supportBin = join13(this.paths.home, "support", "bin");
-    const localDora = join13(supportBin, "dora");
-    const localDora1 = join13(supportBin, "dora1");
+    const supportBin = join14(this.paths.home, "support", "bin");
+    const localDora = join14(supportBin, "dora");
+    const localDora1 = join14(supportBin, "dora1");
     this.localDora = existsSync4(localDora) ? localDora : "dora";
     this.localDora1 = existsSync4(localDora1) ? localDora1 : "dora1";
   }
@@ -14227,7 +14369,7 @@ var SkillRuntimeManager = class {
   /** Load persisted state from disk (best effort). */
   async load() {
     try {
-      const text = await readFile11(join13(this.paths.runtime, "state.json"), "utf8");
+      const text = await readFile11(join14(this.paths.runtime, "state.json"), "utf8");
       const parsed = JSON.parse(text);
       for (const [skill, state] of Object.entries(parsed.skills ?? {}))
         this.states.set(skill, state);
@@ -14331,7 +14473,7 @@ var SkillRuntimeManager = class {
       }
     }
     for (const asset of profile.requiredAssets) {
-      const path = join13(entry.dir, asset);
+      const path = join14(entry.dir, asset);
       checks.push(await existsCheck(`asset.${asset}`, path));
     }
     const modelEnv = {};
@@ -14434,11 +14576,11 @@ var SkillRuntimeManager = class {
         await this.ensureCoordinator(dora, envDir);
         await execFileAsync3(dora, [
           "start",
-          join13(envDir, "launch", profile.dataflow),
+          join14(envDir, "launch", profile.dataflow),
           "--name",
           flow,
           "--detach"
-        ], { cwd: join13(envDir, "launch", dirname5(profile.dataflow)), env: this.flowEnv(entry, profile, envDir, modelEnv), timeout: 6e4 });
+        ], { cwd: join14(envDir, "launch", dirname6(profile.dataflow)), env: this.flowEnv(entry, profile, envDir, modelEnv), timeout: 6e4 });
       }
       await this.waitForGateway(gatewayUrl);
       state.status = "healthy";
@@ -14456,13 +14598,13 @@ var SkillRuntimeManager = class {
   }
   /** Launch a flow with `dora run`: no coordinator, process-owned. */
   async spawnRun(dora, entry, profile, flow, envDir, modelEnv = {}) {
-    const dataflow = join13(envDir, "launch", profile.dataflow);
-    await mkdir11(this.paths.logs, { recursive: true });
-    const logPath = join13(this.paths.logs, `${flow}.log`);
+    const dataflow = join14(envDir, "launch", profile.dataflow);
+    await mkdir12(this.paths.logs, { recursive: true });
+    const logPath = join14(this.paths.logs, `${flow}.log`);
     const fd = openSync(logPath, "a");
     try {
       const child = spawn(dora, ["run", dataflow], {
-        cwd: dirname5(dataflow),
+        cwd: dirname6(dataflow),
         env: this.flowEnv(entry, profile, envDir, modelEnv),
         detached: true,
         stdio: ["ignore", fd, fd]
@@ -14526,11 +14668,11 @@ var SkillRuntimeManager = class {
     if (state === void 0)
       return "";
     try {
-      const files = await readdir8(this.paths.logs);
+      const files = await readdir9(this.paths.logs);
       const relevant = files.filter((name) => name.startsWith(`${state.flow}`)).sort();
       const chunks = [];
       for (const file of relevant) {
-        const text = await readFile11(join13(this.paths.logs, file), "utf8").catch(() => "");
+        const text = await readFile11(join14(this.paths.logs, file), "utf8").catch(() => "");
         chunks.push(text.split("\n").slice(-lines).join("\n"));
       }
       return chunks.join("\n").trim();
@@ -14539,30 +14681,33 @@ var SkillRuntimeManager = class {
     }
   }
   async materialize(entry, profile, binaries, flow, modelEnv = {}) {
-    const hash = createHash5("sha256").update(entry.manifest.version).update(profile.id).update(readFileSync(join13(entry.dir, profile.dataflow))).digest("hex").slice(0, 16);
-    const envDir = join13(this.paths.runtime, "env", entry.name, profile.id, hash);
-    await rm8(envDir, { recursive: true, force: true });
-    await mkdir11(join13(envDir, "bin"), { recursive: true });
+    const hash = createHash4("sha256").update(entry.manifest.version).update(profile.id).update(readFileSync(join14(entry.dir, profile.dataflow))).digest("hex").slice(0, 16);
+    const envDir = join14(this.paths.runtime, "env", entry.name, profile.id, hash);
+    await rm9(envDir, { recursive: true, force: true });
+    await mkdir12(envDir, { recursive: true, mode: 448 });
+    await chmod2(envDir, 448);
+    await mkdir12(join14(envDir, "bin"), { mode: 448 });
     for (const [binary, path] of Object.entries(binaries)) {
-      symlinkSync(path, join13(envDir, "bin", binary));
+      symlinkSync(path, join14(envDir, "bin", binary));
     }
-    const launch = join13(envDir, "launch");
+    const launch = join14(envDir, "launch");
     await cp2(entry.dir, launch, {
       recursive: true,
       filter: (source) => !/node_modules|\.git|(^|\/)nodes(\/|$)/.test(source)
     });
-    await rewritePlaceholders(launch, "${FORGE_RUNTIME_BIN}", join13(envDir, "bin"));
+    await protectRuntimeTree(launch);
+    await rewritePlaceholders(launch, "${FORGE_RUNTIME_BIN}", join14(envDir, "bin"));
     await rewritePlaceholders(launch, "${FORGE_MODELS_DIR}", this.paths.models);
     await rewritePlaceholders(launch, "${PAOS_SKILL_ROOT}", entry.dir);
     await rewritePlaceholders(launch, "${PAOS_SKILL_NAME}", entry.name);
     await rewritePlaceholders(launch, "${PAOS_SKILL_VERSION}", entry.manifest.version);
     await rewritePlaceholders(launch, "${PAOS_RUNTIME_INSTANCE_ID}", basename(envDir));
     await rewritePlaceholders(launch, "${FORGE_FLOW_ID}", flow);
-    await injectDataflowEnv(join13(launch, profile.dataflow), {
+    await injectDataflowEnv(join14(launch, profile.dataflow), {
       ...modelEnv,
       ...profile.environment,
       ...Object.fromEntries(profile.requiredEnvironment.filter((name) => profile.environment[name] === void 0 && process.env[name] !== void 0).map((name) => [name, process.env[name]])),
-      FORGE_RUNTIME_BIN: join13(envDir, "bin"),
+      FORGE_RUNTIME_BIN: join14(envDir, "bin"),
       FORGE_MODELS_DIR: this.paths.models,
       PAOS_SKILL_ROOT: entry.dir,
       PAOS_SKILL_NAME: entry.name,
@@ -14570,7 +14715,7 @@ var SkillRuntimeManager = class {
       PAOS_RUNTIME_INSTANCE_ID: basename(envDir),
       FORGE_FLOW_ID: flow
     });
-    await writeFile7(join13(envDir, "runtime-lock.json"), JSON.stringify({
+    await writeFile7(join14(envDir, "runtime-lock.json"), JSON.stringify({
       skill: entry.name,
       version: entry.manifest.version,
       profile: profile.id,
@@ -14578,8 +14723,9 @@ var SkillRuntimeManager = class {
       modelsRoot: this.paths.models,
       modelEnv,
       artifacts: Object.fromEntries(Object.entries(entry.manifest.artifacts).map(([key, value]) => [key, value.artifactId]))
-    }, null, 2));
-    await mkdir11(this.paths.logs, { recursive: true });
+    }, null, 2), { mode: 384 });
+    await chmod2(join14(envDir, "runtime-lock.json"), 384);
+    await mkdir12(this.paths.logs, { recursive: true });
     return envDir;
   }
   flowEnv(entry, profile, envDir, modelEnv = {}) {
@@ -14587,7 +14733,7 @@ var SkillRuntimeManager = class {
       ...modelEnv,
       ...process.env,
       ...profile.environment,
-      FORGE_RUNTIME_BIN: join13(envDir, "bin"),
+      FORGE_RUNTIME_BIN: join14(envDir, "bin"),
       FORGE_MODELS_DIR: this.paths.models,
       PAOS_SKILL_ROOT: entry.dir,
       PAOS_SKILL_NAME: entry.name,
@@ -14598,8 +14744,8 @@ var SkillRuntimeManager = class {
   async ensureCoordinator(dora, envDir) {
     if (await coordinatorReady(dora))
       return;
-    await mkdir11(this.paths.logs, { recursive: true });
-    const fd = openSync(join13(this.paths.logs, "dora-coordinator.log"), "a");
+    await mkdir12(this.paths.logs, { recursive: true });
+    const fd = openSync(join14(this.paths.logs, "dora-coordinator.log"), "a");
     try {
       const child = spawn(dora, ["up"], { cwd: envDir, detached: true, stdio: ["ignore", fd, fd] });
       child.unref();
@@ -14632,19 +14778,33 @@ var SkillRuntimeManager = class {
     throw new ForgeError("FORGE_GATEWAY_UNREACHABLE", `${gatewayUrl}/tools not ready: ${last}`);
   }
   async persist() {
-    await mkdir11(this.paths.runtime, { recursive: true });
+    await mkdir12(this.paths.runtime, { recursive: true });
     const payload = { skills: Object.fromEntries(this.states) };
-    const target = join13(this.paths.runtime, "state.json");
+    const target = join14(this.paths.runtime, "state.json");
     const temp = `${target}.tmp`;
     await writeFile7(temp, JSON.stringify(payload, null, 2));
     const { rename: rename9 } = await import("node:fs/promises");
     await rename9(temp, target);
   }
 };
+async function protectRuntimeTree(root) {
+  await chmod2(root, 448);
+  for (const entry of await readdir9(root, { withFileTypes: true })) {
+    const path = join14(root, entry.name);
+    if (entry.isDirectory()) {
+      await protectRuntimeTree(path);
+    } else if (entry.isSymbolicLink()) {
+      throw new ForgeError("FORGE_ARCHIVE_UNSAFE", `runtime payload contains a symbolic link: ${path}`);
+    } else if (entry.isFile()) {
+      const info = await stat11(path);
+      await chmod2(path, (info.mode & 73) !== 0 ? 448 : 384);
+    }
+  }
+}
 async function rewritePlaceholders(root, needle, value) {
-  const entries = await readdir8(root, { withFileTypes: true });
+  const entries = await readdir9(root, { withFileTypes: true });
   for (const entry of entries) {
-    const path = join13(root, entry.name);
+    const path = join14(root, entry.name);
     if (entry.isDirectory()) {
       await rewritePlaceholders(path, needle, value);
       continue;
@@ -14793,6 +14953,7 @@ async function injectDataflowEnv(path, env) {
       document.setIn(["nodes", index, "env", name], value);
     }
   }
+  await chmod2(path, 384);
   await writeFile7(path, String(document), { mode: 384 });
 }
 async function coordinatorReady(dora) {
@@ -14808,7 +14969,7 @@ async function pidsForFlow(flow) {
   const pids = [];
   let entries = [];
   try {
-    entries = await readdir8("/proc");
+    entries = await readdir9("/proc");
   } catch {
     return pids;
   }
@@ -14856,10 +15017,10 @@ async function killByFlow(flow, force = false) {
   return remaining.length;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/skill-files.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/skill-files.js
 var import_yaml5 = __toESM(require_dist(), 1);
-import { copyFile as copyFile3, mkdir as mkdir12, readdir as readdir9, readFile as readFile12, rename as rename7, stat as stat12, writeFile as writeFile8 } from "node:fs/promises";
-import { join as join14, relative as relative3, resolve as resolve6, sep as sep3 } from "node:path";
+import { copyFile as copyFile3, mkdir as mkdir13, readdir as readdir10, readFile as readFile12, rename as rename7, stat as stat12, writeFile as writeFile8 } from "node:fs/promises";
+import { join as join15, relative as relative4, resolve as resolve7, sep as sep3 } from "node:path";
 var EDITABLE = /\.(ya?ml|json|txt|md)$/i;
 var SkillFileStore = class {
   catalog;
@@ -14875,11 +15036,11 @@ var SkillFileStore = class {
     for (const entry of skills) {
       const profiles = [];
       for (const id of Object.keys(entry.manifest.profiles)) {
-        const dir = join14(entry.dir, "profiles", id);
+        const dir = join15(entry.dir, "profiles", id);
         const files = [];
         for (const path of await walk(dir)) {
           const info = await stat12(path);
-          files.push({ path: relative3(dir, path).split(sep3).join("/"), size: info.size, modified: info.mtime.toISOString() });
+          files.push({ path: relative4(dir, path).split(sep3).join("/"), size: info.size, modified: info.mtime.toISOString() });
         }
         profiles.push({ id, files: files.sort((left, right) => left.path.localeCompare(right.path)) });
       }
@@ -14894,16 +15055,16 @@ var SkillFileStore = class {
       throw new ForgeError("FORGE_SKILL_NOT_FOUND", `skill "${skill}" is not installed`);
     const files = [];
     for (const name of ["SKILL.md", "skill.yaml", "README.md"]) {
-      const path = join14(entry.dir, name);
+      const path = join15(entry.dir, name);
       try {
         const info = await stat12(path);
         files.push({ path: name, size: info.size, modified: info.mtime.toISOString() });
       } catch {
       }
     }
-    for (const path of await walk(join14(entry.dir, "docs"))) {
+    for (const path of await walk(join15(entry.dir, "docs"))) {
       const info = await stat12(path);
-      files.push({ path: `docs/${relative3(join14(entry.dir, "docs"), path).split(sep3).join("/")}`, size: info.size, modified: info.mtime.toISOString() });
+      files.push({ path: `docs/${relative4(join15(entry.dir, "docs"), path).split(sep3).join("/")}`, size: info.size, modified: info.mtime.toISOString() });
     }
     return files.sort((left, right) => left.path.localeCompare(right.path));
   }
@@ -14915,8 +15076,8 @@ var SkillFileStore = class {
     const allowed = file === "SKILL.md" || file === "skill.yaml" || file === "README.md" || file.startsWith("docs/");
     if (!allowed)
       throw new ForgeError("FORGE_FILE_INVALID", `${file} is not a bundle document`);
-    const target = resolve6(entry.dir, file);
-    if (!target.startsWith(resolve6(entry.dir) + sep3))
+    const target = resolve7(entry.dir, file);
+    if (!target.startsWith(resolve7(entry.dir) + sep3))
       throw new ForgeError("FORGE_FILE_INVALID", "path escapes the bundle");
     try {
       return await readFile12(target, "utf8");
@@ -14949,8 +15110,8 @@ var SkillFileStore = class {
   async backupPath(path) {
     if (this.backupsRoot === void 0)
       return `${path}.bak-${Date.now()}`;
-    const target = join14(this.backupsRoot, String(Date.now()), path.split(sep3).slice(-4).join(sep3));
-    await mkdir12(join14(target, ".."), { recursive: true });
+    const target = join15(this.backupsRoot, String(Date.now()), path.split(sep3).slice(-4).join(sep3));
+    await mkdir13(join15(target, ".."), { recursive: true });
     return target;
   }
   async resolve(skill, profile, file) {
@@ -14960,8 +15121,8 @@ var SkillFileStore = class {
     if (entry.manifest.profiles[profile] === void 0) {
       throw new ForgeError("FORGE_PROFILE_UNKNOWN", `profile "${profile}" does not exist`);
     }
-    const root = resolve6(entry.dir, "profiles", profile);
-    const target = resolve6(root, file);
+    const root = resolve7(entry.dir, "profiles", profile);
+    const target = resolve7(root, file);
     if (!target.startsWith(root + sep3))
       throw new ForgeError("FORGE_FILE_INVALID", "path escapes the profile directory");
     if (!EDITABLE.test(target))
@@ -14977,7 +15138,7 @@ var SkillFileStore = class {
 async function walk(dir) {
   let entries;
   try {
-    entries = await readdir9(dir, { withFileTypes: true });
+    entries = await readdir10(dir, { withFileTypes: true });
   } catch {
     return [];
   }
@@ -14985,7 +15146,7 @@ async function walk(dir) {
   for (const entry of entries) {
     if (entry.name.startsWith("."))
       continue;
-    const path = join14(dir, entry.name);
+    const path = join15(dir, entry.name);
     if (entry.isDirectory())
       paths.push(...await walk(path));
     else if (entry.isFile() && EDITABLE.test(entry.name))
@@ -14994,7 +15155,7 @@ async function walk(dir) {
   return paths;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0/node_modules/@x-era/forge-core/lib/operations.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/operations.js
 var ForgeOperations = class {
   paths;
   catalog;
@@ -15030,9 +15191,9 @@ var ForgeOperations = class {
     this.models = this.runtime.models;
     this.profiles = new DshProfileStore({ profilesRoot: options.profilesRoot });
     this.defaultProfile = options.profile !== void 0 && options.profile.length > 0 ? options.profile : "web";
-    this.files = new SkillFileStore(this.catalog, join15(this.paths.runtime, "backups"));
-    this.jobs = new JobRunner(join15(this.paths.runtime, "jobs"));
-    this.events = new EventLog(join15(this.paths.runtime, "logs", "events.jsonl"), options.events !== false);
+    this.files = new SkillFileStore(this.catalog, join16(this.paths.runtime, "backups"));
+    this.jobs = new JobRunner(join16(this.paths.runtime, "jobs"));
+    this.events = new EventLog(join16(this.paths.runtime, "logs", "events.jsonl"), options.events !== false);
     this.callTimeoutMs = options.callTimeoutMs ?? 15e3;
     this.onCatalogChange = options.onCatalogChange;
     this.dora = options.dora;
@@ -15125,7 +15286,7 @@ var ForgeOperations = class {
   }
   // ---- install -----------------------------------------------------------
   lockPath() {
-    return join15(this.paths.runtime, "forge.lock");
+    return join16(this.paths.runtime, "forge.lock");
   }
   listSkillVersions(name) {
     return this.registry.skillVersions(name);
@@ -15139,7 +15300,7 @@ var ForgeOperations = class {
         const result = await installSkill(name, {
           registry: this.registry,
           skillsRoot: this.paths.skills,
-          cacheRoot: join15(this.paths.runtime, "cache"),
+          cacheRoot: join16(this.paths.runtime, "cache"),
           signal: job.signal,
           ...version === void 0 ? {} : { version },
           onProgress: (phase, downloaded, total) => {
@@ -15199,7 +15360,7 @@ var ForgeOperations = class {
     if (found === void 0)
       throw new ForgeError("FORGE_SKILL_NOT_FOUND", `skill "${name}" is not installed`);
     return withLock(this.lockPath(), async () => {
-      await rm9(found.entry.dir, { recursive: true, force: true });
+      await rm10(found.entry.dir, { recursive: true, force: true });
       this.changed();
       void this.events.append("skill.remove", { name });
       return { name, removed: found.entry.dir };
@@ -15255,15 +15416,15 @@ var ForgeOperations = class {
     if (base.protocol !== "https:" || !SOURCE_HOSTS.has(base.hostname)) {
       throw new ForgeError("FORGE_SOURCE_UNAVAILABLE", `refusing to fetch from ${base.hostname}`);
     }
-    const relative4 = normalizeSourcePath(file);
+    const relative5 = normalizeSourcePath(file);
     const prefix = source.path === void 0 || source.path === "." || source.path === "./" ? "" : `${source.path.replace(/^\/+|\/+$/g, "")}/`;
-    const url = new URL(`${base.pathname}${prefix}${relative4}`.replace(/\/{2,}/g, "/"), base.origin).toString();
+    const url = new URL(`${base.pathname}${prefix}${relative5}`.replace(/\/{2,}/g, "/"), base.origin).toString();
     const revision = source.commitSha ?? source.ref ?? "unknown";
-    const cachePath = join15(this.paths.runtime, "sources", artifactId, revision, relative4);
+    const cachePath = join16(this.paths.runtime, "sources", artifactId, revision, relative5);
     if (!refresh) {
       const cached = await readFile13(cachePath, "utf8").catch(() => void 0);
       if (cached !== void 0) {
-        return { artifactId, file: relative4, url, ref: source.ref ?? null, commitSha: source.commitSha ?? null, repositoryUrl: source.repositoryUrl ?? null, cached: true, content: cached };
+        return { artifactId, file: relative5, url, ref: source.ref ?? null, commitSha: source.commitSha ?? null, repositoryUrl: source.repositoryUrl ?? null, cached: true, content: cached };
       }
     }
     let response;
@@ -15275,10 +15436,10 @@ var ForgeOperations = class {
     if (!response.ok)
       throw new ForgeError("FORGE_REGISTRY_UNAVAILABLE", `${url}: HTTP ${response.status}`);
     const content = await response.text();
-    await mkdir13(join15(cachePath, ".."), { recursive: true });
+    await mkdir14(join16(cachePath, ".."), { recursive: true });
     await writeFile9(cachePath, content);
-    void this.events.append("node.source", { artifactId, file: relative4, ref: source.ref ?? null, commit: source.commitSha ?? null });
-    return { artifactId, file: relative4, url, ref: source.ref ?? null, commitSha: source.commitSha ?? null, repositoryUrl: source.repositoryUrl ?? null, cached: false, content };
+    void this.events.append("node.source", { artifactId, file: relative5, ref: source.ref ?? null, commit: source.commitSha ?? null });
+    return { artifactId, file: relative5, url, ref: source.ref ?? null, commitSha: source.commitSha ?? null, repositoryUrl: source.repositoryUrl ?? null, cached: false, content };
   }
   async doctor(name, profile) {
     await this.ready();
@@ -15308,8 +15469,8 @@ var ForgeOperations = class {
       runtimes
     };
     const stamp3 = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
-    const path = join15(this.paths.runtime, "reports", `doctor-${stamp3}.json`);
-    await mkdir13(join15(this.paths.runtime, "reports"), { recursive: true });
+    const path = join16(this.paths.runtime, "reports", `doctor-${stamp3}.json`);
+    await mkdir14(join16(this.paths.runtime, "reports"), { recursive: true });
     await writeFile9(path, JSON.stringify(report, null, 2), { mode: 384 });
     void this.events.append("doctor.report", { path, skills: skills.length });
     return {
@@ -15536,7 +15697,7 @@ var ForgeOperations = class {
     }
     return packageSkill({
       bundleDir: entry.dir,
-      outputDir: options.outputDir ?? join15(this.paths.runtime, "dist"),
+      outputDir: options.outputDir ?? join16(this.paths.runtime, "dist"),
       force: options.force === true,
       includeVenv: options.includeVenv === true
     });
@@ -15689,7 +15850,7 @@ var ForgeOperations = class {
   }
   /** Count installed skills without touching the registry. */
   async installedCount() {
-    const dirs = await readdir10(this.paths.skills).catch(() => []);
+    const dirs = await readdir11(this.paths.skills).catch(() => []);
     return dirs.filter((name) => !name.startsWith(".")).length;
   }
   /** Size of a path in bytes (best effort, used by reports). */
@@ -15723,8 +15884,8 @@ function normalizeSourcePath(file) {
 }
 
 // src/config-store.mjs
-import { copyFile as copyFile4, mkdir as mkdir14, readFile as readFile14, readdir as readdir11, rename as rename8, stat as stat14, writeFile as writeFile10 } from "node:fs/promises";
-import { join as join16 } from "node:path";
+import { copyFile as copyFile4, mkdir as mkdir15, readFile as readFile14, readdir as readdir12, rename as rename8, stat as stat14, writeFile as writeFile10 } from "node:fs/promises";
+import { basename as basename2, join as join17 } from "node:path";
 var CONFIG_FILE = "config.json";
 var backupSeq = 0;
 function stamp2() {
@@ -15734,9 +15895,9 @@ function stamp2() {
   return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}-${String(now.getMilliseconds()).padStart(3, "0")}-${backupSeq}`;
 }
 var KimiConfigStore = class {
-  constructor(home2, lockFile = join16(home2, "runtime", "forge.lock")) {
+  constructor(home2, lockFile = join17(home2, "runtime", "forge.lock")) {
     this.home = home2;
-    this.path = join16(home2, CONFIG_FILE);
+    this.path = join17(home2, CONFIG_FILE);
     this.lockFile = lockFile;
   }
   async read() {
@@ -15769,7 +15930,7 @@ var KimiConfigStore = class {
       const before = await this.read();
       const candidate = merge ? mergeForgeRowConfig(before.config, patch) : patch;
       const normalized = validateConfig(candidate);
-      await mkdir14(this.home, { recursive: true });
+      await mkdir15(this.home, { recursive: true });
       let backup;
       if (before.exists) {
         backup = `${this.path}.bak-${stamp2()}`;
@@ -15782,7 +15943,7 @@ var KimiConfigStore = class {
       const diff = diffValues(before.config, normalized);
       return {
         path: this.path,
-        ...backup === void 0 ? {} : { backup: backup.slice(backup.lastIndexOf("/") + 1) },
+        ...backup === void 0 ? {} : { backup: basename2(backup) },
         changed: diff.length,
         diff,
         config: normalized,
@@ -15793,14 +15954,14 @@ var KimiConfigStore = class {
   async listBackups() {
     let entries = [];
     try {
-      entries = (await readdir11(this.home)).filter((name) => name.startsWith(`${CONFIG_FILE}.bak-`));
+      entries = (await readdir12(this.home)).filter((name) => name.startsWith(`${CONFIG_FILE}.bak-`));
     } catch {
       return [];
     }
     const backups = [];
     for (const file of entries) {
       try {
-        const info = await stat14(join16(this.home, file));
+        const info = await stat14(join17(this.home, file));
         backups.push({ file, at: new Date(info.mtimeMs).toISOString(), size: info.size });
       } catch {
       }
@@ -15812,7 +15973,7 @@ var KimiConfigStore = class {
       throw new ForgeError("FORGE_CONFIG_INVALID", `invalid backup filename "${file}"`);
     }
     return withLock(this.lockFile, async () => {
-      const source = join16(this.home, file);
+      const source = join17(this.home, file);
       let raw;
       try {
         raw = await readFile14(source, "utf8");
@@ -15828,7 +15989,7 @@ var KimiConfigStore = class {
         await stat14(this.path);
         const prevPath = `${this.path}.bak-${stamp2()}`;
         await copyFile4(this.path, prevPath);
-        previous = prevPath.slice(prevPath.lastIndexOf("/") + 1);
+        previous = basename2(prevPath);
       } catch {
         previous = void 0;
       }
@@ -15848,24 +16009,24 @@ var KimiConfigStore = class {
 
 // src/paths.mjs
 import { homedir as homedir3 } from "node:os";
-import { join as join17, resolve as resolve7 } from "node:path";
+import { join as join18, resolve as resolve8 } from "node:path";
 function resolveKimiCodeHome(env = process.env) {
   const raw = env.KIMI_CODE_HOME?.trim();
-  return raw ? resolve7(expandHome(raw)) : join17(homedir3(), ".kimi-code");
+  return raw ? resolve8(expandHome(raw)) : join18(homedir3(), ".kimi-code");
 }
 function resolveKimiForgeHome(env = process.env, explicit = void 0) {
   for (const candidate of [explicit, env.KIMI_FORGE_HOME, env.DSH_FORGE_HOME]) {
     const trimmed = candidate?.trim();
-    if (trimmed) return resolve7(expandHome(trimmed));
+    if (trimmed) return resolve8(expandHome(trimmed));
   }
-  return join17(resolveKimiCodeHome(env), "forge");
+  return join18(resolveKimiCodeHome(env), "forge");
 }
 function resolveKimiSkillsDir(env = process.env) {
-  return join17(resolveKimiCodeHome(env), "skills");
+  return join18(resolveKimiCodeHome(env), "skills");
 }
 function expandUserPath(value, baseDir = void 0) {
   const expanded = expandHome(value);
-  return baseDir ? resolve7(baseDir, expanded) : resolve7(expanded);
+  return baseDir ? resolve8(baseDir, expanded) : resolve8(expanded);
 }
 
 // src/forge-mcp.mjs
@@ -15905,7 +16066,7 @@ async function createOperations(previousJobs = void 0) {
     home,
     roots,
     modelsRoot,
-    profilesRoot: join18(home, "profiles"),
+    profilesRoot: join19(home, "profiles"),
     registry,
     dora: resolveBin(doraRaw),
     dora1: resolveBin(dora1Raw),
@@ -15915,7 +16076,7 @@ async function createOperations(previousJobs = void 0) {
   if (previousJobs !== void 0) {
     next.jobs = previousJobs;
   }
-  await next.runtime.load();
+  await next.ready();
   return next;
 }
 var operations = await createOperations();
@@ -16182,12 +16343,20 @@ async function dispatch(name, args) {
     case "forge_model_verify":
       return operations.modelVerify(args.id, args.revision);
     case "forge_skill_export": {
-      const targetOut = args.out ? expandUserPath(args.out) : args.kimi_skills === true ? resolveKimiSkillsDir(process.env) : join18(home, "portable");
+      const targetOut = args.out ? expandUserPath(args.out) : args.kimi_skills === true ? resolveKimiSkillsDir(process.env) : join19(home, "portable");
       return operations.exportPortable(args.name, targetOut);
     }
     default:
       throw Object.assign(new Error(`unknown tool ${name}`), { code: "FORGE_USAGE" });
   }
+}
+var toolQueue = Promise.resolve();
+var jobControlTools = /* @__PURE__ */ new Set(["forge_install_status", "forge_install_cancel"]);
+function dispatchOrdered(name, args) {
+  if (jobControlTools.has(name)) return dispatch(name, args);
+  const result = toolQueue.then(() => dispatch(name, args));
+  toolQueue = result.then(() => void 0, () => void 0);
+  return result;
 }
 var send = (message) => process.stdout.write(`${JSON.stringify(message)}
 `);
@@ -16209,7 +16378,7 @@ async function handle(method, params) {
     case "tools/call": {
       const name = params.name;
       try {
-        const value = await dispatch(name, params.arguments ?? {});
+        const value = await dispatchOrdered(name, params.arguments ?? {});
         return { content: [{ type: "text", text: JSON.stringify(value, null, 2) }], isError: false };
       } catch (error) {
         return {
