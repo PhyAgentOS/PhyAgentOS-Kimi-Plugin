@@ -7366,14 +7366,14 @@ var require_dist = __commonJS({
 import { createInterface } from "node:readline";
 import { join as join19 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/bootstrap.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/bootstrap.js
 import { execFile as execFile2 } from "node:child_process";
 import { existsSync as existsSync2 } from "node:fs";
 import { chmod, copyFile as copyFile2, lstat, mkdir as mkdir2, rm as rm2, symlink } from "node:fs/promises";
 import { join as join5, resolve as resolve3 } from "node:path";
 import { promisify as promisify2 } from "node:util";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/environment.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/environment.js
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, readdir as readdir2, readFile as readFile2, rm, stat as stat2, statfs, writeFile } from "node:fs/promises";
@@ -7381,7 +7381,7 @@ import { connect } from "node:net";
 import { join as join3 } from "node:path";
 import { promisify } from "node:util";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/models.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/models.js
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { readdir, readFile, stat } from "node:fs/promises";
@@ -7793,7 +7793,7 @@ async function statSafe(path) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/paths.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/paths.js
 import { homedir } from "node:os";
 import { join as join2, resolve } from "node:path";
 var FORGE_MODELS_ENV = "DSH_FORGE_MODELS";
@@ -7823,7 +7823,7 @@ function forgePaths(home2, modelsRoot) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/environment.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/environment.js
 var execFileAsync = promisify(execFile);
 var MIN_NODE_MAJOR = 22;
 var DORA_REFERENCE_MINOR = "0.4";
@@ -8445,13 +8445,13 @@ async function isDirectory(path) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/settings.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/settings.js
 var import_yaml = __toESM(require_dist(), 1);
 import { copyFile, readFile as readFile3, readdir as readdir3, rename, stat as stat3, writeFile as writeFile2 } from "node:fs/promises";
 import { homedir as homedir2 } from "node:os";
 import { join as join4, resolve as resolve2 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/errors.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/errors.js
 var ForgeError = class extends Error {
   code;
   path;
@@ -8474,7 +8474,7 @@ var ErrorCode = {
   registryUnavailable: "FORGE_REGISTRY_UNAVAILABLE"
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/settings.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/settings.js
 var FORGE_ROW_ID = "forge-skill";
 var DshProfileStore = class {
   root;
@@ -8724,7 +8724,7 @@ function stamp() {
   return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}-${String(now.getMilliseconds()).padStart(3, "0")}-${backupCounter}`;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/bootstrap.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/bootstrap.js
 var execFileAsync2 = promisify2(execFile2);
 var DEFAULT_DORA_VERSION = "0.4.1";
 var DEFAULT_DORA1_VERSION = "1.0.1";
@@ -9136,11 +9136,11 @@ var defaultExec2 = async (file, args, options) => {
   return { stdout, stderr };
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/catalog.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/catalog.js
 import { readdir as readdir4, readFile as readFile4, stat as stat4 } from "node:fs/promises";
 import { join as join6 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/forge-version.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/forge-version.js
 var SUPPORTED_FORGE_VERSIONS = ["1", "2"];
 var DEFAULT_FORGE_VERSION = "1";
 function isForgeGeneration(value) {
@@ -9154,7 +9154,7 @@ function unsupportedForgeVersionDetail(value) {
   return `bundle targets Forge ${value}; this build implements ${supported}`;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/manifest.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/manifest.js
 var import_yaml2 = __toESM(require_dist(), 1);
 var MANIFEST_VERSION = 2;
 var SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -9453,7 +9453,7 @@ function isHttpUrl(value) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/catalog.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/catalog.js
 var SAFE_NAME = /^[a-z0-9][a-z0-9-]*$/;
 var ForgeCatalog = class {
   root;
@@ -9576,12 +9576,12 @@ function isMissing(error) {
   return typeof error === "object" && error !== null && error.code === "ENOENT";
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/operations.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/operations.js
 var import_yaml6 = __toESM(require_dist(), 1);
 import { mkdir as mkdir14, readFile as readFile13, readdir as readdir11, rm as rm10, stat as stat13, writeFile as writeFile9 } from "node:fs/promises";
 import { join as join16 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/diff.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/diff.js
 function diffValues(before, after, prefix = "") {
   const left = flatten(before, prefix);
   const right = flatten(after, prefix);
@@ -9611,7 +9611,7 @@ function flatten(value, prefix) {
   return result;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/validate.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/validate.js
 import { readFile as readFile5, stat as stat5 } from "node:fs/promises";
 import { isAbsolute, join as join7, resolve as resolve4, sep } from "node:path";
 async function validateBundle(root) {
@@ -9718,7 +9718,7 @@ function archName() {
   return process.arch;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/tool-client.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/tool-client.js
 var ForgeToolClient = class {
   gatewayUrl;
   timeoutMs;
@@ -9815,7 +9815,7 @@ var ForgeToolClient = class {
   }
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/doctor.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/doctor.js
 async function diagnoseSkill(options) {
   const entry = await options.catalog.load(options.skill);
   if (entry === void 0) {
@@ -9869,7 +9869,7 @@ async function diagnoseSkill(options) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/events.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/events.js
 import { appendFile, mkdir as mkdir3 } from "node:fs/promises";
 import { dirname } from "node:path";
 var EventLog = class {
@@ -9892,7 +9892,7 @@ var EventLog = class {
   }
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/package.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/package.js
 import { createHash as createHash2 } from "node:crypto";
 import { createReadStream as createReadStream2 } from "node:fs";
 import { lstat as lstat2, mkdir as mkdir4, readFile as readFile6, readdir as readdir5, rename as rename2, rm as rm3, stat as stat6, writeFile as writeFile3 } from "node:fs/promises";
@@ -12867,7 +12867,7 @@ var To = (s3) => {
   s3.mtimeCache || (s3.mtimeCache = /* @__PURE__ */ new Map()), s3.filter = t ? (e, i) => t(e, i) && !((s3.mtimeCache?.get(e) ?? i.mtime ?? 0) > (i.mtime ?? 0)) : (e, i) => !((s3.mtimeCache?.get(e) ?? i.mtime ?? 0) > (i.mtime ?? 0));
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/package.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/package.js
 var EXCLUDED_PARTS = /* @__PURE__ */ new Set([
   ".git",
   ".hg",
@@ -13030,11 +13030,11 @@ async function packageSkill(options) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/install.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/install.js
 import { lstat as lstat4, mkdir as mkdir7, mkdtemp, rename as rename4, rm as rm6, stat as stat8 } from "node:fs/promises";
 import { dirname as dirname4, join as join10, resolve as resolve6 } from "node:path";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/archive.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/archive.js
 import { lstat as lstat3, mkdir as mkdir5, readdir as readdir6, realpath, rm as rm4, symlink as symlink2 } from "node:fs/promises";
 import { dirname as dirname2, isAbsolute as isAbsolute2, join as join9, posix, relative as relative2, resolve as resolve5, win32 } from "node:path";
 async function extractArchive(file, cwd, options = {}) {
@@ -13042,37 +13042,54 @@ async function extractArchive(file, cwd, options = {}) {
   const root = resolve5(cwd);
   if (!(await lstat3(root)).isDirectory() || (await readdir6(root)).length !== 0)
     throw unsafe("extraction requires an empty, non-symlink directory");
+  const node = options.nodeArtifact;
+  if (node !== void 0 && (!["executable_tar_gz", "directory_tar_gz"].includes(node.artifactType) || typeof node.entrypoint !== "string" || !node.entrypoint.trim() || [".", "..", ".artifact.json"].includes(node.entrypoint) || ["/", "\\", ":", "\0"].some((char) => node.entrypoint.includes(char))))
+    throw unsafe("invalid node artifact type or entrypoint name");
   const entries = /* @__PURE__ */ new Map();
+  const modes = /* @__PURE__ */ new Map();
+  let entryCount = 0;
   const links = /* @__PURE__ */ new Map();
   const violations = [];
   const safePath = (path) => typeof path === "string" && path.length > 0 && !path.includes("\\") && !path.includes("\0") && !path.includes(":") && !isAbsolute2(path) && !win32.isAbsolute(path) && !/^[a-z]:/i.test(path);
-  await Ct({ file, strict: true, onReadEntry: (entry) => {
-    const path = posix.normalize(entry.path);
-    if (!safePath(entry.path) || entry.path.split("/").includes("..")) {
-      violations.push(`path escapes archive root: ${entry.path}`);
-      return;
-    }
-    const name = path.replace(/\/$/, "");
-    if (name === "." || name === "") {
-      if (entry.type !== "Directory") violations.push("archive root must be a directory");
-      return;
-    }
-    const previous = entries.get(name);
-    if (previous !== void 0 && !(previous === "Directory" && entry.type === "Directory"))
-      violations.push(`duplicate archive entry: ${name}`);
-    entries.set(name, entry.type);
-    if (entry.type === "SymbolicLink" && options.allowInternalLinks === true) {
-      const target = entry.linkpath;
-      const normalized = posix.normalize(posix.join(posix.dirname(name), target));
-      if (!safePath(target) || normalized === ".." || normalized.startsWith("../"))
-        violations.push(`link target escapes archive root: ${name}`);
-      else
-        links.set(name, target);
-    } else if (entry.type === "SymbolicLink" || entry.type === "Link")
-      violations.push(`link entries are not allowed: ${name}`);
-    else if (!["File", "OldFile", "Directory"].includes(entry.type))
-      violations.push(`unsupported archive entry: ${name} (${entry.type})`);
-  } });
+  try {
+    await Ct({ file, strict: true, onReadEntry: (entry) => {
+      entryCount++;
+      if (node?.artifactType === "directory_tar_gz" && entryCount > 5e4) {
+        if (entryCount === 50001) violations.push("directory node archive exceeds 50000 entries");
+        return;
+      }
+      const path = posix.normalize(entry.path);
+      if (!safePath(entry.path) || entry.path.split("/").includes("..")) {
+        violations.push(`path escapes archive root: ${entry.path}`);
+        return;
+      }
+      const name = path.replace(/\/$/, "");
+      if (name === "." || name === "") {
+        if (node !== void 0) violations.push("node archives must not contain a wrapper root entry");
+        if (entry.type !== "Directory") violations.push("archive root must be a directory");
+        return;
+      }
+      const previous = entries.get(name);
+      if (previous !== void 0 && !(previous === "Directory" && entry.type === "Directory"))
+        violations.push(`duplicate archive entry: ${name}`);
+      entries.set(name, entry.type);
+      modes.set(name, entry.mode ?? 0);
+      const allowLinks = node === void 0 ? options.allowInternalLinks === true : node.artifactType === "directory_tar_gz";
+      if (entry.type === "SymbolicLink" && allowLinks) {
+        const target = entry.linkpath;
+        const normalized = posix.normalize(posix.join(posix.dirname(name), target));
+        if (!safePath(target) || normalized === ".." || normalized.startsWith("../"))
+          violations.push(`link target escapes archive root: ${name}`);
+        else
+          links.set(name, target);
+      } else if (entry.type === "SymbolicLink" || entry.type === "Link")
+        violations.push(`link entries are not allowed: ${name}`);
+      else if (!["File", "OldFile", "Directory"].includes(entry.type))
+        violations.push(`unsupported archive entry: ${name} (${entry.type})`);
+    } });
+  } catch (error) {
+    throw unsafe(`invalid tar archive: ${error.message}`);
+  }
   for (const name of entries.keys()) {
     let parent = posix.dirname(name);
     while (parent !== ".") {
@@ -13082,6 +13099,20 @@ async function extractArchive(file, cwd, options = {}) {
       }
       parent = posix.dirname(parent);
     }
+  }
+  if (node !== void 0) {
+    const directory = node.artifactType === "directory_tar_gz";
+    const executable = directory ? `${node.entrypoint}/${node.entrypoint}` : node.entrypoint;
+    for (const [name, type] of entries) {
+      if (directory ? name !== node.entrypoint && !name.startsWith(`${node.entrypoint}/`) : name !== node.entrypoint || !["File", "OldFile"].includes(type))
+        violations.push(`invalid ${node.artifactType} layout: ${name}`);
+    }
+    if (directory && entries.has(node.entrypoint) && entries.get(node.entrypoint) !== "Directory")
+      violations.push(`node root must be a directory: ${node.entrypoint}`);
+    if (!["File", "OldFile"].includes(entries.get(executable)) || !(modes.get(executable) & 73))
+      violations.push(`node entrypoint must be an executable regular file: ${executable}`);
+    if (!directory && (entries.size !== 1 || entryCount !== 1))
+      violations.push("executable node archive must contain exactly one regular file");
   }
   if (violations.length > 0)
     throw unsafe(violations.slice(0, 3).join("; "));
@@ -13135,7 +13166,7 @@ async function extractArchive(file, cwd, options = {}) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/download.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/download.js
 import { createHash as createHash3 } from "node:crypto";
 import { createWriteStream, existsSync as existsSync3 } from "node:fs";
 import { createReadStream as createReadStream3 } from "node:fs";
@@ -13260,7 +13291,7 @@ async function hashFile(path) {
   return hash.digest("hex");
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/install.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/install.js
 async function installSkill(name, options) {
   options.onProgress?.("resolve");
   const artifact = await options.registry.skill(name, options.version);
@@ -13468,7 +13499,7 @@ function slug(value) {
   return value.replace(/[^a-z0-9-]+/gi, "-");
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/jobs.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/jobs.js
 import { randomUUID } from "node:crypto";
 import { mkdir as mkdir8, readFile as readFile7, readdir as readdir7, rename as rename5, writeFile as writeFile4 } from "node:fs/promises";
 import { join as join11 } from "node:path";
@@ -13600,7 +13631,7 @@ var JobRunner = class {
   }
 };
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/lock.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/lock.js
 import { open, readFile as readFile8, rm as rm7, stat as stat9 } from "node:fs/promises";
 import { mkdir as mkdir9 } from "node:fs/promises";
 import { dirname as dirname5 } from "node:path";
@@ -13657,7 +13688,7 @@ function isAlive(pid) {
   }
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/portable.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/portable.js
 var import_yaml3 = __toESM(require_dist(), 1);
 import { cp, mkdir as mkdir10, readFile as readFile9, writeFile as writeFile5 } from "node:fs/promises";
 import { join as join12 } from "node:path";
@@ -13705,7 +13736,7 @@ ${body}`;
   return { path: target, skill: entry.name, profiles };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/repositories.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/repositories.js
 var REPOSITORY_CATALOG = [
   {
     id: "forge",
@@ -13986,7 +14017,7 @@ function findRepository(idOrNode) {
   return REPOSITORY_CATALOG.find((entry) => entry.id.toLowerCase() === needle) ?? REPOSITORY_CATALOG.find((entry) => entry.nodes.some((node) => node.toLowerCase() === needle));
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/registry.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/registry.js
 var DEFAULT_REGISTRY_URL = "https://paos-resource-platform.dev.x-era.com";
 var ForgeRegistryClient = class {
   baseUrl;
@@ -14101,7 +14132,7 @@ function artifactFrom(value, name) {
   };
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/runtime.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/runtime.js
 var import_yaml4 = __toESM(require_dist(), 1);
 import { createHash as createHash4 } from "node:crypto";
 import { closeSync, existsSync as existsSync4, openSync, readFileSync, symlinkSync } from "node:fs";
@@ -14110,8 +14141,8 @@ import { basename, dirname as dirname6, isAbsolute as isAbsolute3, join as join1
 import { execFile as execFile3, spawn } from "node:child_process";
 import { promisify as promisify3 } from "node:util";
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/nodes.js
-import { mkdir as mkdir11, readFile as readFile10, readdir as readdir8, rename as rename6, rm as rm8, stat as stat10, writeFile as writeFile6 } from "node:fs/promises";
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/nodes.js
+import { lstat as lstat5, mkdir as mkdir11, readFile as readFile10, readdir as readdir8, rename as rename6, rm as rm8, stat as stat10, writeFile as writeFile6 } from "node:fs/promises";
 import { join as join13 } from "node:path";
 var NodeStore = class {
   root;
@@ -14125,7 +14156,7 @@ var NodeStore = class {
   /** Read-only cache inspection; never downloads. */
   async inspect(lock, binary = lock.nodeId) {
     const dir = join13(this.root, lock.artifactId);
-    const entrypoint = join13(dir, lock.entrypoint);
+    const entrypoint = nodeEntrypoint(dir, lock);
     if (!await isExecutable(entrypoint)) {
       return { artifactId: lock.artifactId, entrypoint, state: "missing", detail: `${binary}: ${dir} is not installed` };
     }
@@ -14211,6 +14242,7 @@ var NodeStore = class {
     return { removed, freedBytes, kept };
   }
   async download(lock, hooks) {
+    const expectedEntrypoint = nodeEntrypoint("", lock);
     if (lock.platform !== process.platform || lock.arch !== archName2()) {
       throw new ForgeError("FORGE_NODE_PLATFORM", `${lock.artifactId} targets ${lock.platform}/${lock.arch}`);
     }
@@ -14234,8 +14266,8 @@ var NodeStore = class {
     await rm8(staging, { recursive: true, force: true });
     await mkdir11(staging, { recursive: true });
     try {
-      await extractArchive(archive, staging, { allowInternalLinks: true });
-      if (!await isExecutable(join13(staging, lock.entrypoint))) {
+      await extractArchive(archive, staging, { nodeArtifact: lock });
+      if (!await isExecutable(join13(staging, expectedEntrypoint))) {
         throw new ForgeError("FORGE_NODE_ENTRYPOINT", `${lock.artifactId} has no executable ${lock.entrypoint}`);
       }
       const metadata = {
@@ -14276,9 +14308,15 @@ async function directorySize2(path) {
   }
   return total;
 }
+function nodeEntrypoint(root, lock) {
+  const name = lock.entrypoint;
+  if (!["executable_tar_gz", "directory_tar_gz"].includes(lock.artifactType) || typeof name !== "string" || !name.trim() || [".", "..", ".artifact.json"].includes(name) || ["/", "\\", ":", "\0"].some((char) => name.includes(char)))
+    throw new ForgeError("FORGE_NODE_ENTRYPOINT", "node entrypoint must be a single filename with a supported artifact type");
+  return lock.artifactType === "directory_tar_gz" ? join13(root, name, name) : join13(root, name);
+}
 async function isExecutable(path) {
   try {
-    const info = await stat10(path);
+    const info = await lstat5(path);
     return info.isFile() && (info.mode & 73) !== 0;
   } catch {
     return false;
@@ -14294,7 +14332,7 @@ function archName2() {
   return process.arch;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/runtime.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/runtime.js
 var execFileAsync3 = promisify3(execFile3);
 var SkillRuntimeManager = class {
   paths;
@@ -14979,7 +15017,7 @@ async function killByFlow(flow, force = false) {
   return remaining.length;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/skill-files.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/skill-files.js
 var import_yaml5 = __toESM(require_dist(), 1);
 import { copyFile as copyFile3, mkdir as mkdir13, readdir as readdir10, readFile as readFile12, rename as rename7, stat as stat12, writeFile as writeFile8 } from "node:fs/promises";
 import { join as join15, relative as relative4, resolve as resolve7, sep as sep3 } from "node:path";
@@ -15117,7 +15155,7 @@ async function walk(dir) {
   return paths;
 }
 
-// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=fea3e581967bb4925db445de39369111eded8a26d698060a74acd46c50d55d63/node_modules/@x-era/forge-core/lib/operations.js
+// node_modules/.pnpm/@x-era+forge-core@0.2.0_patch_hash=ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9/node_modules/@x-era/forge-core/lib/operations.js
 var ForgeOperations = class {
   paths;
   catalog;
