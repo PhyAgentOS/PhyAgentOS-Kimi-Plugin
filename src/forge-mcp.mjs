@@ -76,7 +76,9 @@ async function createOperations(previousJobs = undefined) {
   if (previousJobs !== undefined) {
     next.jobs = previousJobs
   }
-  await next.runtime.load()
+  // Initialize through Core's memoized entry point so the first tool cannot
+  // reload disk state into an already initialized runtime manager.
+  await next.ready()
   return next
 }
 
@@ -320,6 +322,19 @@ async function dispatch(name, args) {
   }
 }
 
+// Keep stateful requests ordered: a refresh must not replace Operations while
+// an earlier start/stop/remove is still using it. Background installs continue
+// outside this queue; polling and cancellation must bypass a refresh waiting
+// for their filesystem lock.
+let toolQueue = Promise.resolve()
+const jobControlTools = new Set(['forge_install_status', 'forge_install_cancel'])
+function dispatchOrdered(name, args) {
+  if (jobControlTools.has(name)) return dispatch(name, args)
+  const result = toolQueue.then(() => dispatch(name, args))
+  toolQueue = result.then(() => undefined, () => undefined)
+  return result
+}
+
 const send = message => process.stdout.write(`${JSON.stringify(message)}\n`)
 
 async function handle(method, params) {
@@ -340,7 +355,7 @@ async function handle(method, params) {
     case 'tools/call': {
       const name = params.name
       try {
-        const value = await dispatch(name, params.arguments ?? {})
+        const value = await dispatchOrdered(name, params.arguments ?? {})
         return { content: [{ type: 'text', text: JSON.stringify(value, null, 2) }], isError: false }
       } catch (error) {
         return {

@@ -16076,7 +16076,7 @@ async function createOperations(previousJobs = void 0) {
   if (previousJobs !== void 0) {
     next.jobs = previousJobs;
   }
-  await next.runtime.load();
+  await next.ready();
   return next;
 }
 var operations = await createOperations();
@@ -16350,6 +16350,14 @@ async function dispatch(name, args) {
       throw Object.assign(new Error(`unknown tool ${name}`), { code: "FORGE_USAGE" });
   }
 }
+var toolQueue = Promise.resolve();
+var jobControlTools = /* @__PURE__ */ new Set(["forge_install_status", "forge_install_cancel"]);
+function dispatchOrdered(name, args) {
+  if (jobControlTools.has(name)) return dispatch(name, args);
+  const result = toolQueue.then(() => dispatch(name, args));
+  toolQueue = result.then(() => void 0, () => void 0);
+  return result;
+}
 var send = (message) => process.stdout.write(`${JSON.stringify(message)}
 `);
 async function handle(method, params) {
@@ -16370,7 +16378,7 @@ async function handle(method, params) {
     case "tools/call": {
       const name = params.name;
       try {
-        const value = await dispatch(name, params.arguments ?? {});
+        const value = await dispatchOrdered(name, params.arguments ?? {});
         return { content: [{ type: "text", text: JSON.stringify(value, null, 2) }], isError: false };
       } catch (error) {
         return {

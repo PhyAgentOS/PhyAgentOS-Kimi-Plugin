@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { chmod, cp, mkdir, readFile, readdir } from 'node:fs/promises'
+import { chmod, cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
 import { dirname, join, resolve } from 'node:path'
@@ -34,6 +34,27 @@ async function managedMcp(t) {
   return { root, userHome, kimiHome, home: join(kimiHome, 'forge'), mcp }
 }
 
+test('the first tool does not reload a different runtime snapshot after initialization', async t => {
+  const { home, mcp } = await managedMcp(t)
+  try {
+    await mcp.request('initialize', { protocolVersion: '2025-06-18' })
+    await writeBundle(join(home, 'skills', 'audit-demo'))
+    await mkdir(join(home, 'runtime'), { recursive: true })
+    // Simulate another writer changing disk after this session initialized.
+    // This fixture has no PID and cannot launch or stop a real process.
+    await writeFile(join(home, 'runtime', 'state.json'), JSON.stringify({ skills: {
+      'audit-demo': { skill: 'audit-demo', status: 'healthy', flow: 'test-snapshot-only',
+        dora: join(home, 'missing-test-dora'), launch: 'start' },
+    } }))
+    const listed = await mcp.callTool('forge_skill_list')
+    const status = await mcp.callTool('forge_runtime_status', { name: 'audit-demo' })
+    assert.equal(listed.payload.skills.find(skill => skill.name === 'audit-demo').runtime, null)
+    assert.equal(status.payload, null)
+  } finally {
+    await mcp.close()
+  }
+})
+
 test('same-session setup without config persistence can start a synthetic runtime and reconcile actions', {
   skip: process.platform === 'win32' && 'Executable test fixture uses a POSIX shebang',
   timeout: 20000,
@@ -67,10 +88,25 @@ test('same-session setup without config persistence can start a synthetic runtim
     assert.equal(setup.payload.ok, true)
     const currentConfig = await mcp.callTool('forge_config_read')
     assert.equal(currentConfig.payload.config.runtime.dora1, undefined)
-    const start = await mcp.callTool('forge_runtime_start', { name: 'audit-demo', profile: 'default', mode: 'run' })
+    // A config refresh arriving during start must not replace the manager with
+    // a snapshot taken before the new runtime was persisted.
+    const starting = mcp.callTool('forge_runtime_start', { name: 'audit-demo', profile: 'default', mode: 'run' })
+    const statusDuringStart = mcp.callTool('forge_runtime_status', { name: 'audit-demo' })
+    const refreshing = mcp.callTool('forge_config_write', { config: { gateway: { callTimeoutMs: 1100 } } })
+    const start = await starting
     started = !start.isError
     assert.equal(start.isError, false, JSON.stringify(start.payload))
+    assert.equal((await statusDuringStart).payload?.status, 'healthy')
+    assert.equal((await refreshing).isError, false)
     assert.equal(start.payload.status, 'healthy')
+    const listed = await mcp.callTool('forge_skill_list')
+    const status = await mcp.callTool('forge_runtime_status', { name: 'audit-demo' })
+    assert.equal(listed.payload.skills.find(skill => skill.name === 'audit-demo').runtime?.status, 'healthy')
+    assert.equal(status.payload?.status, 'healthy')
+    assert.equal(status.payload.pid, start.payload.pid)
+    const remove = await mcp.callTool('forge_skill_remove', { name: 'audit-demo' })
+    assert.equal(remove.isError, true)
+    assert.equal(remove.payload.code, 'FORGE_RUNTIME_STALE')
     assert.equal(start.payload.dora, join(home, 'support', 'bin', 'dora1'))
     const context = await mcp.callTool('forge_tool_context', { name: 'audit-demo', tool_id: 'sim.ping' })
     assert.equal(context.payload.readiness, true)
@@ -94,6 +130,15 @@ test('same-session setup without config persistence can start a synthetic runtim
     assert.equal(failure.payload.code, 'FORGE_GATEWAY_UNREACHABLE')
     assert.deepEqual(await readdir(models), [])
     assert.deepEqual(await readdir(join(userHome, '.dsh')), [])
+    const stopped = await mcp.callTool('forge_runtime_stop', { name: 'audit-demo' })
+    assert.equal(stopped.isError, false)
+    assert.equal(stopped.payload.status, 'stopped')
+    started = false
+    assert.equal((await mcp.callTool('forge_runtime_status', { name: 'audit-demo' })).payload.status, 'stopped')
+    const removed = await mcp.callTool('forge_skill_remove', { name: 'audit-demo' })
+    assert.equal(removed.isError, false)
+    assert.equal(removed.payload.name, 'audit-demo')
+    assert.deepEqual((await mcp.callTool('forge_skill_list')).payload.skills, [])
   } finally {
     // This test owns this synthetic process; never stop any user's runtime.
     if (started) {
