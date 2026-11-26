@@ -1,7 +1,7 @@
 # Forge Core compatibility patch
 
-The plugin keeps the published `@x-era/forge-core@0.2.0` version and applies
-`patches/@x-era__forge-core@0.2.0.patch` through pnpm's `patchedDependencies`.
+The plugin pins the published `@x-era/forge-core` version in [package.json](../package.json)
+and applies the matching patch through [pnpm's patchedDependencies](../pnpm-workspace.yaml).
 No external upstream checkout is modified and no alternate core is vendored.
 The patched dependency is used both by source tests and by the single-file MCP build.
 
@@ -46,11 +46,17 @@ ACL enforcement mechanism.
 ## Maintenance
 
 1. Install with `pnpm install --frozen-lockfile`; npm does not apply this pnpm patch.
-2. Change the patch with `pnpm patch @x-era/forge-core@0.2.0` and `pnpm patch-commit`.
+2. Change the current patch with `pnpm patch @x-era/forge-core` and `pnpm patch-commit`.
 3. Commit the patch, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, and rebuilt MCP file together.
 4. Run `pnpm test` and `pnpm run build:check`. The bundle must include the patch.
-5. When upgrading core, check whether upstream incorporates each fix. Remove or
-   rebase the patch explicitly, update the lockfile, and retain the regression tests.
+5. When upgrading core, check which fixes are now upstream. The upgrade command first
+   tests the existing patch against the requested release in a temporary checkout. If it
+   conflicts, rebase against the pristine npm package, then pass the new patch as the
+   second argument to `pnpm upgrade:core`. Retain the regression tests.
+
+The upgrade to core 0.2.2 keeps upstream profile startup budgets, live lock-holder
+checks and unique extraction staging directories. Kimi retains its stricter archive
+preflight, pinned registry downloads, read-only shared models and runtime permissions.
 
 Rejecting remote artifacts without integrity metadata is an intentional compatibility
 change. Registry publishers must provide `sha256` and `size`; do not work around a

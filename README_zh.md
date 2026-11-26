@@ -11,7 +11,7 @@
 
 ## 核心特性
 
-- **GitHub 免编译直装**：内置确定性打包的单文件 ESM MCP 服务（`./mcp/forge-mcp.mjs`，内联 `@x-era/forge-core@0.2.0`），通过 Kimi `Plugin Builder` 或 `/plugins install` 拉取仓库后无需执行 `npm install`，毫秒级冷启动。
+- **GitHub 免编译直装**：内置确定性打包的单文件 ESM MCP 服务（`./mcp/forge-mcp.mjs`，内联 [依赖清单](package.json) 锁定并打过补丁的 Forge Core），通过 Kimi `Plugin Builder` 或 `/plugins install` 拉取仓库后无需执行 `npm install`，毫秒级冷启动。
 - **严格的宿主目录隔离**：默认数据根采用 `~/.kimi-code/forge`（自动跟随 `$KIMI_CODE_HOME/forge`），将单写者 `runtime/state.json`、`runtime/forge.lock`、技能目录与隔离 Dora 运行时与 DSH 的 `~/.dsh/forge` 完全物理隔离，互不干扰。
 - **完整暴露 41 个 Forge 工具**：涵盖本机环境体检、Dora 0.4.1 / 1.0.1 一键隔离安装、PAOS Registry 搜索与后台安装、本地技能包校验与打包、节点源码版本追溯、本地模型 SHA256 校验、Dora 运行时启停及 Gateway 异步动作对账。
 - **内置物理安全红线与工作流**：随插件注入 `SYSTEM.md` 物理执行安全规则、2 个专业技能（`/skill:phyagentos:forge-usage`、`/skill:phyagentos:forge-skill-development`）以及 4 个快捷斜杠命令（`/phyagentos:env`、`/phyagentos:skills`、`/phyagentos:doctor`、`/phyagentos:export-skill`）。

@@ -4,16 +4,11 @@
 
 ## 1. 升级 `@x-era/forge-core` 与重打包流程
 
-1. 在个人 fork 创建 `feature/<topic>` 或 `fix/<topic>` 分支，不在上游仓库直接推送开发分支。
-2. 同步更新 `package.json` 中的 `@x-era/forge-core` 依赖版本，以及 `package.json` 与 `kimi.plugin.json` 的 `version`。
-3. 重新生成单文件 MCP 产物并运行全量门禁：
-   ```sh
-   pnpm install
-   pnpm test
-   pnpm run build:check
-   ```
+1. 确认目标 core 版本已在 npm 可用后，从上游目标分支新建 `fix/<topic>`。
+2. 在干净工作区执行 `pnpm upgrade:core <版本>`。命令在临时副本应用当前补丁、更新精确版本和锁文件、重建 MCP 并运行测试，通过后才把变更写回。
+3. 若补丁冲突，核对上游已包含的修复，迁移其余补丁，再执行 `pnpm upgrade:core <版本> /path/to/rebased.patch`。检查生成的改动。准备 Kimi 新版本时，将 `package.json` 和 `kimi.plugin.json` 的 `version` 更新为同一版本，再运行 `pnpm install --frozen-lockfile`、`pnpm test` 和 `pnpm run build:check`。MCP 握手版本取自 `package.json`。
 4. 推送源分支及创建 PR 前，执行 `gh api user --jq .login` 核对当前认证账号与 Git 作者身份一致。
-5. 合入 `main` 后创建不可变 GitHub Release tag（例如 `v0.2.0`）——Kimi `/plugins install https://github.com/PhyAgentOS/PhyAgentOS-Kimi-Plugin` 在存在 Release 时默认拉取最新 Release。
+5. 合入 `main` 后创建不可变 GitHub Release tag（例如 `v0.2.1`）——Kimi `/plugins install https://github.com/PhyAgentOS/PhyAgentOS-Kimi-Plugin` 在存在 Release 时默认拉取最新 Release。
 
 ## 2. 提交至 Kimi 官方公开市场流程
 
