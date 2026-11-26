@@ -19,7 +19,6 @@
 ## 环境前提
 
 - **Node.js `>=22` 与 npm**：运行 MCP 服务的机器需可执行 `node --version` 和 `npm --version`。首次启动需访问锁文件指定的 npm 制品地址；依赖准备后可离线启动。安装日志写入 stderr；失败可重试，首次启动超时配置为 300 秒。npm 首次安装阶段使用 npm 自身的代理配置；依赖准备完成后，MCP 在加载 Core 前读取代理环境变量并设置全局请求调度器，补齐 DSH 宿主提供的代理初始化。
-- 可在安装后的插件目录预先执行 `node ./mcp/forge-mcp.mjs --prepare-only`，将依赖安装与 MCP 会话启动分开。
 - **支持的 Kimi 宿主范围**：
   - **Kimi Work 桌面端**（macOS / Windows）
   - **Kimi Code**（CLI、Desktop 及 VS Code 扩展，支持 Linux / macOS / Windows）
@@ -27,6 +26,20 @@
 - **预编译机器人节点的平台说明**：当前注册表中的预编译二进制节点（如 `robot-control-sim`）主要锁定 `linux/x86_64`。在 macOS / Windows 桌面本机可直接运行注册表检索、源码查看、配置编辑、包校验与 Python 源码流；如需从桌面端操控 `linux/x86_64` MuJoCo 仿真或真机硬件，可通过 Kimi 原生 SSH `environment_id` 绑定远端 Linux 主机（详见 [使用手册](docs/usage_zh.md)）。
 
 ## 快速开始
+
+### 新机器首次部署：检查并准备依赖
+
+先安装 **Node.js `>=22` 与 npm**，确保启动 Kimi 的环境能找到 `node` 和 `npm`。在插件根目录（包含 `kimi.plugin.json` 和 `mcp/` 的目录）打开终端，依次执行：
+
+```sh
+node --version
+npm --version
+node ./mcp/forge-mcp.mjs --prepare-only
+```
+
+前两条命令检查 Node.js 版本及 npm 是否可用，不会安装它们。第三条命令只准备插件的 npm 依赖和 Core 兼容副本，不启动 MCP 会话，也不安装 Dora、机器人技能或模型。首次准备需要锁文件指定的 npm 制品可达或已缓存；成功后会在 stderr 输出 `Runtime ready: ...`，默认缓存目录为 `~/.kimi-code/forge/plugin-runtime/<内容标识>/`。
+
+该预准备步骤可选；跳过时会在首次启动 MCP 时自动执行。普通用户无需安装 pnpm、执行源码构建或复制旧机器的 `node_modules`。准备完成后，按以下任一方式安装插件。
 
 ### 方式一：Kimi Work 桌面端（`+ Custom plugin`）
 

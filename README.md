@@ -19,7 +19,6 @@ Maintenance: [Core compatibility and npm audit](docs/core-patches.md) · [Accept
 ## Prerequisites
 
 - **Node.js `>=22` and npm** on the MCP machine (`node --version`, `npm --version`). First startup needs the npm tarball locations in the lockfile to be reachable or cached; prepared runtimes support offline startup. Installation logs go to stderr, failures can be retried, and MCP startup allows 300 seconds. npm preparation uses npm's own proxy configuration. After preparation, MCP initializes its global dispatcher from proxy environment variables before loading Core, supplying the proxy setup performed by the DSH host.
-- Optionally run `node ./mcp/forge-mcp.mjs --prepare-only` from the installed plugin directory to prepare dependencies before opening a session.
 - **Supported Kimi Hosts:**
   - **Kimi Work Desktop** (macOS / Windows)
   - **Kimi Code** (CLI, Desktop, and VS Code extension on Linux, macOS, and Windows)
@@ -27,6 +26,20 @@ Maintenance: [Core compatibility and npm audit](docs/core-patches.md) · [Accept
 - **Platform Note for Precompiled Robot Nodes:** Registry-published binary node artifacts (such as `robot-control-sim`) primarily target `linux/x86_64`. On macOS/Windows desktops, discovery, inspection, source lookup, bundle packaging, and Python source flows run locally; to run `linux/x86_64` MuJoCo or real robot hardware from Kimi Desktop, bind the MCP server's `environment_id` to a Linux SSH host (see [User Guide](docs/usage_en.md)).
 
 ## Quick Start
+
+### First Deployment on a New Machine: Check and Prepare Dependencies
+
+Install **Node.js `>=22` and npm** first, and make sure both `node` and `npm` are available in the environment that launches Kimi. Open a terminal in the plugin root (the directory containing `kimi.plugin.json` and `mcp/`) and run:
+
+```sh
+node --version
+npm --version
+node ./mcp/forge-mcp.mjs --prepare-only
+```
+
+The first two commands check the Node.js version and npm availability; they do not install either program. The third prepares only the plugin's npm dependencies and Core compatibility copy. It does not start an MCP session or install Dora, robot skills, or models. Initial preparation needs the npm tarballs specified in the lockfile to be reachable or cached. On success, stderr reports `Runtime ready: ...`; the default cache directory is `~/.kimi-code/forge/plugin-runtime/<content-id>/`.
+
+Preparation is optional: the first MCP startup performs it automatically if needed. Normal users do not need pnpm, a source build, or a copy of the old machine's `node_modules`. After preparation, install the plugin using either option below.
 
 ### Option A: Kimi Work Desktop (`+ Custom plugin`)
 
