@@ -43,6 +43,14 @@ if (checkOnly) {
   const existing = await readFile(outfile, 'utf8').catch(() => '')
   if (existing !== output) {
     process.stderr.write('mcp/forge-mcp.mjs is out of date; run `pnpm run build`.\n')
+    const committedLines = existing.split('\n')
+    const generatedLines = output.split('\n')
+    const difference = generatedLines.findIndex((line, index) => line !== committedLines[index])
+    if (difference >= 0) {
+      const committed = committedLines[difference]?.slice(0, 240)
+      const generated = generatedLines[difference].slice(0, 240)
+      process.stderr.write(`Line ${difference + 1}: committed ${JSON.stringify(committed)}, generated ${JSON.stringify(generated)}\n`)
+    }
     process.exit(1)
   }
   process.stdout.write('mcp/forge-mcp.mjs is up to date.\n')
