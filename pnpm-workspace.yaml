@@ -1,3 +1,5 @@
+# Keep esbuild module paths identical across Windows and POSIX checkouts.
+virtualStoreDirMaxLength: 60
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
