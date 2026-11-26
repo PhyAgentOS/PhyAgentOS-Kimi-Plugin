@@ -14,12 +14,12 @@ pnpm run benchmark:startup
 ```
 
 - Core 回归：缓存摘要/大小、远端元数据、共享模型盘只读、运行文件权限与链接边界。
-- 托管副本：无 `node_modules` 启动、41 个工具 schema 与文档映射一致、配置/路径隔离、打包/安装/导出。
+- 托管副本：插件不携带 `node_modules`，首次启动通过 npm 安装；验证并发、失败重试、离线缓存复用、npm 原包不变与兼容副本摘要；41 个工具 schema 与文档映射一致，配置/路径隔离、打包/安装/导出。
 - 合成运行：`write_config: false` 安装后同会话启动；Query、Action、unknown 对账不重发；错误码；停止。
 - 后台任务：下载持锁时配置变更等待，任务仍可取消；刷新和恢复后保留任务状态。
 - CI 配置：Linux、macOS、Windows 的 Node 22，以及 Linux Node 24。Windows 跳过依赖 POSIX shebang、权限和 symlink 的测试；这些跳过不能视为运行或 ACL 验收通过。以实际 CI 结果为准。
 
-启动基准输出 Node/平台、每次测量、p50/p95 与 50ms 目标是否达成。它衡量空用户目录下从创建进程到 `initialize` 响应的时间，可能使用已热的 OS 文件缓存，不含 Registry 网络和已有运行实例的状态对账。不要跨机器宣传固定冷启动数值。
+启动基准分别输出首次依赖准备耗时 `preparationMs`、依赖已准备后的每次 initialize 测量、Node/平台、p50/p95 与 50ms 目标是否达成。准备阶段需要 npm 制品可达或缓存；后续测量不含依赖安装和 Registry 网络，可能使用已热 OS 缓存。不要跨机器宣传固定冷启动数值。
 
 ## 2. 人工验收矩阵
 

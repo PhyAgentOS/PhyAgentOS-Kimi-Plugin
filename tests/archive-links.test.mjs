@@ -236,9 +236,14 @@ for (const entrypoint of ['../demo', 'demo/demo', '/demo', 'C:demo', 'demo\\demo
 for (const artifactType of ['executable_tar_gz', 'directory_tar_gz']) {
 test(`bundled MCP installs ${artifactType} and resolves its executable`, posixOnly, async t => {
   const directory = artifactType === 'directory_tar_gz'
+  // Match the real lerobot_infer failure: library aliases point into av.libs,
+  // and may appear before their targets in a directory node archive.
+  const avLibraries = ['libSvtAv1Enc-6870dfd5.so.3.0.0', 'libXau-154567c4.so.6.0.0', 'libaom-170d518b.so.3.11.0']
   const node = await archive(t, directory
     ? [{ path: 'vlm_policy/vlm_policy', body: '#!/bin/sh\nexit 0\n', mode: 0o755 },
-      library, link('vlm_policy/_internal/libexample.so', 'libexample.so.1')]
+      library, link('vlm_policy/_internal/libexample.so', 'libexample.so.1'),
+      ...avLibraries.map(name => link(`vlm_policy/_internal/${name}`, `av.libs/${name}`)),
+      ...avLibraries.map(name => ({ path: `vlm_policy/_internal/av.libs/${name}`, body: `library ${name}` }))]
     : [{ path: 'vlm_policy', body: '#!/bin/sh\nexit 0\n', mode: 0o755 }])
   const nodeBytes = await readFile(node.file)
   const nodeDigest = createHash('sha256').update(nodeBytes).digest('hex')
@@ -298,6 +303,11 @@ test(`bundled MCP installs ${artifactType} and resolves its executable`, posixOn
       assert.ok(installed)
       assert.equal(await readlink(installed), 'libexample.so.1')
       assert.equal(await readFile(installed, 'utf8'), 'library')
+      for (const name of avLibraries) {
+        const alias = join(dirname(installed), name)
+        assert.equal(await readlink(alias), `av.libs/${name}`)
+        assert.equal(await readFile(alias, 'utf8'), `library ${name}`)
+      }
     } else assert.equal(installed, undefined)
     const executable = join(kimiHome, 'forge/runtime/nodes/link-node', directory ? 'vlm_policy/vlm_policy' : 'vlm_policy')
     assert.equal(await readFile(executable, 'utf8'), '#!/bin/sh\nexit 0\n')

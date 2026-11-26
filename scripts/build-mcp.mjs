@@ -1,54 +1,45 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto'
 import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-
 import { build } from 'esbuild'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const entry = resolve(root, 'src/forge-mcp.mjs')
-const outfile = resolve(root, 'mcp/forge-mcp.mjs')
 const checkOnly = process.argv.includes('--check')
-
 const result = await build({
-  entryPoints: [entry],
+  entryPoints: [resolve(root, 'src/forge-mcp.mjs')],
   bundle: true,
-  platform: 'node',
-  target: 'node22',
-  format: 'esm',
-  write: false,
+  external: ['@x-era/forge-core'],
+  platform: 'node', target: 'node22', format: 'esm', write: false,
   legalComments: 'none',
-  banner: {
-    js: [
-      "import { createRequire as __kimiCreateRequire } from 'node:module';",
-      'const require = __kimiCreateRequire(import.meta.url);',
-    ].join(' '),
-  },
 })
-
-const raw = result.outputFiles[0].text
-const normalized = raw.startsWith('#!')
-  ? raw
-  : `#!/usr/bin/env node\n${raw}`
-// If esbuild placed banner before existing shebang, hoist shebang to line 1.
-const lines = normalized.split('\n')
-const shebangIdx = lines.findIndex(line => line.startsWith('#!'))
-let output = normalized
-if (shebangIdx > 0) {
-  const [shebang] = lines.splice(shebangIdx, 1)
-  output = [shebang, ...lines].join('\n')
+const adapter = result.outputFiles[0].text
+const outputs = new Map([
+  ['adapter.mjs', adapter.startsWith('#!') ? adapter : `#!/usr/bin/env node\n${adapter}`],
+  ['forge-mcp.mjs', await readFile(resolve(root, 'src/runtime-bootstrap.mjs'), 'utf8')],
+  ['runtime-compatibility.mjs', await readFile(resolve(root, 'src/runtime-compatibility.mjs'), 'utf8')],
+  ['runtime-proxy.mjs', await readFile(resolve(root, 'src/runtime-proxy.mjs'), 'utf8')],
+  ['core.patch', await readFile(resolve(root, 'patches/@x-era__forge-core@0.2.0.patch'), 'utf8')],
+])
+// A rebuilt adapter must never ship with stale compatibility metadata: the
+// runtime otherwise rejects the patch or can keep using an older payload.
+const compatibility = JSON.parse(await readFile(resolve(root, 'mcp/compatibility.json'), 'utf8'))
+const patchSha256 = createHash('sha256').update(outputs.get('core.patch')).digest('hex')
+if (compatibility.patchSha256 !== patchSha256) {
+  throw new Error('Core compatibility metadata is stale; audit the patch and update mcp/compatibility.json before building.')
 }
-
-if (checkOnly) {
-  const existing = await readFile(outfile, 'utf8').catch(() => '')
-  if (existing !== output) {
-    process.stderr.write('mcp/forge-mcp.mjs is out of date; run `pnpm run build`.\n')
-    process.exit(1)
+await mkdir(resolve(root, 'mcp'), { recursive: true })
+for (const [name, output] of outputs) {
+  const target = resolve(root, 'mcp', name)
+  if (checkOnly) {
+    if (await readFile(target, 'utf8').catch(() => '') !== output) {
+      process.stderr.write(`mcp/${name} is out of date; run \`pnpm run build\`.\n`)
+      process.exitCode = 1
+    }
+  } else {
+    await writeFile(target, output, 'utf8')
+    if (name.endsWith('.mjs')) await chmod(target, 0o755)
   }
-  process.stdout.write('mcp/forge-mcp.mjs is up to date.\n')
-} else {
-  await mkdir(dirname(outfile), { recursive: true })
-  await writeFile(outfile, output, 'utf8')
-  await chmod(outfile, 0o755)
-  process.stdout.write(`Built ${outfile} (${Buffer.byteLength(output)} bytes).\n`)
 }
+if (!process.exitCode) process.stdout.write(checkOnly ? 'MCP runtime payload is up to date.\n' : `Built external-Core MCP adapter (${Buffer.byteLength(adapter)} bytes) and bootstrap.\n`)

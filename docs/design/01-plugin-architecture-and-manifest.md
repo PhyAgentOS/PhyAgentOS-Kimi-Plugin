@@ -1,9 +1,12 @@
 # 01. 插件包结构与 Manifest 规范设计
 
-## 1. 托管副本与免编译直装约束
-Kimi 安装插件时会将仓库快照拷贝至 `$KIMI_CODE_HOME/plugins/managed/phyagentos/`，期间**不会运行 `npm install`**，且安全模型要求所有 `./` 引用解析软链接后仍位于插件根目录内。因此：
-- 构建期通过 `scripts/build-mcp.mjs`（`esbuild`）将 `src/forge-mcp.mjs` 与 `@x-era/forge-core@0.2.0`（及其纯 JS 依赖 `yaml`、`tar`）打包为单文件 `./mcp/forge-mcp.mjs` 提交入库；
-- 运行期仅依赖宿主机器上的 `node`（`>=22`），无冷启动网络下载开销。
+## 1. 托管副本与 npm 依赖准备
+插件发布内容不携带 `node_modules`，也不内联 Core：
+- `scripts/build-mcp.mjs` 仅将 Kimi 适配代码构建为 `mcp/adapter.mjs`，`@x-era/forge-core` 保持外部依赖。
+- `mcp/forge-mcp.mjs` 是 Node 内置模块实现的启动器。首次使用时，根据同目录 `package-lock.json` 执行 `npm ci --omit=dev --ignore-scripts`，安装到 `<home>/plugin-runtime/<内容标识>/`。
+- 依赖来自已发布的 npm 包；当前固定 Core `0.2.0`。已发布 `0.2.2` 尚未包含全部兼容补丁，因此在 `compat-core/` 创建私有兼容副本，npm 原包不变；见[核查与补丁说明](../core-patches.md)。
+- 后续启动验证并复用缓存；运行环境需要 Node >=22，首次安装需要 npm 和制品网络。准备日志仅写 stderr，可通过 `--prepare-only` 预安装。
+- 清单仍引用插件目录内的启动器；启动器不依赖安装宿主自动执行 npm。
 
 ## 2. `kimi.plugin.json` 关键字段映射
 - `name`: `"phyagentos"`（插件唯一 ID，命令与技能自动归入 `phyagentos:*` 命名空间）。
@@ -11,7 +14,7 @@ Kimi 安装插件时会将仓库快照拷贝至 `$KIMI_CODE_HOME/plugins/managed
 - `skills`: `"./skills/"`（包含 `forge-usage` 与 `forge-skill-development` 两个目录型技能，名称均满足 `[a-z0-9_-]{1,25}`）。
 - `commands`: `"./commands/"`（提供 `env`、`skills`、`doctor`、`export-skill` 四个斜杠命令）。
 - `interface`: 默认 `zh-CN`，挂载 `./locales/{zh-CN,en-US}.json`，提供 `mcpOverrides.forge` 与 `skillOverrides` 市场展示文案。
-- `mcpServers.forge`: `command: "node"`, `args: ["./mcp/forge-mcp.mjs"]`, `startupTimeoutMs: 60000`, `toolTimeoutMs: 180000`。
+- `mcpServers.forge`: `command: "node"`, `args: ["./mcp/forge-mcp.mjs"]`, `startupTimeoutMs: 300000`, `toolTimeoutMs: 180000`。
 
 ## 3. 动态机器人技能发现与热加载衔接
 Kimi 托管插件目录为静态快照。对于用户在运行期新安装的机器人技能包（如 `robot-control-sim`）：

@@ -17,7 +17,7 @@ Coverage includes remote digest/size enforcement, cached archives, read-only sha
 
 CI is configured for Node 22 on Linux/macOS/Windows and Node 24 on Linux. Windows skips POSIX executable, mode and symlink scenarios. A skip does not certify Windows runtime execution or ACLs; consult actual CI results.
 
-The startup benchmark reports each sample, platform/Node, p50/p95 and whether the 50ms target is met. It measures process creation to initialize response with an empty user home, may use warm OS caches, and excludes Registry access and existing-runtime reconciliation. Do not advertise a universal cold-start time.
+The startup benchmark reports npm preparation separately as `preparationMs`, then process creation to initialize after dependencies are ready, with platform/Node, p50/p95 and the 50ms target. Preparation needs reachable or cached npm tarballs; subsequent measurements exclude installation and Registry access and may use warm OS caches. Do not advertise a universal cold-start time. Bootstrap tests cover concurrent preparation, failure retry, offline cache reuse, compatibility hashes and unchanged npm originals.
 
 ## 2. Manual matrix
 

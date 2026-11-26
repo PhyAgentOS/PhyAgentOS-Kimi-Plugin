@@ -15,7 +15,6 @@ import {
   ForgeRegistryClient,
 } from '@x-era/forge-core'
 
-import { configureProxy } from './proxy.mjs'
 import { KimiConfigStore } from './config-store.mjs'
 import { expandUserPath, resolveKimiForgeHome, resolveKimiSkillsDir } from './paths.mjs'
 
@@ -29,9 +28,6 @@ const writeStderr = (...args) => process.stderr.write(`${args.map(String).join('
 console.log = writeStderr
 console.info = writeStderr
 console.warn = writeStderr
-
-// Configure before Core performs Registry, source or artifact requests.
-configureProxy()
 
 const home = resolveKimiForgeHome(process.env)
 const configStore = new KimiConfigStore(home)

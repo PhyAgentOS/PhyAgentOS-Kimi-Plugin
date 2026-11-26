@@ -46,7 +46,7 @@
       "args": [
         "./mcp/forge-mcp.mjs"
       ],
-      "startupTimeoutMs": 60000,
+      "startupTimeoutMs": 300000,
       "toolTimeoutMs": 180000
     }
   }

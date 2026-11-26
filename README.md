@@ -7,18 +7,19 @@ Kimi plugin for installing, inspecting, diagnosing, and running [PhyAgentOS Forg
 [User Guide](docs/usage_en.md) · [Design Docs](docs/design/README.md) · [Release & Marketplace Guide](docs/releasing_en.md) · [Upstream Forge Core](https://github.com/PhyAgentOS/PhyAgentOS-DSH-Plugin)
 
 
-Maintenance: [Core security patch](docs/core-patches.md) · [Acceptance checklist](docs/acceptance_en.md). Install development dependencies with pnpm so the tracked patch is applied; end users still run the self-contained bundled MCP. Shared model roots remain read-only. Windows ACLs and real simulation require separate host acceptance.
+Maintenance: [Core compatibility and npm audit](docs/core-patches.md) · [Acceptance checklist](docs/acceptance_en.md). Publish only the Kimi plugin. First startup installs the published, locked Core dependency and creates a private compatibility copy without modifying npm-installed originals. Shared model roots remain read-only. Windows ACLs and real simulation require separate host acceptance.
 
 ## Highlights
 
-- **Zero-Compile GitHub Install:** Ships a deterministic single-file ESM MCP server (`./mcp/forge-mcp.mjs` bundling `@x-era/forge-core@0.2.0`) — installs straight from GitHub or a local folder with no `npm install` step at plugin load time.
+- **Plugin-only Releases, Published npm Dependencies:** `mcp/forge-mcp.mjs` bootstraps the Kimi-only `mcp/adapter.mjs`; Core is external. First startup runs `npm ci --omit=dev --ignore-scripts` for locked `@x-era/forge-core@0.2.0` and its dependencies under `<home>/plugin-runtime/<content-id>/`, prepares compatibility files, and starts MCP. Later starts reuse the local runtime; no additional npm package publication or user compilation is required.
 - **Strict Host Isolation:** Defaults its data root to `~/.kimi-code/forge` (following `$KIMI_CODE_HOME/forge`), keeping `runtime/state.json`, `runtime/forge.lock`, skills, and pinned Dora binaries completely isolated from `~/.dsh/forge`.
 - **Full 41-Tool Forge Surface:** Covers environment checks & Dora 0.4.1 / 1.0.1 bootstrap, PAOS Registry discovery, background bundle installation, local bundle validation/packaging, node source provenance, shared model verification, Dora runtime control, and asynchronous Gateway invocation reconciliation.
 - **Built-in Physical Safety Guardrails:** Injects mandatory `SYSTEM.md` runtime safety rules plus two on-demand skills (`/skill:phyagentos:forge-usage`, `/skill:phyagentos:forge-skill-development`) and four slash commands (`/phyagentos:env`, `/phyagentos:skills`, `/phyagentos:doctor`, `/phyagentos:export-skill`).
 
 ## Prerequisites
 
-- **Node.js `>=22`** on the machine executing the MCP server (`node --version`).
+- **Node.js `>=22` and npm** on the MCP machine (`node --version`, `npm --version`). First startup needs the npm tarball locations in the lockfile to be reachable or cached; prepared runtimes support offline startup. Installation logs go to stderr, failures can be retried, and MCP startup allows 300 seconds. npm preparation uses npm's own proxy configuration. After preparation, MCP initializes its global dispatcher from proxy environment variables before loading Core, supplying the proxy setup performed by the DSH host.
+- Optionally run `node ./mcp/forge-mcp.mjs --prepare-only` from the installed plugin directory to prepare dependencies before opening a session.
 - **Supported Kimi Hosts:**
   - **Kimi Work Desktop** (macOS / Windows)
   - **Kimi Code** (CLI, Desktop, and VS Code extension on Linux, macOS, and Windows)
@@ -43,6 +44,18 @@ Maintenance: [Core security patch](docs/core-patches.md) · [Acceptance checklis
 # Activate in the session
 /reload
 ```
+
+### Proxy configuration
+
+Set environment variables before launching Kimi and restart the MCP session after updating:
+
+```sh
+export ALL_PROXY=socks5://127.0.0.1:7890
+export NO_PROXY=localhost,127.0.0.1,::1,192.168.0.0/16,10.0.0.0/8
+```
+
+Lowercase names take precedence. HTTP selects HTTP_PROXY then ALL_PROXY; HTTPS selects HTTPS_PROXY, ALL_PROXY, then HTTP_PROXY, matching DSH's selection order. Unlike the inspected DSH host, Kimi also accepts SOCKS5/socks5h for desktop environments that supply only ALL_PROXY. Loopback Gateways always bypass proxies, including redirects. NO_PROXY supports domain rules and CIDR for literal IP origins, without extra DNS lookups. Failed proxies do not silently fall back to direct connections; absent proxy variables leave host routing untouched.
+`undici@7.30.2` remains an external npm dependency; its SOCKS5 support emits an experimental warning. Status logs omit proxy URLs and credentials. This does not read OS/Clash settings or change npm's first-install proxy handling.
 
 ### First Conversation
 
@@ -82,7 +95,7 @@ pnpm install --frozen-lockfile
 pnpm test
 ```
 
-`pnpm test` rebuilds `mcp/forge-mcp.mjs`, validates `kimi.plugin.json`, skills, commands, locales, and path containment, and runs the automated test suite (including standalone `node_modules`-free MCP stdio verification and `~/.dsh` zero-touch isolation checks).
+`pnpm test` builds the external-Core adapter and bootstrap, validates the manifest, skills, commands, locales and containment, and runs the suite. Managed copies ship without `node_modules`; tests exercise npm preparation, cache reuse, the compatibility copy, all 41 tools, and `~/.dsh` isolation. First-install tests need reachable or cached npm tarballs.
 
 ## License
 
