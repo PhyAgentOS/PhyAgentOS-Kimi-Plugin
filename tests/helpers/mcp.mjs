@@ -66,7 +66,8 @@ export function isolatedEnvironment(userHome, kimiHome) {
   const env = { ...process.env, HOME: userHome, KIMI_CODE_HOME: kimiHome }
   // Unset overrides rather than setting empty strings (the upstream getters use ??).
   for (const key of Object.keys(env)) {
-    if (key.startsWith('KIMI_FORGE_') || key.startsWith('DSH_FORGE_') || key === 'DSH_HOME') delete env[key]
+    if (key.startsWith('KIMI_FORGE_') || key.startsWith('DSH_FORGE_') || key === 'DSH_HOME'
+      || /^(https?|all|no)_proxy$/i.test(key) || key === 'NODE_USE_ENV_PROXY') delete env[key]
   }
   return env
 }

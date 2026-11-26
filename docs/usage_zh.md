@@ -100,6 +100,21 @@ PAOS Registry 中的多数预编译节点制品（如 `robot-control-sim`）锁�
 
 请通过 `forge_config_write` 修改配置（自动校验字段、以 `0600` 权限原子落盘、保留 `.bak-*` 备份并立即刷新当前 MCP 会话）。
 
+### 下载代理
+
+MCP 启动时读取 `HTTP_PROXY`、`HTTPS_PROXY`、`ALL_PROXY` 和 `NO_PROXY`，也支持小写形式（同名时小写优先）。HTTP/HTTPS 专用变量优先于 `ALL_PROXY`；HTTPS 未配置时回退到 HTTP 代理。支持 HTTP、HTTPS 和 SOCKS5 代理，`socks5h://` 使用 SOCKS5 的代理端域名解析。
+
+例如，在启动 Kimi Code 的同一终端设置 Clash 代理：
+
+```sh
+export ALL_PROXY=socks5://127.0.0.1:7890
+kimi
+```
+
+端口以 Clash 实际配置为准。桌面客户端不一定继承终端环境变量，应在实际 MCP 启动环境中配置。更新插件或修改代理环境变量后，需要重启对应 MCP 服务；不会改变已经运行的下载任务。SSH 模式中的代理地址指向远端机器，不能直接使用本机 Clash 的 loopback 地址。
+
+代理覆盖 Registry、源码读取和制品下载。`NO_PROXY` 支持域名、端口和 `*`；localhost 和 loopback IP 始终直连，避免将本地机器人 Gateway 请求送入代理。代理不可用时请求失败，不自动回退直连。此设置不替代 pip/uv 自身的代理配置。
+
 ## 5. 导出机器人技能到 Kimi `/skill:` 菜单
 
 安装任意机器人技能包（例如 `robot-control-sim`）后，可执行：
