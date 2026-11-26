@@ -100,6 +100,21 @@ Use a non-default `models.root` for shared read-only weights. Bootstrap never cr
 
 Always update settings through `forge_config_write` (which validates keys, writes atomically with `0600` permissions, saves a `.bak-*` backup, and reloads the live MCP session).
 
+### Download proxies
+
+At MCP startup, `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and `NO_PROXY` are read, including lowercase variants (lowercase wins). Protocol-specific settings take priority over `ALL_PROXY`; HTTPS falls back to the HTTP proxy if unset. HTTP, HTTPS and SOCKS5 proxies are supported; `socks5h://` uses SOCKS5 proxy-side DNS.
+
+For example, start Kimi Code from a shell with your Clash proxy configured:
+
+```sh
+export ALL_PROXY=socks5://127.0.0.1:7890
+kimi
+```
+
+Use the actual Clash port. Desktop apps may not inherit shell variables; set them in the MCP launch environment. Restart the MCP service after upgrading or changing these variables. Existing downloads are unaffected. With SSH, the proxy address belongs to the remote machine, not your desktop's loopback interface.
+
+The policy covers Registry, source and artifact requests. `NO_PROXY` supports domains, ports and `*`; localhost and loopback IPs always bypass the proxy to keep local robot Gateways direct. Proxy failures do not silently fall back to a direct connection. pip/uv proxy configuration remains separate.
+
 ## 5. Exporting Robot Bundles as Native Kimi Skills
 
 After installing any Forge bundle (e.g. `robot-control-sim`), run:
