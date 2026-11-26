@@ -13,6 +13,7 @@ export async function writeBundle(dir, {
   gatewayUrl = 'http://127.0.0.1:19299',
   forgeVersion = '2',
   environment = {},
+  startupTimeoutS,
 } = {}) {
   await mkdir(join(dir, 'profiles', 'default'), { recursive: true })
   await writeFile(join(dir, 'SKILL.md'), '# Synthetic test skill\n')
@@ -28,6 +29,7 @@ export async function writeBundle(dir, {
     'profiles:',
     '  default:',
     '    dataflow: profiles/default/dataflow.yaml',
+    ...(startupTimeoutS === undefined ? [] : [`    startup_timeout_s: ${startupTimeoutS}`]),
     `    environment: ${JSON.stringify(environment)}`,
     '',
   ].join('\n'))

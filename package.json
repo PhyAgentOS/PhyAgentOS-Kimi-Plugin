@@ -1,6 +1,6 @@
 {
   "name": "@x-era/phyagentos-kimi-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "PhyAgentOS Forge plugin for Kimi Work and Kimi Code",
   "type": "module",
@@ -10,6 +10,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "upgrade:core": "node ./scripts/upgrade-core.mjs",
     "build": "node ./scripts/build-mcp.mjs",
     "build:check": "node ./scripts/build-mcp.mjs --check",
     "validate": "node ./scripts/validate-plugin.mjs",
@@ -18,7 +19,7 @@
     "test": "pnpm run build && pnpm run validate && pnpm run test:unit"
   },
   "dependencies": {
-    "@x-era/forge-core": "0.2.0",
+    "@x-era/forge-core": "0.2.2",
     "undici": "7.30.2"
   },
   "devDependencies": {

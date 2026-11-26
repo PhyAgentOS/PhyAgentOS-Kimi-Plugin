@@ -70,10 +70,15 @@ test('same-session setup without config persistence can start a synthetic runtim
     await mkdir(models)
     await chmod(models, 0o555)
     const config = await mcp.callTool('forge_config_write', { config: {
-      models: { root: models }, runtime: { startTimeoutMs: 4000 }, gateway: { callTimeoutMs: 1000 },
+      models: { root: models }, runtime: { startTimeoutMs: 250 }, gateway: { callTimeoutMs: 1000 },
     } })
     assert.equal(config.isError, false)
-    await writeBundle(join(home, 'skills', 'audit-demo'), { gatewayUrl, environment: { FORGE_TEST_GATEWAY_URL: gatewayUrl } })
+    // The packaged core must use the profile budget when the gateway outlasts the global fallback.
+    await writeBundle(join(home, 'skills', 'audit-demo'), {
+      gatewayUrl,
+      startupTimeoutS: 5,
+      environment: { FORGE_TEST_GATEWAY_URL: gatewayUrl, FORGE_TEST_GATEWAY_DELAY_MS: '700' },
+    })
     const bins = join(root, 'bins')
     await mkdir(bins)
     for (const name of ['dora', 'dora1']) {

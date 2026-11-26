@@ -1,4 +1,8 @@
+# Keep esbuild module paths identical across Windows and POSIX checkouts.
+virtualStoreDirMaxLength: 60
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@x-era/forge-core@0.2.2'
 patchedDependencies:
-  '@x-era/forge-core@0.2.0': patches/@x-era__forge-core@0.2.0.patch
+  '@x-era/forge-core@0.2.2': patches/@x-era__forge-core@0.2.2.patch

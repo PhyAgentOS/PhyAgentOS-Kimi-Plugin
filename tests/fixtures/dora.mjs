@@ -8,13 +8,17 @@ if (process.argv.includes('--version')) {
   const url = new URL(process.env.FORGE_TEST_GATEWAY_URL)
   if (url.hostname !== '127.0.0.1') throw new Error('Test gateway must bind loopback')
   let actions = 0
+  const readyAt = Date.now() + Number(process.env.FORGE_TEST_GATEWAY_DELAY_MS ?? 0)
   const server = createServer(async (req, res) => {
     const chunks = []
     for await (const chunk of req) chunks.push(chunk)
     const body = chunks.length ? JSON.parse(Buffer.concat(chunks)) : {}
     res.setHeader('content-type', 'application/json')
     let payload
-    if (req.url === '/tools') {
+    if (req.url === '/tools' && Date.now() < readyAt) {
+      res.statusCode = 503
+      payload = { message: 'Synthetic gateway is starting' }
+    } else if (req.url === '/tools') {
       payload = [
         { tool_id: 'sim.ping', semantics: 'query', endpoint_id: 'sim', operation: 'ping' },
         { tool_id: 'sim.action', semantics: 'action' },

@@ -4,16 +4,11 @@ English | [简体中文](releasing_zh.md) · [Home](../README.md)
 
 ## 1. Updating `@x-era/forge-core` and Rebuilding the Bundle
 
-1. Create a `feature/<topic>` or `fix/<topic>` branch in your personal fork, never directly on upstream `main`.
-2. Update `@x-era/forge-core` in `package.json` and `version` in both `package.json` and `kimi.plugin.json`.
-3. Rebuild and run all gates:
-   ```sh
-   pnpm install
-   pnpm test
-   pnpm run build:check
-   ```
+1. Once the exact core version is available from npm, create a `fix/<topic>` branch from the intended upstream base.
+2. From a clean checkout, run `pnpm upgrade:core <version>`. It applies the current patch, updates the exact pin and lockfile, rebuilds the MCP and runs the tests in a temporary checkout before copying the changes back.
+3. If the patch conflicts, review upstream overlap and pass the rebased patch with `pnpm upgrade:core <version> /path/to/rebased.patch`. Review the resulting diff. For a new Kimi release, set the same `version` in `package.json` and `kimi.plugin.json`, then run `pnpm install --frozen-lockfile`, `pnpm test` and `pnpm run build:check`. The MCP handshake version comes from `package.json`.
 4. Verify `gh api user --jq .login` before pushing your fork branch and opening a PR to `PhyAgentOS/PhyAgentOS-Kimi-Plugin`.
-5. After merging to `main`, create an immutable GitHub Release tag (e.g. `v0.2.0`) — Kimi `/plugins install https://github.com/PhyAgentOS/PhyAgentOS-Kimi-Plugin` installs the latest GitHub Release when present.
+5. After merging to `main`, create an immutable GitHub Release tag (e.g. `v0.2.1`) — Kimi `/plugins install https://github.com/PhyAgentOS/PhyAgentOS-Kimi-Plugin` installs the latest GitHub Release when present.
 
 ## 2. Submitting to the Public Kimi Marketplace
 

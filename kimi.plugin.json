@@ -1,6 +1,6 @@
 {
   "name": "phyagentos",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Install, inspect, diagnose and run PhyAgentOS Forge robot and simulation skills in Kimi Work and Kimi Code.",
   "license": "MIT",
   "homepage": "https://github.com/PhyAgentOS/PhyAgentOS-Kimi-Plugin",
@@ -47,7 +47,7 @@
         "./mcp/forge-mcp.mjs"
       ],
       "startupTimeoutMs": 60000,
-      "toolTimeoutMs": 180000
+      "toolTimeoutMs": 960000
     }
   }
 }

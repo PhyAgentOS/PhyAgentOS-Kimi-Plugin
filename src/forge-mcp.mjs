@@ -15,12 +15,12 @@ import {
   ForgeRegistryClient,
 } from '@x-era/forge-core'
 
+import packageManifest from '../package.json' with { type: 'json' }
 import { configureProxy } from './proxy.mjs'
 import { KimiConfigStore } from './config-store.mjs'
 import { expandUserPath, resolveKimiForgeHome, resolveKimiSkillsDir } from './paths.mjs'
 
 const SERVER_NAME = 'phyagentos-kimi-mcp'
-const SERVER_VERSION = '0.2.0'
 const DEFAULT_PROTOCOL_VERSION = '2024-11-05'
 const SUPPORTED_PROTOCOLS = new Set(['2024-11-05', '2025-03-26', '2025-06-18', '2025-11-25'])
 
@@ -349,7 +349,7 @@ async function handle(method, params) {
       return {
         protocolVersion,
         capabilities: { tools: {} },
-        serverInfo: { name: SERVER_NAME, version: SERVER_VERSION },
+        serverInfo: { name: SERVER_NAME, version: packageManifest.version },
       }
     }
     case 'ping':
