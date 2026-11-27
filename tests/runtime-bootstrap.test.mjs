@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
+import { cp, mkdir, readFile, readdir, symlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import test from 'node:test'
 import { promisify } from 'node:util'
@@ -33,10 +33,18 @@ async function fixture(t) {
 
 test('bootstrap installs once, serializes concurrent starts, preserves npm bytes and repairs an altered cache', async t => {
   const f = await fixture(t)
-  const env = { KIMI_FORGE_HOME: join(f.root, 'home') }
+  const kimiHome = join(f.root, 'kimi')
+  await mkdir(kimiHome)
+  await writeFile(join(kimiHome, '.env'), 'ALL_PROXY=http://localhost:12345\n')
+  const env = { KIMI_FORGE_HOME: join(f.root, 'home'), KIMI_CODE_HOME: kimiHome }
+  const install = async (staging, installerEnv) => {
+    assert.equal(installerEnv.npm_config_proxy, 'http://localhost:12345')
+    assert.equal(installerEnv.npm_config_https_proxy, 'http://localhost:12345')
+    await f.install(staging)
+  }
   const [first, second] = await Promise.all([
-    prepareRuntime({ directory: f.directory, env, install: f.install }),
-    prepareRuntime({ directory: f.directory, env, install: f.install }),
+    prepareRuntime({ directory: f.directory, env, install }),
+    prepareRuntime({ directory: f.directory, env, install }),
   ])
   assert.equal(first, second)
   assert.equal(f.calls(), 1)
@@ -51,6 +59,28 @@ test('bootstrap installs once, serializes concurrent starts, preserves npm bytes
   assert.equal(await prepareRuntime({ directory: f.directory, env, install: f.install }), first)
   assert.equal(f.calls(), 2)
   assert.ok((await readdir(join(f.root, 'home/plugin-runtime'))).some(name => name.includes('.invalid-')))
+})
+
+test('bootstrap CLI prepares through direct and symlink paths and reports a reusable runtime', async t => {
+  const f = await fixture(t)
+  const env = { ...process.env, KIMI_FORGE_HOME: join(f.root, 'home'), KIMI_CODE_HOME: join(f.root, 'kimi') }
+  const target = await prepareRuntime({ directory: f.directory, env, install: f.install })
+  const linked = join(f.root, 'linked-payload')
+  await symlink(f.directory, linked, process.platform === 'win32' ? 'junction' : 'dir')
+  const entries = [join(f.directory, 'forge-mcp.mjs'), join(linked, 'forge-mcp.mjs')]
+  if (process.platform === 'win32') {
+    for (const entry of [...entries]) {
+      entries.push(entry.replace(/^[a-z]:/i, drive => drive.toLowerCase()))
+      entries.push(entry.replace(/^[a-z]:/i, drive => drive.toUpperCase()))
+    }
+  }
+  for (const entry of new Set(entries)) {
+    const { stdout, stderr } = await execFileAsync(process.execPath,
+      [entry, '--prepare-only'], { env, timeout: 30000 })
+    assert.equal(stdout, '', entry)
+    assert.ok(stderr.includes(`Runtime ready: ${target}`), `${entry}: ${stderr}`)
+    assert.equal(stderr.includes('Installing locked npm dependencies'), false, entry)
+  }
 })
 
 test('failed first installation leaves no ready cache and can be retried', async t => {

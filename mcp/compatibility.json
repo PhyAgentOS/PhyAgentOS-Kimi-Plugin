@@ -1,13 +1,13 @@
 {
-  "version": "0.2.0",
-  "patchSha256": "ac98c396e206ddab919e906fd95462f0fca2715f27f8468a200310f408a14dd9",
+  "version": "0.2.2",
+  "patchSha256": "b5aa0eb87b7314b4cac9aeeae52e988588482eae1c9e8f8014bd87c406e56e88",
   "files": {
-    "lib/archive.d.ts": { "before": "26234909ab9f8153ad7366ce03d9a831c23f18eec20f9995f21e788c68b606eb", "after": "b27209d1c7e97c4d52e8dce7295f928d18bd71a66438c3bd91993f33cd1ca4de" },
-    "lib/archive.js": { "before": "e6979039d2e66cc606cfeb2738952035400a817b17f8bb37a406bb1dc8ed9cf0", "after": "05780013e8c8a5d0d6fa76421c5eaeebe08a6721c533853b796fb9ff05494adc" },
+    "lib/archive.d.ts": { "before": "10d63a2f9617bd388fafaabfb0da828f42dedc0eba645827a25d19f21303574f", "after": "b27209d1c7e97c4d52e8dce7295f928d18bd71a66438c3bd91993f33cd1ca4de" },
+    "lib/archive.js": { "before": "24c2b609675a20b80f9a2122d802bc55905da5eacede81dce4a753cfd04d0cbc", "after": "05780013e8c8a5d0d6fa76421c5eaeebe08a6721c533853b796fb9ff05494adc" },
     "lib/bootstrap.js": { "before": "0ab22c804f35cd2411929bb18c2fb46f2797604483a522982528f8dde0a7df0d", "after": "4f4e1ed89f17155234da17177b9f0cb55b2bd242df7d0a039a5c16f745297d22" },
     "lib/download.js": { "before": "67a259b30752c0c46d39533c87fde5be8523b30b41d27666706b78cee4d96277", "after": "be4a1b2ca86bfb803e4344245a809c564561e82f950e6aa8a85e73696a8b5798" },
     "lib/install.js": { "before": "833098794fa303f0d0ca12d1177d385114a9b9b6acd19667cdec0c3fadebc60b", "after": "df002f48c2ea8397f2195217b6d06d01a1ddad9aef894cf3e4d2dfb30d9d064e" },
-    "lib/nodes.js": { "before": "054c514c3f393227c2fba00d8e702e534488fc30df27be0377740e8d7964d710", "after": "bb76d848c6085446e82e17cd4618518af6cc4f6608827a31c753ee3f76d33ed8" },
-    "lib/runtime.js": { "before": "90ec8989025ee06679a9ef59452ba08172f2bbbbf11c19bbe042a41a9f5d2eca", "after": "5eb344b6a0a0a1a37232a7eec901f0de5539eadb4c8214dafa8e17f869305237" }
+    "lib/nodes.js": { "before": "2b53266a8a154206930551aaebbdd409ad55903c464cf0b07d9b3e33912443ac", "after": "d07f3e42d6bd3815e5dc1b917b4dcc36999f8236bdb1fc63b6a1a782ddbf1ba7" },
+    "lib/runtime.js": { "before": "127069488bd3572cc5f13d5c49473c3d6cb21d1f35cefe77b712582a945589b2", "after": "eac73bb08042d23fd809ffd9ec64fbf4139da845325eedf49165f404dd6ba6e1" }
   }
 }

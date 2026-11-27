@@ -19,6 +19,21 @@ test('bundled mcp/forge-mcp.mjs matches source deterministically', async () => {
   assert.match(stdout, /up to date/)
 })
 
+test('development and published runtime pin the same Core and compatibility version', async () => {
+  const json = async name => JSON.parse(await readFile(resolve(root, name), 'utf8'))
+  const [development, runtime, lock, compatibility] = await Promise.all([
+    json('package.json'), json('mcp/package.json'), json('mcp/package-lock.json'), json('mcp/compatibility.json'),
+  ])
+  const version = development.dependencies['@x-era/forge-core']
+  assert.equal(version, '0.2.2')
+  assert.equal(runtime.dependencies['@x-era/forge-core'], version)
+  assert.equal(lock.packages[''].dependencies['@x-era/forge-core'], version)
+  assert.equal(lock.packages['node_modules/@x-era/forge-core'].version, version)
+  assert.equal(compatibility.version, version)
+  assert.equal(await readFile(resolve(root, 'mcp/core.patch'), 'utf8'),
+    await readFile(resolve(root, `patches/@x-era__forge-core@${version}.patch`), 'utf8'))
+})
+
 test('Kimi allows a 900-second Forge startup budget plus launch overhead', async () => {
   const manifest = JSON.parse(await readFile(resolve(root, 'kimi.plugin.json'), 'utf8'))
   assert.ok(manifest.mcpServers.forge.toolTimeoutMs >= (900 + 60) * 1000)

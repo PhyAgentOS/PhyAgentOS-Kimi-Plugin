@@ -57,9 +57,14 @@ function dispatcher(t, env) {
   t.after(() => agent?.destroy())
   return agent
 }
-test('no explicit proxy preserves host routing; invalid protocols fail without exposing credentials', () => {
+test('no explicit proxy preserves host routing; invalid protocols warn without exposing credentials', async t => {
   assert.equal(configureProxy({}), null)
-  assert.throws(() => createProxyDispatcher({ALL_PROXY:'ftp://user:secret@localhost'}), /Unsupported proxy protocol/)
+  const warnings = []
+  const agent = createProxyDispatcher({ALL_PROXY:'ftp://user:secret@localhost'}, message => warnings.push(message))
+  t.after(() => agent.destroy())
+  assert.equal(warnings.length, 2)
+  assert.ok(warnings.every(message => !message.includes('secret') && !message.includes('user:')))
+  await assert.rejects(fetch('http://missing.invalid', {dispatcher:agent}), error => error.cause?.code === 'ENOTFOUND')
 })
 for (const scheme of ['http', 'socks5', 'socks5h']) {
   test(`${scheme} ALL_PROXY tunnels remote origins and keeps loopback and redirects direct`, async t => {
@@ -89,6 +94,17 @@ test('HTTPS uses HTTPS_PROXY over ALL_PROXY; lowercase HTTP override and failed 
   await assert.rejects(fetch('http://artifact.invalid/file',{dispatcher:lower}))
   assert.equal(destinations.at(-1),'artifact.invalid:80')
 })
+test('invalid explicit HTTPS proxy connects directly without falling back to a valid HTTP proxy', async t => {
+  const destinations = []
+  const server = createServer()
+  server.on('connect', (req, socket) => { destinations.push(req.url); socket.end('HTTP/1.1 502 Rejected\r\nContent-Length: 0\r\n\r\n') })
+  const port = await listen(t, server)
+  const agent = createProxyDispatcher({ HTTP_PROXY: `http://127.0.0.1:${port}`, HTTPS_PROXY: 'ftp://invalid' }, () => {})
+  t.after(() => agent.destroy())
+  await assert.rejects(fetch('https://missing.invalid/file', {dispatcher:agent}), error => error.cause?.code === 'ENOTFOUND')
+  assert.deepEqual(destinations, [])
+})
+
 test('NO_PROXY domain rules bypass the proxy', async t => {
   const agent = dispatcher(t,{HTTP_PROXY:'http://127.0.0.1:1',no_proxy:'*.invalid,10.0.0.0/8'})
   await assert.rejects(fetch('http://missing.invalid',{dispatcher:agent}), error => error.cause?.code === 'ENOTFOUND')

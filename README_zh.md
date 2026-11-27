@@ -11,7 +11,7 @@
 
 ## 核心特性
 
-- **仅发布插件、复用公共 npm 包**：`mcp/forge-mcp.mjs` 为启动器，`mcp/adapter.mjs` 仅包含 Kimi 适配逻辑，Core 不再内联。首次启动自动以 `npm ci --omit=dev --ignore-scripts` 安装锁定的 `@x-era/forge-core@0.2.0` 及依赖到 `<home>/plugin-runtime/<内容标识>/`，应用兼容层后启动；后续复用本地缓存，无需用户手动构建或发布额外 npm 包。
+- **仅发布插件、复用公共 npm 包**：`mcp/forge-mcp.mjs` 为启动器，`mcp/adapter.mjs` 仅包含 Kimi 适配逻辑，Core 不再内联。首次启动自动以 `npm ci --omit=dev --ignore-scripts` 安装锁定的 `@x-era/forge-core@0.2.2` 及依赖到 `<home>/plugin-runtime/<内容标识>/`，应用兼容层后启动；后续复用本地缓存，无需用户手动构建或发布额外 npm 包。
 - **严格的宿主目录隔离**：默认数据根采用 `~/.kimi-code/forge`（自动跟随 `$KIMI_CODE_HOME/forge`），将单写者 `runtime/state.json`、`runtime/forge.lock`、技能目录与隔离 Dora 运行时与 DSH 的 `~/.dsh/forge` 完全物理隔离，互不干扰。
 - **完整暴露 41 个 Forge 工具**：涵盖本机环境体检、Dora 0.4.1 / 1.0.1 一键隔离安装、PAOS Registry 搜索与后台安装、本地技能包校验与打包、节点源码版本追溯、本地模型 SHA256 校验、Dora 运行时启停及 Gateway 异步动作对账。
 - **内置物理安全红线与工作流**：随插件注入 `SYSTEM.md` 物理执行安全规则、2 个专业技能（`/skill:phyagentos:forge-usage`、`/skill:phyagentos:forge-skill-development`）以及 4 个快捷斜杠命令（`/phyagentos:env`、`/phyagentos:skills`、`/phyagentos:doctor`、`/phyagentos:export-skill`）。
@@ -60,16 +60,21 @@ node ./mcp/forge-mcp.mjs --prepare-only
 
 ### 代理配置
 
-启动 Kimi 前设置代理环境变量，并在更新插件后重启对应 MCP 会话。例如：
+可在启动 Kimi 前设置代理环境变量，也可写入 `$KIMI_CODE_HOME/.env`（默认 `~/.kimi-code/.env`，Windows 默认 `%USERPROFILE%\.kimi-code\.env`），随后完全重启 Kimi/MCP。文件内容示例：
 
-```sh
-export ALL_PROXY=socks5://127.0.0.1:7890
-export NO_PROXY=localhost,127.0.0.1,::1,192.168.0.0/16,10.0.0.0/8
+```dotenv
+HTTP_PROXY=http://127.0.0.1:你的HTTP或Mixed端口
+HTTPS_PROXY=http://127.0.0.1:你的HTTP或Mixed端口
+NO_PROXY=localhost,127.0.0.1,::1,192.168.0.0/16,10.0.0.0/8
 ```
 
-支持 HTTP/HTTPS 代理、SOCKS5 和 `socks5h://`。同名变量小写优先；HTTP 选择 `HTTP_PROXY → ALL_PROXY`，HTTPS 选择 `HTTPS_PROXY → ALL_PROXY → HTTP_PROXY`，与 DSH 的选择顺序一致。DSH 当前宿主不接受 SOCKS，而 Kimi 为兼容桌面端只提供 ALL_PROXY 的情况保留 SOCKS5 支持。
-本机 loopback Gateway 强制直连，重定向后也重新判断；`NO_PROXY` 支持域名及 IP CIDR（CIDR 仅对目标 URL 中的 IP 字面量判断，不进行额外 DNS 查询）。配置代理连接失败时报错，不自动回退直连。没有代理变量时保留宿主调度器。
-`undici@7.30.2` 从 npm 安装，未内联进 MCP；其 SOCKS5 实现会输出实验性功能提示。启动日志只说明是否启用代理，不输出地址或认证信息。此逻辑不自动读取 Clash／系统代理，也不改变首次 npm 安装自身的代理策略。
+请将占位文字替换成代理软件实际监听的端口；插件不固定端口、不扫描 Clash、不读取系统代理。代理必须能从运行 MCP 的机器/容器访问，`127.0.0.1` 指该运行环境本身。`.env` 只读取代理变量，不读取项目目录 `.env` 或 DSH 的配置文件，也不执行文件中的命令。
+
+同一配置项以启动进程传入的非空值为准，其次读取用户 `.env`；每个来源内小写优先于大写，空值视为未设置。HTTP 选择 `HTTP_PROXY → ALL_PROXY → 直连`，HTTPS 选择 `HTTPS_PROXY → ALL_PROXY → HTTP_PROXY → 直连`。明确配置了无效地址或不支持的协议时，输出不含地址/认证信息的警告，对应请求直连，不继续回退。有效代理连接失败仍报错，不自动直连。
+
+运行时支持 HTTP/HTTPS、SOCKS5 和 `socks5h://`，保留比参考 DSH 逻辑更多的 SOCKS 兼容能力。本机 loopback Gateway 强制直连，重定向后也重新判断；`NO_PROXY` 支持域名及 IP CIDR（仅判断 URL 中的 IP 字面量，不进行额外 DNS 查询）。没有代理配置时保留宿主调度器。
+
+首次 npm 安装前也会读取上述 `.env`，并将 HTTP/HTTPS 代理选择结果传给 npm；显式 `npm_config_proxy` / `npm_config_https_proxy` 配置优先。npm 安装请使用 HTTP/Mixed 端口；只有 SOCKS 配置时会提示其不适用于此安装桥接，可另设 npm HTTP 代理。`undici@7.30.2` 仍从 npm 安装，其 SOCKS5 实现会输出实验性功能提示。配置保存在机器的用户目录中，插件代码和清单不携带本机端口或凭据。
 
 ### 首次对话示例
 

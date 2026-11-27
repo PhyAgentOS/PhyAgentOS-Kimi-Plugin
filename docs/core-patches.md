@@ -1,7 +1,7 @@
 # Forge Core compatibility patch
 
-The plugin uses published `@x-era/forge-core@0.2.0`; Core is no longer bundled into the MCP adapter.
-Development tests apply `patches/@x-era__forge-core@0.2.0.patch` through pnpm's `patchedDependencies`.
+The plugin uses published `@x-era/forge-core@0.2.2`; Core is no longer bundled into the MCP adapter.
+Development tests apply `patches/@x-era__forge-core@0.2.2.patch` through pnpm's `patchedDependencies`.
 At first startup, the bootstrap installs locked npm dependencies into a private, versioned runtime,
 copies Core to `compat-core/`, and applies the same exact patch only to that copy. The installed npm
 package remains unchanged. `mcp/compatibility.json` pins each patched file's pristine and resulting
@@ -25,12 +25,13 @@ certificate/transparency chain was not independently validated.
 | Shared model roots read-only | Missing; `bootstrap.js` matches pristine 0.2.0 |
 | Private runtime permissions and payload symlink rejection | Missing |
 
-Core `0.2.2` also adds startup-timeout and live-lock fixes independent of this patch; retaining
-0.2.0 does not include those changes. Its operations/registry public implementations and declarations
-match 0.2.0, but the existing adapter's use of `ready()` and writable `jobs` relies on JS members
-that are private/readonly in the type declarations. Static API comparison is not an integration test.
-The existing patch applies exactly to official 0.2.0, not unchanged to 0.2.2. Therefore the runtime
-keeps 0.2.0 plus the compatibility copy until a deliberate upgrade/rebase is tested.
+Core `0.2.2` also adds startup-timeout and live-lock fixes. Development and the
+published runtime now both pin `0.2.2`, with the compatibility patch rebased onto
+that exact release. The patch preserves upstream startup handling and unique node
+staging directories while retaining the local archive and integrity restrictions.
+The adapter's use of `ready()` and writable `jobs` still relies on JS members
+that are private/readonly in the type declarations; integration tests exercise
+these paths rather than relying on static API comparison alone.
 
 Audited tarball SHA256:
 - 0.2.0: `aaaf1b98ba9e530a40db89d47680d9350a4f55d8052271de23a08aa185976502`
@@ -39,7 +40,7 @@ Audited tarball SHA256:
 
 Sources: official npm registry metadata at `https://registry.npmjs.org/@x-era%2Fforge-core`,
 its version-specific `dist.tarball`, `dist.integrity`, registry signatures and attestation records.
-The runtime lockfile preserves official 0.2.0 SRI and all transitive package SRI values.
+The runtime lockfile preserves official 0.2.2 SRI and all transitive package SRI values.
 
 ## Changes and regression coverage
 
@@ -82,7 +83,7 @@ ACL enforcement mechanism.
 ## Maintenance
 
 1. Install with `pnpm install --frozen-lockfile`; npm does not apply this pnpm patch.
-2. Change the patch with `pnpm patch @x-era/forge-core@0.2.0` and `pnpm patch-commit`.
+2. Change the patch with `pnpm patch @x-era/forge-core@0.2.2` and `pnpm patch-commit`.
 3. Update `mcp/compatibility.json` from verified pristine and patched npm files; refresh `mcp/package-lock.json` only intentionally.
 4. Commit the patch, workspace config, both lockfiles, compatibility metadata and generated MCP payload together. Run `pnpm test` and `pnpm run build:check`; runtime-bootstrap tests verify npm originals stay unchanged and compatibility output matches the hashes.
 5. When upgrading core, check whether upstream incorporates each fix. Remove or
