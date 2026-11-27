@@ -11,6 +11,7 @@
   },
   "scripts": {
     "upgrade:core": "node ./scripts/upgrade-core.mjs",
+    "sync:dsh": "node ./scripts/sync-dsh.mjs",
     "build": "node ./scripts/build-mcp.mjs",
     "build:check": "node ./scripts/build-mcp.mjs --check",
     "validate": "node ./scripts/validate-plugin.mjs",

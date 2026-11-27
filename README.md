@@ -107,6 +107,49 @@ Host configuration lives in `<home>/config.json` (managed safely with `0600` ato
 }
 ```
 
+## npm Dependencies & Updates
+
+### Dependency Model
+
+This plugin directly depends on the public npm package **`@x-era/forge-core`**, called through its Kimi-specific MCP adapter. **`@x-era/dsh-forge` is the upstream release tracked for updates, not a direct runtime dependency of this plugin.** It is a DSH installation bundle that depends on the shared Core through `@x-era/dsh-forge-skill`:
+
+```text
+Upstream npm dependency chain:
+@x-era/dsh-forge → @x-era/dsh-forge-skill → @x-era/forge-core
+
+Kimi runtime call chain:
+Kimi → this plugin's MCP adapter → @x-era/forge-core
+```
+
+The three tracked package versions are recorded in [`dsh-upstream.json`](dsh-upstream.json). The actual Core version is pinned exactly in `package.json`, `mcp/package.json`, and their lockfiles. First startup installs the locked dependencies; later starts reuse the cache rather than fetching the newest npm release on every launch.
+
+### Maintainers: Sync Upstream Releases
+
+Once the [sync workflow](.github/workflows/sync-dsh.yml) is merged into the default branch, Actions is enabled, and Actions is allowed to create PRs, it is scheduled to check npm daily at **04:23 UTC (12:23 China Standard Time)**. You can also trigger **Actions → Sync DSH upstream → Run workflow** manually.
+
+1. Query the `latest` tag of `@x-era/dsh-forge`, npm's default installation version, then follow its dependency declarations to resolve the actual Skill and Core versions. The package versions need not match. Only exact stable versions are accepted, and downgrades are rejected.
+2. Compare against `dsh-upstream.json`. No changes means no file writes or PR. DSH source commits alone, test releases not tagged `latest`, and standalone Core releases not referenced by the bundle do not trigger this update path.
+3. Prepare the update in a temporary copy. Update the tracking record and, when Core changes, dependency manifests, both lockfiles, compatibility patches and mappings, SHA256 metadata, and generated MCP payload. Run `pnpm test` and `pnpm run build:check` before copying changes back. Patch conflicts or validation failures stop the upgrade.
+4. On success with changes, create or update the `automation/sync-dsh` PR. Maintainers verify platform CI, review and merge, adjust the plugin version, and publish. The workflow does not merge or publish automatically. PR CI may need manual approval; see the [release guide](docs/releasing_en.md) for token and permission setup.
+
+Local maintenance commands (require the repository's specified pnpm version):
+
+```sh
+pnpm install --frozen-lockfile
+# Check only: print version comparison JSON without changing files
+pnpm run sync:dsh -- --check
+# Apply the sync and run full validation
+pnpm run sync:dsh
+# Optional: select an exact stable DSH bundle version; downgrades remain blocked
+pnpm run sync:dsh -- --version 0.2.2
+```
+
+If Core is unchanged, only the upstream tracking record is updated and validation runs. DSH-specific UI, tool registration, prompts, and Kimi adapter code for new tools are not migrated automatically. Plugin version bumps and documentation version references remain manual. Sync does not modify users' installed skills, models, configuration, or runtime data.
+
+### Users: Get Plugin Updates
+
+After maintainers publish a new version, update the Kimi plugin through the original installation channel and restart Kimi/MCP. The bootstrap prepares the runtime specified by the new plugin's lockfile. Normal users do not need the maintenance commands above or a manual `npm update`.
+
 ## Development & Verification
 
 ```sh

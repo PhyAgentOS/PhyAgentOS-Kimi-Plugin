@@ -107,6 +107,49 @@ NO_PROXY=localhost,127.0.0.1,::1,192.168.0.0/16,10.0.0.0/8
 }
 ```
 
+## npm 依赖与更新方式
+
+### 依赖关系
+
+本插件直接依赖公共 npm 包 **`@x-era/forge-core`**，由 Kimi 专用 MCP 适配层调用。**`@x-era/dsh-forge` 是跟随更新的上游发布入口，不是本插件的直接运行时依赖**；它是 DSH 的安装组合包，通过 `@x-era/dsh-forge-skill` 依赖公共 Core：
+
+```text
+上游 npm 发布依赖链：
+@x-era/dsh-forge → @x-era/dsh-forge-skill → @x-era/forge-core
+
+Kimi 运行调用链：
+Kimi → 本插件的 MCP 适配层 → @x-era/forge-core
+```
+
+已跟随的三个包版本记录在 [`dsh-upstream.json`](dsh-upstream.json)，实际 Core 版本精确锁定在 `package.json`、`mcp/package.json` 和对应锁文件中。首次启动按锁文件安装，后续复用缓存；不会在每次启动时自动安装 npm 最新版本。
+
+### 维护者：自动同步上游发布
+
+[同步工作流](.github/workflows/sync-dsh.yml) 合入默认分支并启用 Actions、允许 Actions 创建 PR 后，按每天 **UTC 04:23（北京时间 12:23）** 的计划检查 npm。也可在 **Actions → Sync DSH upstream → Run workflow** 手动触发。
+
+1. 查询 `@x-era/dsh-forge` 的 `latest` 标签，即 npm 默认安装版本，再沿其依赖声明解析 Skill 和 Core 的实际版本；不假设三个包的版本号相同。仅支持精确稳定版本，并拒绝降级。
+2. 与 `dsh-upstream.json` 比较；无变化不修改文件、不创建 PR。只提交 DSH 源码、发布未设为 `latest` 的测试版，或单独发布未被组合包引用的 Core，不会触发这套跟随升级。
+3. 有更新时，在临时副本中同步版本记录；Core 变化时还更新依赖声明、两套锁文件、兼容补丁及映射、SHA256 摘要和 MCP 构建产物。执行 `pnpm test` 和 `pnpm run build:check`，通过后才写回；补丁冲突或验证失败则终止。
+4. 成功且有改动时，创建或更新 `automation/sync-dsh` 升级 PR。维护者确认平台 CI、审核合并、调整插件版本并发布；工作流不自动合并或发布。PR 的 CI 可能需要人工批准，令牌和权限配置见[发布指南](docs/releasing_zh.md#2-自动跟随已发布-dsh-版本)。
+
+本地维护命令（需安装仓库指定版本的 pnpm）：
+
+```sh
+pnpm install --frozen-lockfile
+# 只检查，输出版本比较 JSON，不修改文件
+pnpm run sync:dsh -- --check
+# 执行同步升级和完整验证
+pnpm run sync:dsh
+# 可选：指定 DSH 组合包的精确稳定版本，仍禁止降级
+pnpm run sync:dsh -- --version 0.2.2
+```
+
+若 Core 不变，只同步上游版本记录并执行验证。DSH 专属界面、工具注册、提示词及 Kimi 新工具适配代码不会自动迁移；插件版本号和文档版本引用仍需人工维护。同步不会修改用户已安装的技能、模型、配置或运行数据。
+
+### 使用者：获取插件更新
+
+维护者发布新版后，通过原安装渠道更新 Kimi 插件，并重启 Kimi/MCP；启动器会根据新版插件携带的锁文件准备对应运行时。普通用户无需运行上述维护命令，也无需手动执行 `npm update`。
+
 ## 本地开发与校验
 
 ```sh

@@ -25,7 +25,9 @@ test('development and published runtime pin the same Core and compatibility vers
     json('package.json'), json('mcp/package.json'), json('mcp/package-lock.json'), json('mcp/compatibility.json'),
   ])
   const version = development.dependencies['@x-era/forge-core']
-  assert.equal(version, '0.2.2')
+  assert.match(version, /^\d+\.\d+\.\d+$/)
+  const upstream = await json('dsh-upstream.json')
+  assert.equal(upstream.packages['@x-era/forge-core'], version)
   assert.equal(runtime.dependencies['@x-era/forge-core'], version)
   assert.equal(lock.packages[''].dependencies['@x-era/forge-core'], version)
   assert.equal(lock.packages['node_modules/@x-era/forge-core'].version, version)

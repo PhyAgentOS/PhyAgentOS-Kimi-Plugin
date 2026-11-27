@@ -1,0 +1,191 @@
+name: Sync DSH upstream
+
+on:
+  schedule:
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Exact stable @x-era/dsh-forge version (empty: npm latest)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-dsh
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Upgrade and verify without write credentials
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    outputs:
+      base_sha: ${{ steps.base.outputs.sha }}
+      changed: ${{ steps.patch.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Record verified base
+        id: base
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.18.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install current dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check upstream, upgrade and run full gates
+        env:
+          DSH_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=()
+          if [[ -n "$DSH_VERSION" ]]; then
+            [[ "$DSH_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || {
+              echo 'version must be an exact stable version such as 0.2.2' >&2
+              exit 1
+            }
+            args+=(--version "$DSH_VERSION")
+          fi
+          pnpm run sync:dsh -- --check "${args[@]}"
+          pnpm run sync:dsh -- "${args[@]}"
+      - name: Package changed files only
+        id: patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import subprocess
+          from pathlib import Path
+
+          allowed_files = {
+              'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml',
+              'dsh-upstream.json',
+          }
+
+          def allowed(path):
+              return path in allowed_files or path.startswith(('mcp/', 'patches/'))
+
+          # Include new tracking files and renamed/deleted versioned patches.
+          status = subprocess.check_output([
+              'git', 'status', '--porcelain=v1', '-z', '--untracked-files=all',
+          ]).split(b'\0')
+          paths = []
+          index = 0
+          while index < len(status) and status[index]:
+              entry = status[index]
+              paths.append(os.fsdecode(entry[3:]))
+              if entry[:1] in (b'R', b'C') or entry[1:2] in (b'R', b'C'):
+                  index += 1
+                  paths.append(os.fsdecode(status[index]))
+              index += 1
+          unexpected = [path for path in paths if not allowed(path)]
+          if unexpected:
+              raise SystemExit(f'Unexpected sync changes: {unexpected!r}')
+          subprocess.run(['git', 'add', '--all', '--', '.'], check=True)
+          changed = subprocess.run(['git', 'diff', '--cached', '--quiet']).returncode
+          if changed not in (0, 1):
+              raise SystemExit('Cannot inspect sync changes')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'changed={str(changed == 1).lower()}\n')
+          if changed:
+              patch = subprocess.check_output(['git', 'diff', '--cached', '--binary', '--full-index'])
+              (Path(os.environ['RUNNER_TEMP']) / 'dsh-sync.patch').write_bytes(patch)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: steps.patch.outputs.changed == 'true'
+        with:
+          name: dsh-sync-patch
+          path: ${{ runner.temp }}/dsh-sync.patch
+          if-no-files-found: error
+          retention-days: 3
+
+  pull-request:
+    name: Open verified update PR without executing candidate code
+    needs: verify
+    if: needs.verify.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: dsh-sync-patch
+          path: ${{ runner.temp }}/dsh-sync
+      - name: Apply verified patch and enforce allowed paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply --index --whitespace=error "$RUNNER_TEMP/dsh-sync/dsh-sync.patch"
+          python3 - <<'PY'
+          import os
+          import subprocess
+
+          allowed_files = {
+              'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml',
+              'dsh-upstream.json',
+          }
+          paths = subprocess.check_output([
+              'git', 'diff', '--cached', '--name-only', '--no-renames', '-z',
+          ]).split(b'\0')
+          for raw in filter(None, paths):
+              path = os.fsdecode(raw)
+              if path not in allowed_files and not path.startswith(('mcp/', 'patches/')):
+                  raise SystemExit(f'Unexpected artifact path: {path!r}')
+          if not any(paths):
+              raise SystemExit('The sync artifact contains no changes')
+          PY
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.DSH_SYNC_TOKEN || github.token }}
+          base: ${{ github.event.repository.default_branch }}
+          branch: automation/sync-dsh
+          add-paths: |
+            package.json
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
+            dsh-upstream.json
+            mcp/
+            patches/
+          commit-message: |
+            chore: sync published DSH upstream
+
+            Co-Authored-By: Claude Code <noreply@anthropic.com>
+          title: 'chore: sync published DSH upstream'
+          body: |
+            Sync the published `@x-era/dsh-forge` release selected by `sync:dsh`.
+
+            The isolated read-only job completed the upgrade, `pnpm test` and
+            `pnpm run build:check`. This job only applied its changed-file artifact;
+            it did not install dependencies or execute candidate package code.
+
+            Review `dsh-upstream.json`, manifests, lockfiles, patch migration,
+            compatibility metadata and generated MCP payload. Documentation Core
+            version references and manual acceptance remain maintainer tasks.
+
+            With the default token, platform CI may require manual approval or a
+            maintainer-triggered run. An optional `DSH_SYNC_TOKEN` can enable normal
+            PR-triggered CI, subject to repository policy. Verify required checks
+            before merging. This workflow does not merge or publish releases.
+
+            See `docs/releasing_en.md` / `docs/releasing_zh.md`.
+
+            🤖 Generated with [Claude Code](https://claude.com/claude-code)
