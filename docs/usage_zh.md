@@ -59,7 +59,7 @@ PAOS Registry 中的多数预编译节点制品（如 `robot-control-sim`）锁�
          "args": ["/home/ubuntu/phyagentos-kimi/mcp/forge-mcp.mjs"],
          "environment_id": "robot-box",
          "startupTimeoutMs": 60000,
-         "toolTimeoutMs": 180000,
+         "toolTimeoutMs": 960000,
          "env": { "KIMI_FORGE_HOME": "/home/ubuntu/.kimi-code/forge" }
        }
      }
@@ -73,6 +73,8 @@ PAOS Registry 中的多数预编译节点制品（如 `robot-control-sim`）锁�
    排查顺序：SSH 登录 → 远端执行器路径/版本 → 远端 Node 与脚本绝对路径 → `/mcp` 状态 → 环境体检。若 Forge 调用失败，本轮停止，下一轮获得用户诊断指令后再执行后续检查。不要因 SSH 连接成功就认定仿真或硬件验收通过。
 
 ## 4. 隔离配置与本地大模型权重共享
+
+Forge 启动时优先按技能 profile 的 `startup_timeout_s` 等待 Gateway，其次使用 `runtime.startTimeoutMs`，默认 120 秒。Kimi 内置服务的工具调用预算为 960 秒，覆盖 900 秒的启动等待和 60 秒的启动开销。通过 SSH 配置 MCP 时也应保留同样的预算。客户端超时后，先核对运行状态再重试启动。
 
 本插件的配置存储在 `~/.kimi-code/forge/config.json`，绝不读写 `~/.dsh/`：
 

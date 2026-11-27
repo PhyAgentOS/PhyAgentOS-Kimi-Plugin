@@ -75,6 +75,8 @@ await checkNoEscapingSymlinks(root)
 
 const manifestRaw = await readFile(join(root, 'kimi.plugin.json'), 'utf8')
 const manifest = JSON.parse(manifestRaw)
+const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'))
+if (manifest.version !== pkg.version) fail('kimi.plugin.json and package.json versions must match')
 
 if (!PLUGIN_ID_RE.test(manifest.name ?? '')) {
   fail(`kimi.plugin.json name "${manifest.name}" does not match Kimi plugin id pattern`)

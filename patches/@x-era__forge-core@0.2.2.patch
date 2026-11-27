@@ -1,16 +1,16 @@
 diff --git a/lib/archive.d.ts b/lib/archive.d.ts
-index c305952782adf3fe475a86ef9d9300a28d45d804..dabeca5a4de3698a6203b3f19b597dac7642be3a 100644
+index 7091f64..dabeca5 100644
 --- a/lib/archive.d.ts
 +++ b/lib/archive.d.ts
-@@ -1,8 +1,8 @@
+@@ -1,9 +1,8 @@
 -/**
 - * Extract a gzipped tar into `cwd`, rejecting entries that could escape it.
 - *
-- * The archive is third-party input: absolute paths, `..` traversal, symlinks and
-- * hard links are refused instead of silently skipped, so a hostile bundle fails
-- * the install rather than leaving partial state.
+- * Directory nodes opt in to internal symlinks in a fresh staging directory.
+- * Hard links and paths outside the archive are always rejected.
 - */
--export declare function extractArchive(file: string, cwd: string): Promise<void>;
+-export declare function extractArchive(file: string, cwd: string, { allowInternalLinks }?: {
+-    allowInternalLinks?: boolean | undefined;
 +/** Extract into an empty directory; node archives may allow validated internal symlinks. */
 +export declare function extractArchive(file: string, cwd: string, options?: {
 +    allowInternalLinks?: boolean;
@@ -18,13 +18,14 @@ index c305952782adf3fe475a86ef9d9300a28d45d804..dabeca5a4de3698a6203b3f19b597dac
 +        artifactType: 'executable_tar_gz' | 'directory_tar_gz';
 +        entrypoint: string;
 +    };
-+}): Promise<void>;
+ }): Promise<void>;
 diff --git a/lib/archive.js b/lib/archive.js
-index 9d0871199590e07e4b54726d237225cdb40cc680..31c1f929f132c9d4f2c4fbc767c04459b5e4755f 100644
+index 71ecd42..31c1f92 100644
 --- a/lib/archive.js
 +++ b/lib/archive.js
-@@ -1,34 +1,147 @@
--import { isAbsolute, posix } from 'node:path';
+@@ -1,72 +1,147 @@
+-import { mkdir, realpath, symlink } from 'node:fs/promises';
+-import { dirname, isAbsolute, join, posix, relative, sep, win32 } from 'node:path';
 -import { x as untar } from 'tar';
 +import { lstat, mkdir, readdir, realpath, rm, symlink } from 'node:fs/promises';
 +import { dirname, isAbsolute, join, posix, relative, resolve, win32 } from 'node:path';
@@ -33,11 +34,11 @@ index 9d0871199590e07e4b54726d237225cdb40cc680..31c1f929f132c9d4f2c4fbc767c04459
 -/**
 - * Extract a gzipped tar into `cwd`, rejecting entries that could escape it.
 - *
-- * The archive is third-party input: absolute paths, `..` traversal, symlinks and
-- * hard links are refused instead of silently skipped, so a hostile bundle fails
-- * the install rather than leaving partial state.
+- * Directory nodes opt in to internal symlinks in a fresh staging directory.
+- * Hard links and paths outside the archive are always rejected.
 - */
--export async function extractArchive(file, cwd) {
+-export async function extractArchive(file, cwd, { allowInternalLinks = false } = {}) {
+-    const violations = [];
 +
 +/** Skill bundles reject links; node archives may opt into validated internal symlinks. */
 +export async function extractArchive(file, cwd, options = {}) {
@@ -54,17 +55,39 @@ index 9d0871199590e07e4b54726d237225cdb40cc680..31c1f929f132c9d4f2c4fbc767c04459
 +    const entries = new Map();
 +    const modes = new Map();
 +    let entryCount = 0;
-+    const links = new Map();
-     const violations = [];
+     const links = new Map();
 -    await untar({
 -        file,
 -        cwd,
 -        strict: true,
 -        filter: (path, entry) => {
--            const normalized = posix.normalize(path.replace(/^\.\//, ''));
--            if (isAbsolute(normalized) || normalized.startsWith('../') || normalized === '..') {
+-            if (posix.isAbsolute(path) || win32.parse(path).root !== '' || path.includes('\\')
+-                || path.includes('\0') || path.split('/').includes('..')) {
 -                violations.push(`path escapes archive root: ${path}`);
 -                return false;
+-            }
+-            if (!('type' in entry))
+-                return true;
+-            if (entry.type === 'SymbolicLink' && allowInternalLinks) {
+-                const target = entry.linkpath;
+-                const name = posix.normalize(path);
+-                const resolved = target === undefined ? '..' : posix.join(posix.dirname(name), target);
+-                // A parent step after a named component could traverse a directory link.
+-                // Leading parent steps are relative to the link's real parent directory.
+-                if (!target || win32.parse(target).root !== '' || target.includes('\\') || target.includes('\0')
+-                    || target.replace(/^(?:\.{1,2}\/|\/)+/, '').split('/').includes('..')
+-                    || resolved === '..' || resolved.startsWith('../') || links.has(name)) {
+-                    violations.push(`unsafe symbolic link: ${path}`);
+-                }
+-                else {
+-                    links.set(name, target);
+-                }
+-                return false;
+-            }
+-            if (entry.type === 'SymbolicLink' || entry.type === 'Link') {
+-                violations.push(`link entries are not allowed: ${path}`);
+-                return false;
++    const violations = [];
 +    const safePath = path => typeof path === 'string' && path.length > 0
 +        && !path.includes('\\') && !path.includes('\0') && !path.includes(':')
 +        && !isAbsolute(path) && !win32.isAbsolute(path) && !/^[a-z]:/i.test(path);
@@ -119,10 +142,11 @@ index 9d0871199590e07e4b54726d237225cdb40cc680..31c1f929f132c9d4f2c4fbc767c04459
 +                violations.push(`archive entry has a non-directory parent: ${name}`);
 +                break;
              }
--            const type = entry.type;
--            if (type === 'SymbolicLink' || type === 'Link') {
--                violations.push(`link entries are not allowed: ${path}`);
--                return false;
+-            return true;
+-        },
+-    });
+-    if (violations.length > 0) {
+-        throw new ForgeError('FORGE_ARCHIVE_UNSAFE', violations.slice(0, 3).join('; '));
 +            parent = posix.dirname(parent);
 +        }
 +    }
@@ -140,11 +164,24 @@ index 9d0871199590e07e4b54726d237225cdb40cc680..31c1f929f132c9d4f2c4fbc767c04459
 +            violations.push(`node entrypoint must be an executable regular file: ${executable}`);
 +        if (!directory && (entries.size !== 1 || entryCount !== 1))
 +            violations.push('executable node archive must contain exactly one regular file');
-+    }
+     }
+-    if (links.size === 0)
+-        return;
+-    const root = await realpath(cwd);
 +    if (violations.length > 0)
 +        throw unsafe(violations.slice(0, 3).join('; '));
 +    const created = [];
-+    try {
+     try {
+-        // Create all parents before any symlink. A link cannot then replace a parent
+-        // directory or be used to write another archive member.
+-        for (const path of links.keys())
+-            await mkdir(dirname(join(root, path)), { recursive: true });
+-        for (const [path, target] of links)
+-            await symlink(target, join(root, path));
+-        for (const path of links.keys()) {
+-            const resolved = relative(root, await realpath(join(root, path)));
+-            if (resolved === '' || resolved === '..' || resolved.startsWith(`..${sep}`) || isAbsolute(resolved)) {
+-                throw new Error(`symbolic link resolves outside the archive payload: ${path}`);
 +        // Symlinks are deliberately not handed to tar: create them only after
 +        // every ordinary file has been extracted, so extraction cannot follow one.
 +        await untar({ file, cwd: root, strict: true,
@@ -160,12 +197,7 @@ index 9d0871199590e07e4b54726d237225cdb40cc680..31c1f929f132c9d4f2c4fbc767c04459
 +            let target;
 +            try {
 +                target = await realpath(join(root, name));
-             }
--            return true;
--        },
--    });
--    if (violations.length > 0) {
--        throw new ForgeError('FORGE_ARCHIVE_UNSAFE', violations.slice(0, 3).join('; '));
++            }
 +            catch {
 +                throw unsafe(`dangling or cyclic symbolic link: ${name}`);
 +            }
@@ -187,20 +219,21 @@ index 9d0871199590e07e4b54726d237225cdb40cc680..31c1f929f132c9d4f2c4fbc767c04459
 +                const child = join(canonical, entry.name);
 +                if (entry.isDirectory() || (entry.isSymbolicLink() && (await lstat(await realpath(child))).isDirectory()))
 +                    await visit(child);
-+            }
+             }
 +            active.delete(canonical);
 +            visited.add(canonical);
-+        }
+         }
 +        if (links.size > 0) await visit(root);
-+    }
-+    catch (error) {
+     }
+     catch (error) {
+-        throw new ForgeError('FORGE_ARCHIVE_UNSAFE', `invalid archive symbolic link: ${error.message}`);
 +        for (const path of created.reverse())
 +            await rm(path, { force: true }).catch(() => undefined);
 +        throw error;
      }
  }
 diff --git a/lib/bootstrap.js b/lib/bootstrap.js
-index 95695a29d5fa0479527ddcb7a8cc40c09c3533bf..f900f9be55fb0e0de41a5dfcbcd8cd3e724079aa 100644
+index 95695a2..f900f9b 100644
 --- a/lib/bootstrap.js
 +++ b/lib/bootstrap.js
 @@ -1,6 +1,6 @@
@@ -247,7 +280,7 @@ index 95695a29d5fa0479527ddcb7a8cc40c09c3533bf..f900f9be55fb0e0de41a5dfcbcd8cd3e
              }
              catch (error) {
 diff --git a/lib/download.js b/lib/download.js
-index 3abaedc92497bda29ca6f688a03f6369e5fd1dc4..15ba4841302a26339ec0c90e86cb3126cdbd215a 100644
+index 3abaedc..15ba484 100644
 --- a/lib/download.js
 +++ b/lib/download.js
 @@ -13,6 +13,7 @@ import { ForgeError } from './errors.js';
@@ -286,7 +319,7 @@ index 3abaedc92497bda29ca6f688a03f6369e5fd1dc4..15ba4841302a26339ec0c90e86cb3126
      const stream = createReadStream(path);
      for await (const chunk of stream)
 diff --git a/lib/install.js b/lib/install.js
-index 3d07aeeb014c7b141470f226d1864532f66a5b49..546c6af4ae8f886721813fe15b26e1ef35a70ce5 100644
+index 3d07aee..546c6af 100644
 --- a/lib/install.js
 +++ b/lib/install.js
 @@ -1,8 +1,7 @@
@@ -338,25 +371,10 @@ index 3d07aeeb014c7b141470f226d1864532f66a5b49..546c6af4ae8f886721813fe15b26e1ef
      options.onProgress?.('download', 0, artifact.size);
      const transfer = await downloadFile({
 diff --git a/lib/nodes.js b/lib/nodes.js
-index 99e0a90137b15fb7402885720d165602cfaebbd1..99b3041c76352744768f43c221c561d3d1c1b75c 100644
+index 1d91f80..63ac3c5 100644
 --- a/lib/nodes.js
 +++ b/lib/nodes.js
-@@ -1,4 +1,4 @@
--import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
-+import { lstat, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
- import { join } from 'node:path';
- import { extractArchive } from './archive.js';
- import { downloadFile } from './download.js';
-@@ -22,7 +22,7 @@ export class NodeStore {
-     /** Read-only cache inspection; never downloads. */
-     async inspect(lock, binary = lock.nodeId) {
-         const dir = join(this.root, lock.artifactId);
--        const entrypoint = join(dir, lock.entrypoint);
-+        const entrypoint = nodeEntrypoint(dir, lock);
-         if (!(await isExecutable(entrypoint))) {
-             return { artifactId: lock.artifactId, entrypoint, state: 'missing', detail: `${binary}: ${dir} is not installed` };
-         }
-@@ -113,6 +113,7 @@ export class NodeStore {
+@@ -112,13 +112,10 @@ export class NodeStore {
          return { removed, freedBytes, kept };
      }
      async download(lock, hooks) {
@@ -364,67 +382,51 @@ index 99e0a90137b15fb7402885720d165602cfaebbd1..99b3041c76352744768f43c221c561d3
          if (lock.platform !== process.platform || lock.arch !== archName()) {
              throw new ForgeError('FORGE_NODE_PLATFORM', `${lock.artifactId} targets ${lock.platform}/${lock.arch}`);
          }
-@@ -135,20 +136,26 @@ export class NodeStore {
-         const staging = `${target}.staging-${process.pid}`;
-         await rm(staging, { recursive: true, force: true });
-         await mkdir(staging, { recursive: true });
--        await extractArchive(archive, staging);
--        if (!(await isExecutable(join(staging, lock.entrypoint)))) {
-+        try {
-+            await extractArchive(archive, staging, { nodeArtifact: lock });
-+            if (!(await isExecutable(join(staging, expectedEntrypoint)))) {
-+                throw new ForgeError('FORGE_NODE_ENTRYPOINT', `${lock.artifactId} has no executable ${lock.entrypoint}`);
-+            }
-+            const metadata = {
-+                artifactId: lock.artifactId,
-+                ...(expected === undefined ? {} : { sha256: expected }),
-+                ...(lock.version === undefined ? {} : { version: lock.version }),
-+                verifiedAt: new Date().toISOString(),
-+            };
-+            // Do not write verification metadata through an archive-supplied link.
-+            await rm(join(staging, '.artifact.json'), { force: true });
-+            await writeFile(join(staging, '.artifact.json'), JSON.stringify(metadata, null, 2));
-+            await rm(target, { recursive: true, force: true });
-+            await rename(staging, target);
-+        }
-+        finally {
-             await rm(staging, { recursive: true, force: true });
--            throw new ForgeError('FORGE_NODE_ENTRYPOINT', `${lock.artifactId} has no executable ${lock.entrypoint}`);
+-        const directoryNode = lock.artifactType === 'directory_tar_gz';
+-        if (directoryNode && (lock.entrypoint === '.' || lock.entrypoint === '..' || /[/\\:\0]/.test(lock.entrypoint))) {
+-            throw new ForgeError('FORGE_NODE_ENTRYPOINT', `${lock.artifactId} requires a single entrypoint name`);
 -        }
--        const metadata = {
--            artifactId: lock.artifactId,
--            ...(expected === undefined ? {} : { sha256: expected }),
--            ...(lock.version === undefined ? {} : { version: lock.version }),
--            verifiedAt: new Date().toISOString(),
--        };
--        await writeFile(join(staging, '.artifact.json'), JSON.stringify(metadata, null, 2));
--        await rm(target, { recursive: true, force: true });
--        await rename(staging, target);
-+        }
-         await rm(archive, { force: true });
-         return transfer.bytes;
+         const artifact = await this.registry.node(lock.artifactId);
+         if (lock.sha256 !== undefined && artifact.sha256 !== undefined && artifact.sha256 !== lock.sha256) {
+             throw new ForgeError('FORGE_NODE_INTEGRITY', `registry digest for ${lock.artifactId} disagrees with the skill lock`);
+@@ -138,16 +135,10 @@ export class NodeStore {
+         await mkdir(this.root, { recursive: true });
+         const staging = await mkdtemp(join(this.root, '.staging-'));
+         try {
+-            await extractArchive(archive, staging, { allowInternalLinks: directoryNode });
+-            if (directoryNode) {
+-                const entries = await readdir(staging, { withFileTypes: true });
+-                if (entries.length !== 1 || entries[0]?.name !== lock.entrypoint || !entries[0].isDirectory()) {
+-                    throw new ForgeError('FORGE_NODE_ENTRYPOINT', `${lock.artifactId} must contain one root directory named ${lock.entrypoint}`);
+-                }
+-            }
+-            const entrypoint = nodeEntrypoint(staging, lock);
++            await extractArchive(archive, staging, { nodeArtifact: lock });
++            const entrypoint = join(staging, expectedEntrypoint);
+             if (!(await isExecutable(entrypoint))) {
+-                throw new ForgeError('FORGE_NODE_ENTRYPOINT', `${lock.artifactId} has no executable ${entrypoint.slice(staging.length + 1)}`);
++                throw new ForgeError('FORGE_NODE_ENTRYPOINT', `${lock.artifactId} has no executable ${expectedEntrypoint}`);
+             }
+             const metadata = {
+                 artifactId: lock.artifactId,
+@@ -167,9 +158,12 @@ export class NodeStore {
      }
-@@ -177,9 +184,17 @@ async function directorySize(path) {
-     }
-     return total;
  }
-+function nodeEntrypoint(root, lock) {
+ function nodeEntrypoint(root, lock) {
+-    return lock.artifactType === 'directory_tar_gz'
+-        ? join(root, lock.entrypoint, lock.entrypoint)
+-        : join(root, lock.entrypoint);
 +    const name = lock.entrypoint;
 +    if (!['executable_tar_gz', 'directory_tar_gz'].includes(lock.artifactType)
 +        || typeof name !== 'string' || !name.trim() || ['.', '..', '.artifact.json'].includes(name)
 +        || ['/', '\\', ':', '\0'].some(char => name.includes(char)))
 +        throw new ForgeError('FORGE_NODE_ENTRYPOINT', 'node entrypoint must be a single filename with a supported artifact type');
 +    return lock.artifactType === 'directory_tar_gz' ? join(root, name, name) : join(root, name);
-+}
- async function isExecutable(path) {
-     try {
--        const info = await stat(path);
-+        const info = await lstat(path);
-         return info.isFile() && (info.mode & 0o111) !== 0;
-     }
-     catch {
+ }
+ async function directorySize(path) {
+     let total = 0;
 diff --git a/lib/runtime.js b/lib/runtime.js
-index 760c3ab6e9fe61eed3ea2f639434cc2ba9dfb2ec..b05433d4f6781a1fc03161a6c723f1d4a22ce60f 100644
+index cee46c8..4fb8dbb 100644
 --- a/lib/runtime.js
 +++ b/lib/runtime.js
 @@ -1,6 +1,6 @@
@@ -465,7 +467,7 @@ index 760c3ab6e9fe61eed3ea2f639434cc2ba9dfb2ec..b05433d4f6781a1fc03161a6c723f1d4
          await mkdir(this.paths.logs, { recursive: true });
          return envDir;
      }
-@@ -493,6 +498,23 @@ export class SkillRuntimeManager {
+@@ -494,6 +499,23 @@ export class SkillRuntimeManager {
          await rename(temp, target);
      }
  }
@@ -489,7 +491,7 @@ index 760c3ab6e9fe61eed3ea2f639434cc2ba9dfb2ec..b05433d4f6781a1fc03161a6c723f1d4
  async function rewritePlaceholders(root, needle, value) {
      const entries = await readdir(root, { withFileTypes: true });
      for (const entry of entries) {
-@@ -672,6 +694,7 @@ async function injectDataflowEnv(path, env) {
+@@ -673,6 +695,7 @@ async function injectDataflowEnv(path, env) {
              document.setIn(['nodes', index, 'env', name], value);
          }
      }

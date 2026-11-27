@@ -59,7 +59,7 @@ Most precompiled node binaries in the PAOS Registry lock `linux/x86_64`. You hav
          "args": ["/home/ubuntu/phyagentos-kimi/mcp/forge-mcp.mjs"],
          "environment_id": "robot-box",
          "startupTimeoutMs": 60000,
-         "toolTimeoutMs": 180000,
+         "toolTimeoutMs": 960000,
          "env": { "KIMI_FORGE_HOME": "/home/ubuntu/.kimi-code/forge" }
        }
      }
@@ -73,6 +73,8 @@ Most precompiled node binaries in the PAOS Registry lock `linux/x86_64`. You hav
    Troubleshoot SSH login, executor path/version, remote Node and server path, MCP connection, then environment readiness. A failed Forge call ends that turn; further diagnostics require the user's subsequent instruction. SSH connectivity alone does not certify a simulation or robot.
 
 ## 4. Configuration & Shared Model Weights
+
+Forge waits for the Gateway using the skill profile’s `startup_timeout_s`, then falls back to `runtime.startTimeoutMs` or the default 120 seconds. The bundled Kimi server gives tool calls 960 seconds, covering a 900-second startup budget with 60 seconds for launch overhead. Keep the same budget when configuring the server over SSH. If the client times out, check the runtime state before retrying a start.
 
 Kimi Forge settings live in `~/.kimi-code/forge/config.json`:
 
