@@ -58,9 +58,15 @@ export function assessUpdate(tracked, target, localCore) {
     const first = a.findIndex((part, i) => part !== b[i])
     if (first !== -1 && a[first] > b[first]) throw new Error(`Refusing upstream downgrade: ${name} ${previous} -> ${next}`)
   }
-  if (tracked.packages[CORE] !== localCore) throw new Error('Tracked Core differs from package.json; reconcile dsh-upstream.json first')
+  if (!stable(localCore)) throw new Error('Invalid local Core version')
+  const local = localCore.split('.').map(BigInt)
+  const next = target.packages[CORE].split('.').map(BigInt)
+  const first = local.findIndex((part, i) => part !== next[i])
+  if (first !== -1 && local[first] > next[first]) {
+    throw new Error(`Refusing Core downgrade from manually selected ${localCore} to DSH Core ${target.packages[CORE]}`)
+  }
   return {
-    updateAvailable: [BUNDLE, SKILL, CORE].some(name => tracked.packages[name] !== target.packages[name]),
+    updateAvailable: localCore !== target.packages[CORE] || [BUNDLE, SKILL, CORE].some(name => tracked.packages[name] !== target.packages[name]),
     coreChanged: localCore !== target.packages[CORE],
   }
 }

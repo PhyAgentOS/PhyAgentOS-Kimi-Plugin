@@ -15,9 +15,25 @@
 4. 推送源分支及创建 PR 前，执行 `gh api user --jq .login` 核对当前认证账号与 Git 作者身份一致。
 5. 合入 `main` 后创建不可变 GitHub Release tag（例如 `v0.2.0`）——Kimi `/plugins install https://github.com/PhyAgentOS/PhyAgentOS-Kimi-Plugin` 在存在 Release 时默认拉取最新 Release。
 
-## 2. 自动跟随已发布 DSH 版本
+## 2. 手动升级 Core 或同步 DSH 版本
 
-`.github/workflows/sync-dsh.yml` 每天 UTC 04:23 检查已发布的 `@x-era/dsh-forge`，也可在 **Actions → Sync DSH upstream → Run workflow** 手动运行。两个 job 均使用默认分支的已验证修订；手动选择其他 workflow ref 不会改变代码检出的目标。`version` 留空跟随 npm `latest`，或输入 `0.2.2` 这样的精确稳定版本；不接受版本范围、标签或预发布版本。
+### 直接指定 Core 版本
+
+在系统终端、仓库根目录执行；先提交已跟踪文件的改动，并将示例版本替换为实际已发布的 Core 精确稳定版本：
+
+```sh
+pnpm upgrade:core 0.2.3
+# 旧补丁冲突时，先人工调整补丁，再重试
+pnpm upgrade:core 0.2.3 /path/to/rebased.patch
+```
+
+需要 Node.js、npm、仓库指定版本的 pnpm、Git 和 tar。脚本从当前 Git 提交导出临时副本，更新开发及运行时依赖、两套锁文件、补丁及映射、兼容摘要和完整 MCP 产物，执行 `pnpm test`、`pnpm run build:check`。只有验证通过且当前提交、已跟踪文件及目标文件均未变化，才写回结果；临时目录始终清理。降级会被拒绝，同版本重建需提供替换补丁。
+
+该入口不要求目标 Core 已被 DSH 采用，也不修改 `dsh-upstream.json` 中上次同步的依赖链。成功后检查差异，执行 `pnpm install --frozen-lockfile` 更新本地依赖，再调整插件版本和文档、人工验收、提交及发布。后续使用 `sync:dsh` 时若 DSH 的 Core 低于本地版本，脚本会拒绝降级。
+
+### 按 DSH 发布依赖链同步
+
+仓库不定时查询上游，也不自动创建升级 PR。维护者需要升级时，手动运行下列命令。默认跟随 npm `latest`，也可指定精确稳定的 DSH 组合包版本；不接受版本范围或预发布版本，并拒绝降级。
 
 本地命令契约：
 
@@ -32,15 +48,7 @@ pnpm run sync:dsh -- --version 0.2.2
 
 `--check` 输出 JSON 字段 `updateAvailable`、`coreChanged`、`applied`、`previous` 和 `target`，不写文件；包版本位于 `target.packages`。执行命令默认查询 npm `latest`，更新根目录 `dsh-upstream.json`；先在临时副本安装依赖并通过完整 `pnpm test` 和 `pnpm run build:check`，再写回改动。初始跟踪记录将 bundle、skill、Core 均精确固定为 `0.2.2`。无更新则不写文件。以 JSON 输出和跟踪文件确认实际选中的版本；未指定 `--version` 时，检查和执行是两次独立的 npm 查询。人工审核后可通过 `pnpm run sync:dsh -- --version X.Y.Z --patch /path/to/reviewed.patch` 重置补丁；即使上游版本未变，指定替换补丁也可能需要重建。
 
-工作流将代码执行与 PR 写入分开：
-
-- `verify` job 只有 `contents: read` 权限，使用 Node 22、pnpm 12.18.0，不持久化 checkout 凭证。安装依赖和执行候选包脚本仅在此处发生，不提供写令牌或 `DSH_SYNC_TOKEN`。安装、升级或任一门禁失败都会使工作流失败，不会创建 PR。
-- 仅在升级成功且存在改动时上传只含变更文件的 Git 补丁。允许改动根目录 package/workspace manifests、锁文件、`dsh-upstream.json`、`patches/` 和 `mcp/`（含其 manifest、锁文件、兼容摘要及生成产物）；出现其他路径则失败。无更新不上传 artifact，也不创建 PR。
-- 独立 runner 上的 `pull-request` job 拥有 `contents: write` 和 `pull-requests: write`，检出已验证的 base SHA，下载、应用补丁并再次检查允许路径，通过 `peter-evans/create-pull-request@v7` 创建或更新 `automation/sync-dsh` 到默认分支的 PR。此 job 不运行 npm、pnpm 或候选代码。工作流不会自动合并、打 tag、创建 Release 或提交市场审核。
-
-启用 Actions，并按组织策略允许 **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests**。默认使用 `GITHUB_TOKEN` 创建 PR。GitHub 当前会为此令牌产生的 `opened`、`synchronize`、`reopened` 事件创建需要批准的 PR 工作流运行，具有仓库写权限的维护者须在 PR 合并框选择 **Approve workflows to run**，不能假定各平台 CI 矩阵自动执行。如运行缺失或受仓库策略限制，可使用维护者身份更新 PR 分支以触发 CI；当前仓库 CI 没有 `workflow_dispatch` 入口。参见 [GitHub 令牌触发规则](https://docs.github.com/en/actions/concepts/security/github_token)。
-
-可选配置仓库 Actions secret `DSH_SYNC_TOKEN`：使用仅限本仓库的 fine-grained token，授予 **Contents: read and write** 和 **Pull requests: read and write**。它仅传入创建 PR 的 action，使 PR 可按仓库策略正常触发 CI。仍须保留分支保护和必需检查；Ubuntu 同步门禁不代替完整平台矩阵。
+升级成功后，由维护者检查差异、提交升级 PR，并确认普通 CI 的各平台检查通过。无需配置自动同步专用令牌或 Actions PR 写权限。
 
 合入前审核 DSH/Core 实际版本、补丁迁移、两套锁文件、兼容摘要和生成 MCP 产物。文档中的 Core 版本引用**不会自动更新**；维护者需人工更新、决定插件版本号调整并完成人工验收，之后按前述流程合入和发布。
 

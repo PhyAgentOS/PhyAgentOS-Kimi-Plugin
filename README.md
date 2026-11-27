@@ -123,14 +123,25 @@ Kimi → this plugin's MCP adapter → @x-era/forge-core
 
 The three tracked package versions are recorded in [`dsh-upstream.json`](dsh-upstream.json). The actual Core version is pinned exactly in `package.json`, `mcp/package.json`, and their lockfiles. First startup installs the locked dependencies; later starts reuse the cache rather than fetching the newest npm release on every launch.
 
-### Maintainers: Sync Upstream Releases
+### Maintainers: Upgrade Core Directly
 
-Once the [sync workflow](.github/workflows/sync-dsh.yml) is merged into the default branch, Actions is enabled, and Actions is allowed to create PRs, it is scheduled to check npm daily at **04:23 UTC (12:23 China Standard Time)**. You can also trigger **Actions → Sync DSH upstream → Run workflow** manually.
+Run in a system terminal at the repository root, replacing the example with an exact published stable Core version:
 
-1. Query the `latest` tag of `@x-era/dsh-forge`, npm's default installation version, then follow its dependency declarations to resolve the actual Skill and Core versions. The package versions need not match. Only exact stable versions are accepted, and downgrades are rejected.
-2. Compare against `dsh-upstream.json`. No changes means no file writes or PR. DSH source commits alone, test releases not tagged `latest`, and standalone Core releases not referenced by the bundle do not trigger this update path.
-3. Prepare the update in a temporary copy. Update the tracking record and, when Core changes, dependency manifests, both lockfiles, compatibility patches and mappings, SHA256 metadata, and generated MCP payload. Run `pnpm test` and `pnpm run build:check` before copying changes back. Patch conflicts or validation failures stop the upgrade.
-4. On success with changes, create or update the `automation/sync-dsh` PR. Maintainers verify platform CI, review and merge, adjust the plugin version, and publish. The workflow does not merge or publish automatically. PR CI may need manual approval; see the [release guide](docs/releasing_en.md) for token and permission setup.
+```sh
+pnpm upgrade:core 0.2.3
+# If the existing patch conflicts, review and rebase it first
+pnpm upgrade:core 0.2.3 /path/to/rebased.patch
+```
+
+Commit tracked changes before upgrading. The script exports the current Git commit to a temporary copy, updates development and runtime dependencies, both lockfiles, patch mappings, compatibility hashes, and the complete MCP payload, then runs `pnpm test` and `pnpm run build:check` before copying results back. Changes to the checkout or commit during validation stop promotion. Validation failures do not copy the candidate upgrade back, and temporary files are cleaned up. Downgrades are rejected; rebuilding the same version requires a replacement patch. Node.js, npm, the specified pnpm version, Git, and tar are required.
+
+On success, review `git diff`, run `pnpm install --frozen-lockfile` to refresh local development dependencies, then review, commit, and publish. This command is independent of DSH release versions and leaves `dsh-upstream.json` unchanged: that file records the last synchronized DSH dependency chain and may differ from a manually selected Core. Plugin version bumps and documentation references remain manual.
+
+### Maintainers: Manually Sync Upstream Releases
+
+The repository has no scheduled update checks or automatic upgrade PR workflow. To upgrade, maintainers explicitly run the local commands below. The script queries the npm `latest` release of `@x-era/dsh-forge`, follows its dependency chain to resolve exact stable Skill and Core versions, compares them with `dsh-upstream.json`, and rejects downgrades.
+
+Updates are prepared in a temporary copy. When Core changes, the script updates dependencies, lockfiles, compatibility patches, hashes, and generated MCP payload as well as the tracking record. Changes are copied back only after full validation; failures stop the upgrade, and an unchanged upstream writes no files. Maintainers review the diff, submit a PR, adjust the plugin version, and publish. See the [release guide](docs/releasing_en.md).
 
 Local maintenance commands (require the repository's specified pnpm version):
 

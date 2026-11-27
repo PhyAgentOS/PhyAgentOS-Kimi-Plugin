@@ -71,8 +71,12 @@ export function updateWorkspace(text, oldVersion, version, hasPatch) {
 }
 
 /** Validate a complete candidate before copying a bounded set of files back. */
-export function upgradeCore(root, version, { patchFile, upstream } = {}) {
+export function upgradeCore(root, version, { patchFile, upstream, requireClean = false } = {}) {
   if (!stable(version)) throw new Error('Core version must be an exact stable version')
+  const git = (...args) => run('git', args, root, true).trim()
+  const head = requireClean ? git('rev-parse', 'HEAD') : null
+  const status = () => git('status', '--porcelain', '--untracked-files=no')
+  if (requireClean && status()) throw new Error('Commit tracked changes before upgrading Core')
   const current = json(join(root, 'package.json')).dependencies[CORE]
   const coreChanged = current !== version || Boolean(patchFile)
   const oldPatch = patchName(current)
@@ -81,10 +85,17 @@ export function upgradeCore(root, version, { patchFile, upstream } = {}) {
   const temporary = mkdtempSync(join(tmpdir(), 'kimi-core-upgrade-'))
   try {
     const candidate = join(temporary, 'checkout')
-    cpSync(root, candidate, { recursive: true, filter: source => {
-      const name = source.split(/[\\/]/).at(-1)
-      return !['.git', 'node_modules'].includes(name)
-    } })
+    if (requireClean) {
+      mkdirSync(candidate)
+      const archive = join(temporary, 'checkout.tar')
+      git('archive', '--format=tar', '-o', archive, head)
+      run('tar', ['-xf', archive, '-C', candidate], temporary)
+    } else {
+      cpSync(root, candidate, { recursive: true, filter: source => {
+        const name = source.split(/[\\/]/).at(-1)
+        return !['.git', 'node_modules'].includes(name)
+      } })
+    }
     const files = ['dsh-upstream.json']
     if (coreChanged) files.push('package.json', 'pnpm-workspace.yaml', 'pnpm-lock.yaml',
       'mcp/package.json', 'mcp/package-lock.json', 'mcp/compatibility.json', nextPatch,
@@ -122,6 +133,9 @@ export function upgradeCore(root, version, { patchFile, upstream } = {}) {
     pnpm(['install', '--no-frozen-lockfile'], candidate)
     pnpm(['test'], candidate)
     pnpm(['run', 'build:check'], candidate)
+    if (requireClean && (git('rev-parse', 'HEAD') !== head || status())) {
+      throw new Error('Checkout changed during validation; rerun from the intended clean commit')
+    }
     for (const file of touched) {
       if (snapshot(join(root, file)) !== before.get(file)) throw new Error(`Checkout changed during validation: ${file}`)
     }

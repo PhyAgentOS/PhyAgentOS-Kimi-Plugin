@@ -3,17 +3,30 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CORE, json, stable, upgradeCore } from './core-upgrade.mjs'
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const [version, patchFile, ...extra] = process.argv.slice(2)
-try {
-  if (!stable(version) || extra.length) throw new Error('Usage: pnpm upgrade:core <stable version> [reviewed.patch]')
-  const upstream = json(resolve(root, 'dsh-upstream.json'))
-  if (upstream.packages[CORE] !== version) {
-    throw new Error('Use pnpm run sync:dsh [--version <DSH bundle version>] to upgrade the tracked DSH dependency chain')
+export function parseUpgradeArgs(args, current) {
+  const values = args[0] === '--' ? args.slice(1) : args
+  const [version, patchFile, ...extra] = values
+  if (!stable(version) || extra.length || (version === current && !patchFile)) {
+    throw new Error(`Usage: pnpm upgrade:core <new stable version> [reviewed.patch] (current: ${current})`)
   }
-  const result = upgradeCore(root, version, { patchFile })
+  if (version.split('.').map(BigInt).some((part, i, parts) =>
+    parts.slice(0, i).every((v, j) => v === BigInt(current.split('.')[j])) && part < BigInt(current.split('.')[i]))) {
+    throw new Error('Core downgrades are not supported')
+  }
+  return { version, patchFile }
+}
+
+export function main(args = process.argv.slice(2)) {
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+  const { version, patchFile } = parseUpgradeArgs(args, json(resolve(root, 'package.json')).dependencies[CORE])
+  const result = upgradeCore(root, version, { patchFile, requireClean: true })
   console.log(JSON.stringify(result, null, 2))
-} catch (error) {
-  console.error(`Core upgrade failed: ${error.message}`)
-  process.exitCode = 1
+  console.error('Review the diff, then run pnpm install --frozen-lockfile in this checkout. DSH tracking and plugin versions are unchanged.')
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try { main() } catch (error) {
+    console.error(`Core upgrade failed: ${error.message}`)
+    process.exitCode = 1
+  }
 }

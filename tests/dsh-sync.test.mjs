@@ -45,7 +45,8 @@ test('same release is a no-op; DSH-only release changes tracking without changin
   assert.deepEqual(assessUpdate(record(), record('0.2.3'), '0.2.2'), { updateAvailable: true, coreChanged: false })
   assert.deepEqual(assessUpdate(record(), record('0.3.0', '0.3.0', '0.2.3'), '0.2.2'), { updateAvailable: true, coreChanged: true })
   assert.throws(() => assessUpdate(record(), record('0.2.1'), '0.2.2'), /downgrade/)
-  assert.throws(() => assessUpdate(record(), record(), '0.2.1'), /differs/)
+  assert.deepEqual(assessUpdate(record(), record(), '0.2.1'), { updateAvailable: true, coreChanged: true })
+  assert.throws(() => assessUpdate(record(), record(), '0.2.3'), /downgrade/)
 })
 
 test('CLI accepts pinned DSH version and check but rejects malformed input', () => {

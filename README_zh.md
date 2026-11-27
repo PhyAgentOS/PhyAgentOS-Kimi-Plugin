@@ -123,14 +123,25 @@ Kimi → 本插件的 MCP 适配层 → @x-era/forge-core
 
 已跟随的三个包版本记录在 [`dsh-upstream.json`](dsh-upstream.json)，实际 Core 版本精确锁定在 `package.json`、`mcp/package.json` 和对应锁文件中。首次启动按锁文件安装，后续复用缓存；不会在每次启动时自动安装 npm 最新版本。
 
-### 维护者：自动同步上游发布
+### 维护者：直接手动升级 Core
 
-[同步工作流](.github/workflows/sync-dsh.yml) 合入默认分支并启用 Actions、允许 Actions 创建 PR 后，按每天 **UTC 04:23（北京时间 12:23）** 的计划检查 npm。也可在 **Actions → Sync DSH upstream → Run workflow** 手动触发。
+在仓库根目录的系统终端执行，版本号替换为已发布的目标 Core 精确稳定版本：
 
-1. 查询 `@x-era/dsh-forge` 的 `latest` 标签，即 npm 默认安装版本，再沿其依赖声明解析 Skill 和 Core 的实际版本；不假设三个包的版本号相同。仅支持精确稳定版本，并拒绝降级。
-2. 与 `dsh-upstream.json` 比较；无变化不修改文件、不创建 PR。只提交 DSH 源码、发布未设为 `latest` 的测试版，或单独发布未被组合包引用的 Core，不会触发这套跟随升级。
-3. 有更新时，在临时副本中同步版本记录；Core 变化时还更新依赖声明、两套锁文件、兼容补丁及映射、SHA256 摘要和 MCP 构建产物。执行 `pnpm test` 和 `pnpm run build:check`，通过后才写回；补丁冲突或验证失败则终止。
-4. 成功且有改动时，创建或更新 `automation/sync-dsh` 升级 PR。维护者确认平台 CI、审核合并、调整插件版本并发布；工作流不自动合并或发布。PR 的 CI 可能需要人工批准，令牌和权限配置见[发布指南](docs/releasing_zh.md#2-自动跟随已发布-dsh-版本)。
+```sh
+pnpm upgrade:core 0.2.3
+# 如旧补丁冲突，先人工调整，再传入补丁文件
+pnpm upgrade:core 0.2.3 /path/to/rebased.patch
+```
+
+升级前需提交已跟踪文件的改动。脚本从当前 Git 提交导出临时副本，同步开发与运行时依赖、两套锁文件、补丁映射、兼容摘要及完整 MCP 构建产物，通过 `pnpm test` 和 `pnpm run build:check` 后才写回；验证期间工作区或提交发生变化则停止。失败不会将候选升级写回，临时目录会清理；不支持降级。同版本仅在提供替换补丁时允许重建。需 Node.js、npm、仓库指定版本的 pnpm、Git 和 tar。
+
+成功后检查 `git diff`，运行 `pnpm install --frozen-lockfile` 更新本地开发依赖，再审核提交和发布。该命令不依赖 DSH 发布版本，也不修改 `dsh-upstream.json`：后者仅记录上次同步的 DSH 依赖链，可能与独立升级后的实际 Core 不同。插件版本号及文档引用仍需手动调整。
+
+### 维护者：手动同步上游发布
+
+仓库不提供定时检查或自动创建升级 PR 的工作流。需要升级时，由维护者显式执行下列本地命令：查询 `@x-era/dsh-forge` 的 npm `latest`，沿依赖链解析 Skill 和 Core 的精确稳定版本，与 `dsh-upstream.json` 比较，并拒绝降级。
+
+有更新时，脚本在临时副本中更新版本记录；Core 变化时还更新依赖、锁文件、兼容补丁、摘要及 MCP 构建产物。完整测试通过后才写回，失败则终止；无更新不修改文件。维护者自行审核差异、提交 PR、调整插件版本并发布，详见[发布指南](docs/releasing_zh.md)。
 
 本地维护命令（需安装仓库指定版本的 pnpm）：
 
