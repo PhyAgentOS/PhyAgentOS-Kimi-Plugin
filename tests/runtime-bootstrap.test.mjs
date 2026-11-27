@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
+import { cp, mkdir, readFile, readdir, symlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import test from 'node:test'
 import { promisify } from 'node:util'
@@ -59,6 +59,19 @@ test('bootstrap installs once, serializes concurrent starts, preserves npm bytes
   assert.equal(await prepareRuntime({ directory: f.directory, env, install: f.install }), first)
   assert.equal(f.calls(), 2)
   assert.ok((await readdir(join(f.root, 'home/plugin-runtime'))).some(name => name.includes('.invalid-')))
+})
+
+test('bootstrap CLI prepares through a directory symlink and reports a reusable runtime', async t => {
+  const f = await fixture(t)
+  const env = { ...process.env, KIMI_FORGE_HOME: join(f.root, 'home'), KIMI_CODE_HOME: join(f.root, 'kimi') }
+  const target = await prepareRuntime({ directory: f.directory, env, install: f.install })
+  const linked = join(f.root, 'linked-payload')
+  await symlink(f.directory, linked, process.platform === 'win32' ? 'junction' : 'dir')
+  const { stdout, stderr } = await execFileAsync(process.execPath,
+    [join(linked, 'forge-mcp.mjs'), '--prepare-only'], { env, timeout: 30000 })
+  assert.equal(stdout, '')
+  assert.ok(stderr.includes(`Runtime ready: ${target}`), stderr)
+  assert.equal(stderr.includes('Installing locked npm dependencies'), false)
 })
 
 test('failed first installation leaves no ready cache and can be retried', async t => {
