@@ -61,17 +61,26 @@ test('bootstrap installs once, serializes concurrent starts, preserves npm bytes
   assert.ok((await readdir(join(f.root, 'home/plugin-runtime'))).some(name => name.includes('.invalid-')))
 })
 
-test('bootstrap CLI prepares through a directory symlink and reports a reusable runtime', async t => {
+test('bootstrap CLI prepares through direct and symlink paths and reports a reusable runtime', async t => {
   const f = await fixture(t)
   const env = { ...process.env, KIMI_FORGE_HOME: join(f.root, 'home'), KIMI_CODE_HOME: join(f.root, 'kimi') }
   const target = await prepareRuntime({ directory: f.directory, env, install: f.install })
   const linked = join(f.root, 'linked-payload')
   await symlink(f.directory, linked, process.platform === 'win32' ? 'junction' : 'dir')
-  const { stdout, stderr } = await execFileAsync(process.execPath,
-    [join(linked, 'forge-mcp.mjs'), '--prepare-only'], { env, timeout: 30000 })
-  assert.equal(stdout, '')
-  assert.ok(stderr.includes(`Runtime ready: ${target}`), stderr)
-  assert.equal(stderr.includes('Installing locked npm dependencies'), false)
+  const entries = [join(f.directory, 'forge-mcp.mjs'), join(linked, 'forge-mcp.mjs')]
+  if (process.platform === 'win32') {
+    for (const entry of [...entries]) {
+      entries.push(entry.replace(/^[a-z]:/i, drive => drive.toLowerCase()))
+      entries.push(entry.replace(/^[a-z]:/i, drive => drive.toUpperCase()))
+    }
+  }
+  for (const entry of new Set(entries)) {
+    const { stdout, stderr } = await execFileAsync(process.execPath,
+      [entry, '--prepare-only'], { env, timeout: 30000 })
+    assert.equal(stdout, '', entry)
+    assert.ok(stderr.includes(`Runtime ready: ${target}`), `${entry}: ${stderr}`)
+    assert.equal(stderr.includes('Installing locked npm dependencies'), false, entry)
+  }
 })
 
 test('failed first installation leaves no ready cache and can be retried', async t => {

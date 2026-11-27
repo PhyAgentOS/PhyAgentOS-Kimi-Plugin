@@ -142,7 +142,11 @@ export async function main() {
   await import(pathToFileURL(join(target, 'adapter.mjs')).href)
 }
 
-// Node resolves module symlinks, including macOS /var -> /private/var.
-if (process.argv[1] && await realpath(resolve(process.argv[1])).catch(() => null) === fileURLToPath(import.meta.url)) {
+// Canonicalize both sides: macOS has /var symlinks and Windows can vary path casing.
+const entryPaths = process.argv[1] && await Promise.all([
+  realpath(resolve(process.argv[1])),
+  realpath(fileURLToPath(import.meta.url)),
+]).catch(() => null)
+if (entryPaths && entryPaths[0] === entryPaths[1]) {
   main().catch(error => { log(error.stack || error.message); process.exitCode = 1 })
 }
