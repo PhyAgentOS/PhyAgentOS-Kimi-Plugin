@@ -37,7 +37,7 @@ export function startMcp(cwd, env) {
       if (ended) return Promise.reject(new Error('MCP has already closed'))
       const id = nextId++
       return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => pending.get(id)?.reject(new Error(`MCP timeout: ${method}; ${stderrLines.join(' | ')}`)), 15000)
+        const timer = setTimeout(() => pending.get(id)?.reject(new Error(`MCP timeout: ${method}; ${stderrLines.join(' | ')}`)), 300000)
         const finish = fn => value => {
           clearTimeout(timer)
           pending.delete(id)

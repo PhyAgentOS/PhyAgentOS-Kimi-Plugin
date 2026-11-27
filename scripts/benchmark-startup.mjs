@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Measures offline initialize latency in a fresh temporary user home per process.
-import { spawn } from 'node:child_process'
+import { execFile, spawn } from 'node:child_process'
+import { promisify } from 'node:util'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -12,6 +13,8 @@ if (!Number.isInteger(runs) || runs < 1 || runs > 100) throw new Error('Usage: b
 const cwd = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const root = await mkdtemp(join(tmpdir(), 'kimi-forge-startup-'))
 const durations = []
+const preparationMs = []
+const execFileAsync = promisify(execFile)
 try {
   for (let i = 0; i < runs; i++) {
     const home = join(root, String(i))
@@ -19,6 +22,9 @@ try {
     for (const key of Object.keys(env)) {
       if (key.startsWith('KIMI_FORGE_') || key.startsWith('DSH_FORGE_')) delete env[key]
     }
+    const preparing = performance.now()
+    await execFileAsync(process.execPath, ['./mcp/forge-mcp.mjs', '--prepare-only'], { cwd, env, timeout: 300000 })
+    preparationMs.push(Number((performance.now() - preparing).toFixed(2)))
     const started = performance.now()
     const child = spawn(process.execPath, ['./mcp/forge-mcp.mjs'], { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] })
     await new Promise((resolve, reject) => {
@@ -50,7 +56,8 @@ try {
   const percentile = p => Number(sorted[Math.ceil(sorted.length * p) - 1].toFixed(2))
   console.log(JSON.stringify({
     node: process.version, platform: process.platform, arch: process.arch, runs,
-    metric: 'process spawn to initialize response; empty home; no registry request; warm OS cache possible',
+    metric: 'process spawn to initialize after npm dependency preparation; no Registry request; warm OS cache possible',
+    preparationMs,
     p50Ms: percentile(0.5), p95Ms: percentile(0.95),
     targetMs: 50, targetMet: percentile(0.95) <= 50,
     samplesMs: durations.map(value => Number(value.toFixed(2))),

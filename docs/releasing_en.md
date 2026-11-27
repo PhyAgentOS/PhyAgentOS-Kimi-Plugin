@@ -4,11 +4,16 @@ English | [简体中文](releasing_zh.md) · [Home](../README.md)
 
 ## 1. Updating `@x-era/forge-core` and Rebuilding the Bundle
 
-1. Once the exact core version is available from npm, create a `fix/<topic>` branch from the intended upstream base.
-2. From a clean checkout, run `pnpm upgrade:core <version>`. It applies the current patch, updates the exact pin and lockfile, rebuilds the MCP and runs the tests in a temporary checkout before copying the changes back.
-3. If the patch conflicts, review upstream overlap and pass the rebased patch with `pnpm upgrade:core <version> /path/to/rebased.patch`. Review the resulting diff. For a new Kimi release, set the same `version` in `package.json` and `kimi.plugin.json`, then run `pnpm install --frozen-lockfile`, `pnpm test` and `pnpm run build:check`. The MCP handshake version comes from `package.json`.
+1. Create a `feature/<topic>` or `fix/<topic>` branch in your personal fork, never directly on upstream `main`.
+2. Audit the already-published Core before upgrading. Keep `package.json`, `mcp/package.json`, `mcp/package-lock.json` and compatibility hashes consistent; rebase or remove the plugin patch explicitly. Bump plugin versions in `package.json` and `kimi.plugin.json`. Only the Kimi plugin needs releasing; no extra npm package is published by this workflow.
+3. Rebuild and run all gates:
+   ```sh
+   pnpm install
+   pnpm test
+   pnpm run build:check
+   ```
 4. Verify `gh api user --jq .login` before pushing your fork branch and opening a PR to `PhyAgentOS/PhyAgentOS-Kimi-Plugin`.
-5. After merging to `main`, create an immutable GitHub Release tag (e.g. `v0.2.1`) — Kimi `/plugins install https://github.com/PhyAgentOS/PhyAgentOS-Kimi-Plugin` installs the latest GitHub Release when present.
+5. After merging to `main`, create an immutable GitHub Release tag (e.g. `v0.2.0`) — Kimi `/plugins install https://github.com/PhyAgentOS/PhyAgentOS-Kimi-Plugin` installs the latest GitHub Release when present.
 
 ## 2. Submitting to the Public Kimi Marketplace
 
@@ -26,7 +31,7 @@ Per Kimi's official marketplace workflow:
 
 ## 3. Patch, Acceptance and Release Evidence
 
-Read the [core patch maintenance notes](core-patches.md) before upgrading. Rebase or explicitly remove each patch; do not bundle an npm-installed, unpatched dependency. Commit patches, workspace config, lockfile, source, tests and the rebuilt server together.
+Read the [core patch maintenance notes](core-patches.md) before upgrading. Core stays external and is fetched from published npm tarballs. Commit patches, workspace config, both lockfiles, compatibility metadata, source, tests and generated MCP payload together. Verify first-use preparation with Node >=22 and npm, cache reuse without network, and a managed plugin copy without bundled `node_modules`. npm-installed originals must remain unchanged.
 
 After full gates and the platform CI matrix pass, complete the [manual acceptance matrix](acceptance_en.md). Reviewers should obtain an actual node artifact ID and exercise `forge_node_info` / `forge_node_source`, not just the static repository catalog.
 

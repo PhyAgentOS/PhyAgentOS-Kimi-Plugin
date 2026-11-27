@@ -104,7 +104,7 @@ Forge 启动时优先按技能 profile 的 `startup_timeout_s` 等待 Gateway，
 
 ### 下载代理
 
-MCP 启动时读取 `HTTP_PROXY`、`HTTPS_PROXY`、`ALL_PROXY` 和 `NO_PROXY`，也支持小写形式（同名时小写优先）。HTTP/HTTPS 专用变量优先于 `ALL_PROXY`；HTTPS 未配置时回退到 HTTP 代理。支持 HTTP、HTTPS 和 SOCKS5 代理，`socks5h://` 使用 SOCKS5 的代理端域名解析。
+MCP 在准备好 npm 依赖后、加载 Core 前读取 `HTTP_PROXY`、`HTTPS_PROXY`、`ALL_PROXY` 和 `NO_PROXY`，也支持小写形式（同名时小写优先）。HTTP 选择 `HTTP_PROXY → ALL_PROXY`；HTTPS 选择 `HTTPS_PROXY → ALL_PROXY → HTTP_PROXY`。支持 HTTP、HTTPS 和 SOCKS5 代理，`socks5h://` 使用 SOCKS5 的代理端域名解析。首次 npm 依赖安装仍使用 npm 自身的代理配置。
 
 例如，在启动 Kimi Code 的同一终端设置 Clash 代理：
 

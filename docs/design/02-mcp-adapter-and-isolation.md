@@ -93,6 +93,7 @@
 
 ## 7. 构建与本地补丁
 
-esbuild 目标为 Node 22 ESM，依赖内联入 `mcp/forge-mcp.mjs`。构建输入包括
-`pnpm-workspace.yaml` 声明的 Core 补丁，安装必须使用 pnpm。补丁与产物、锁文件须一并提交。
-`pnpm run build:check` 检查产物漂移；不要手改打包产物。补丁细节见[维护说明](../core-patches.md)。
+esbuild 目标为 Node 22 ESM，仅打包 Kimi 适配逻辑到 `mcp/adapter.mjs`，Core 标记为 external。
+`mcp/forge-mcp.mjs` 首次启动根据 `mcp/package-lock.json` 安装公共 npm 依赖到隔离运行目录，生成 `compat-core/`，并将运行副本的适配层导入定向到兼容副本；npm 安装原包不变。
+开发测试仍通过 `pnpm-workspace.yaml` 使用同一补丁；发布启动器对七个补丁文件的输入、输出 SHA256 做精确校验。
+补丁、`mcp/compatibility.json`、两套锁文件与产物须一并维护。`pnpm run build:check` 检查生成文件漂移；不要手改生成产物。详见[维护说明](../core-patches.md)。

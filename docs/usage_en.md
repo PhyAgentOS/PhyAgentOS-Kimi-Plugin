@@ -104,7 +104,7 @@ Always update settings through `forge_config_write` (which validates keys, write
 
 ### Download proxies
 
-At MCP startup, `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and `NO_PROXY` are read, including lowercase variants (lowercase wins). Protocol-specific settings take priority over `ALL_PROXY`; HTTPS falls back to the HTTP proxy if unset. HTTP, HTTPS and SOCKS5 proxies are supported; `socks5h://` uses SOCKS5 proxy-side DNS.
+After npm dependencies are prepared and before Core loads, MCP reads `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and `NO_PROXY`, including lowercase variants (lowercase wins). HTTP selects `HTTP_PROXY → ALL_PROXY`; HTTPS selects `HTTPS_PROXY → ALL_PROXY → HTTP_PROXY`. HTTP, HTTPS and SOCKS5 proxies are supported; `socks5h://` uses SOCKS5 proxy-side DNS. First-time npm dependency installation still uses npm's own proxy configuration.
 
 For example, start Kimi Code from a shell with your Clash proxy configured:
 
