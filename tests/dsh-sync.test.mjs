@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { CORE, patchPaths, prepareCompatibility, updateWorkspace } from '../scripts/core-upgrade.mjs'
 import { assessUpdate, BUNDLE, metadata, parseArgs, REGISTRY, resolveUpstream, SKILL } from '../scripts/sync-dsh.mjs'
 import { applyCompatibility } from '../src/runtime-compatibility.mjs'
@@ -131,6 +131,26 @@ test('rebased patch and regenerated hashes work with the real runtime patcher', 
   await applyCompatibility(runtime)
   assert.equal(readFileSync(join(runtime, 'compat-core/lib/index.js'), 'utf8'), 'export const value = 2;\n')
   assert.equal(readFileSync(originalCore, 'utf8'), original)
+})
+
+test('compatibility dependency bridge preserves computed CommonJS named exports and default in nested installs', async t => {
+  const root = mkdtempSync(join(tmpdir(), 'kimi-compat-cjs-'))
+  t.after(() => rmSync(root, { recursive: true, force: true }))
+  const directories = installedChain(root)
+  const core = directories[CORE]
+  writeFileSync(join(core, 'package.json'), JSON.stringify({ name: CORE, version: '0.2.3', type: 'module', dependencies: { 'archive-fixture': '1.0.0' } }))
+  const dependency = join(core, 'node_modules/archive-fixture')
+  mkdirSync(dependency, { recursive: true })
+  writeFileSync(join(dependency, 'package.json'), JSON.stringify({ name: 'archive-fixture', version: '1.0.0', main: 'index.cjs' }))
+  writeFileSync(join(dependency, 'index.cjs'), 'module.exports = Object.fromEntries([["c", () => "created"]]);\n')
+  const original = 'import archive, { c } from "archive-fixture";\nexport const result = [c(), archive.c()];\n'
+  writeFileSync(join(core, 'lib/index.js'), original)
+  writeFileSync(join(root, 'core.patch'), '')
+  writeFileSync(join(root, 'compatibility.json'), JSON.stringify({ version: '0.2.3', patchSha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', files: {} }))
+  await applyCompatibility(root)
+  const compatible = await import(pathToFileURL(join(root, 'compat-core/lib/index.js')).href)
+  assert.deepEqual(compatible.result, ['created', 'created'])
+  assert.equal(readFileSync(join(core, 'lib/index.js'), 'utf8'), original)
 })
 
 test('compatibility generation ignores inherited Git CRLF conversion', () => {

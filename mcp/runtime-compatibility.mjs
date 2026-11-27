@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import { createRequire } from 'node:module'
+import { pathToFileURL } from 'node:url'
 import { resolveCore } from './core-resolution.mjs'
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex')
@@ -22,10 +23,23 @@ export async function applyCompatibility(runtime) {
   for (const name of Object.keys(pkg.dependencies ?? {})) {
     const shim = join(core, 'node_modules', name)
     await mkdir(shim, { recursive: true })
-    let target = relative(shim, require.resolve(name)).split('\\').join('/')
+    const entry = require.resolve(name)
+    let target = relative(shim, entry).split('\\').join('/')
     if (!target.startsWith('.')) target = `./${target}`
+    // Node 22 cannot infer all named exports from minified CommonJS (notably
+    // tar's c/x/t aliases). Export the actual public properties explicitly.
+    const namespace = await import(pathToFileURL(entry).href)
+    const defaultKeys = namespace.default != null
+      && ['object', 'function'].includes(typeof namespace.default) ? Object.keys(namespace.default) : []
+    const names = [...new Set([...Object.keys(namespace), ...defaultKeys])]
+      .filter(key => key !== 'default' && /^[a-zA-Z_$][\w$]*$/.test(key))
+    const exports = names.map((key, index) => {
+      const property = JSON.stringify(key)
+      return `const value${index} = Object.hasOwn(dependency, ${property}) ? dependency[${property}] : dependency.default[${property}];\nexport { value${index} as ${key} };`
+    })
+    if (Object.hasOwn(namespace, 'default')) exports.push('export default dependency.default;')
     await writeFile(join(shim, 'package.json'), JSON.stringify({ name, type: 'module', exports: './index.mjs' }))
-    await writeFile(join(shim, 'index.mjs'), `export * from ${JSON.stringify(target)}\n`)
+    await writeFile(join(shim, 'index.mjs'), `import * as dependency from ${JSON.stringify(target)};\n${exports.join('\n')}\n`)
   }
   const changes = new Map()
   let file
