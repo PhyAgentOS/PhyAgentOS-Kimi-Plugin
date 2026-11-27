@@ -159,6 +159,85 @@ pnpm test
 
 `pnpm test` builds the external-Core adapter and bootstrap, validates the manifest, skills, commands, locales and containment, and runs the suite. Managed copies ship without `node_modules`; tests exercise npm preparation, cache reuse, the compatibility copy, all 41 tools, and `~/.dsh` isolation. First-install tests need reachable or cached npm tarballs.
 
+## Manual Acceptance in Kimi
+
+Enter the following commands and prompts one at a time in the **Kimi conversation**, not in a system terminal. The example assumes Linux x86_64, a local checkout at `/home/gx/X-era/PhyAgentOS-Kimi-Plugin`, and a fresh environment without a data-root override. Replace the checkout path on other machines; the data root follows your actual configuration. These are acceptance instructions, not a report of completed tests.
+
+### 1. Install the Plugin and Confirm MCP Connectivity
+
+Enter each command separately:
+
+```text
+/plugins install /home/gx/X-era/PhyAgentOS-Kimi-Plugin
+```
+
+```text
+/reload
+```
+
+```text
+/plugins info phyagentos
+```
+
+```text
+/mcp
+```
+
+**Pass criteria:** The plugin is enabled and the `forge` MCP server connects successfully. The first connection needs network access to download Core and other locked dependencies unless cached. The manifest allows 300 seconds for startup. On failure, keep the complete error message and stop subsequent tests.
+
+### 2. Check the Environment and Registry Access
+
+Enter:
+
+```text
+/phyagentos:env
+```
+
+**Expected:** In the example environment, the platform is Linux x86_64 and the Forge root is `/home/gx/.kimi-code/forge`. The check may detect a global Dora installation and report a missing `dora1`; use the actual output. Creating or recreating the Forge directory on first startup is expected.
+
+Then enter:
+
+```text
+/phyagentos:skills robot
+```
+
+**Pass criteria:** A fresh data directory has no locally installed skills, and registry search returns results. An existing environment may list installed skills; do not delete data to obtain an empty list. This step establishes actual registry connectivity.
+
+### 3. Test Skill Installation, Diagnostics, and Simulation
+
+Enter:
+
+```text
+Install robot-control-sim and poll forge_install_status until the task reaches a terminal state.
+On success, list the skill's available profiles. On failure, report the error and stop without starting simulation.
+```
+
+If the returned profiles include `mujoco-piper`, continue. Otherwise, record the actual list and stop this simulation test:
+
+```text
+/phyagentos:doctor robot-control-sim mujoco-piper
+```
+
+Once diagnostics report no blocking issues, enter:
+
+```text
+Start the mujoco-piper profile of robot-control-sim.
+Wait for the Gateway to become ready, then call sim.get_robot_info.
+Only verify simulation and status queries; do not execute motion commands.
+```
+
+**Pass criteria:** Installation succeeds, diagnostics have no blocking issues, the Gateway is ready, and the query returns robot information. A process PID alone does not establish successful simulation startup. On failure, keep the error and stop further functional tests.
+
+### 4. Stop the Instance and Confirm Cleanup
+
+At the end of the test, enter the following. Also perform this cleanup if startup verification failed after creating a process:
+
+```text
+Stop the running robot-control-sim instance, then query its runtime status and confirm that it has stopped.
+```
+
+**Pass criteria:** Runtime status confirms that the instance has stopped.
+
 ## License
 
 MIT, see [LICENSE](LICENSE).

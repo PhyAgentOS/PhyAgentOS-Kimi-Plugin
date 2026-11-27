@@ -159,6 +159,85 @@ pnpm test
 
 `pnpm test` 会构建外部 Core 适配层及启动器、校验插件清单/技能/命令/路径边界与双语文档规范，并运行全套自动化测试。托管副本不携带 `node_modules`，测试首次 npm 安装、缓存复用、兼容副本、41 个工具及 `~/.dsh` 零触碰隔离；首次安装测试需要 npm 制品可达或已缓存。
 
+## Kimi 本地手动验收
+
+以下步骤在 **Kimi 对话框**中逐条输入，不是在系统终端执行。示例针对 Linux x86_64、本地仓库 `/home/gx/X-era/PhyAgentOS-Kimi-Plugin`，以及未覆盖数据根路径的新环境；其他机器请替换仓库路径，数据根以实际配置为准。以下为待执行的验收步骤，不代表本机已通过测试。
+
+### 1. 安装插件并确认 MCP 连接
+
+逐条输入：
+
+```text
+/plugins install /home/gx/X-era/PhyAgentOS-Kimi-Plugin
+```
+
+```text
+/reload
+```
+
+```text
+/plugins info phyagentos
+```
+
+```text
+/mcp
+```
+
+**通过标准**：插件已启用，`forge` MCP 连接成功。首次连接需要联网下载 Core 等锁定依赖（已缓存时可复用），清单配置的启动超时为 300 秒。如果失败，保留完整错误信息，不继续后面的测试。
+
+### 2. 检查环境和注册表访问
+
+输入：
+
+```text
+/phyagentos:env
+```
+
+**预期**：在上述示例环境中，平台为 Linux x86_64，Forge 根目录为 `/home/gx/.kimi-code/forge`。检查结果可能识别到全局 Dora，并报告缺少 `dora1`，以实际输出为准；首次启动时创建或重新生成 Forge 目录属于正常现象。
+
+然后输入：
+
+```text
+/phyagentos:skills robot
+```
+
+**通过标准**：全新数据目录中的本地技能列表为空，注册表搜索能够返回结果。已有环境可能列出已安装技能；不要为了满足空列表而删除数据。注册表连通性由这一步实际确认。
+
+### 3. 测试技能安装、诊断和仿真
+
+输入：
+
+```text
+安装 robot-control-sim，并通过 forge_install_status 轮询到终态。
+成功后列出技能的可用 profile；失败则报告错误并停止，不启动仿真。
+```
+
+若返回的 profile 包含 `mujoco-piper`，继续；不包含则记录实际列表，停止本项仿真测试：
+
+```text
+/phyagentos:doctor robot-control-sim mujoco-piper
+```
+
+诊断无阻断项后输入：
+
+```text
+启动 robot-control-sim 的 mujoco-piper profile。
+等待 Gateway 就绪，再调用 sim.get_robot_info 查询信息。
+本次只验证仿真和状态查询，不执行运动动作。
+```
+
+**通过标准**：安装任务成功、诊断无阻断项、Gateway 就绪，查询返回机器人信息。仅返回进程 PID 不算仿真启动验证完成；失败时保留错误，不继续执行后续功能测试。
+
+### 4. 停止实例并确认清理
+
+测试结束后输入；若启动验证失败但已创建进程，也执行此清理步骤：
+
+```text
+停止 robot-control-sim 的运行实例，并查询运行状态，确认已经停止。
+```
+
+**通过标准**：运行状态确认实例已经停止。
+
 ## 许可
 
 MIT，详见 [LICENSE](LICENSE)。
