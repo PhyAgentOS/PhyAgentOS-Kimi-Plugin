@@ -1,7 +1,7 @@
 import { copyFile, mkdir, readFile, readdir, rename, stat, writeFile } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 
-import { diffValues, ForgeError, mergeForgeRowConfig, validateConfig, withLock } from '@x-era/forge-core'
+import { diffValues, ForgeError, mergeForgeRowConfig, validateConfig, withLock } from './core.mjs'
 
 const CONFIG_FILE = 'config.json'
 let backupSeq = 0

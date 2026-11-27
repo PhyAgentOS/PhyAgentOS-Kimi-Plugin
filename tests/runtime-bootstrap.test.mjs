@@ -6,6 +6,7 @@ import { join } from 'node:path'
 import test from 'node:test'
 import { promisify } from 'node:util'
 import { prepareRuntime } from '../src/runtime-bootstrap.mjs'
+import { resolveCore } from '../src/core-resolution.mjs'
 import { applyCompatibility } from '../src/runtime-compatibility.mjs'
 import { temporaryDirectory } from './helpers/bundle.mjs'
 
@@ -49,8 +50,9 @@ test('bootstrap installs once, serializes concurrent starts, preserves npm bytes
   assert.equal(first, second)
   assert.equal(f.calls(), 1)
   const spec = JSON.parse(await readFile(join(f.directory, 'compatibility.json'), 'utf8'))
+  const originalCore = resolveCore(join(first, 'package.json')).directory
   for (const [name, hashes] of Object.entries(spec.files)) {
-    assert.equal(digest(await readFile(join(first, 'node_modules/@x-era/forge-core', name))), hashes.before)
+    assert.equal(digest(await readFile(join(originalCore, name))), hashes.before)
     assert.equal(digest(await readFile(join(first, 'compat-core', name))), hashes.after)
   }
   const noNetwork = async () => { throw new Error('warm start must not install') }
@@ -99,7 +101,7 @@ test('compatibility refuses modified published files and never changes the insta
   await mkdir(staging)
   await f.install(staging)
   for (const name of ['compatibility.json', 'core.patch']) await cp(join(f.directory, name), join(staging, name))
-  const name = join(staging, 'node_modules/@x-era/forge-core/lib/archive.js')
+  const name = join(resolveCore(join(staging, 'package.json')).directory, 'lib/archive.js')
   await writeFile(name, '// unexpected published content\n')
   await assert.rejects(applyCompatibility(staging), /audited baseline/)
   assert.equal(await readFile(name, 'utf8'), '// unexpected published content\n')

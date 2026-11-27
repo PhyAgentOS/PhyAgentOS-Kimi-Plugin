@@ -13,7 +13,7 @@ import {
   DEFAULT_REGISTRY_URL,
   ForgeOperations,
   ForgeRegistryClient,
-} from '@x-era/forge-core'
+} from './core.mjs'
 
 import { KimiConfigStore } from './config-store.mjs'
 import { expandUserPath, resolveKimiForgeHome, resolveKimiSkillsDir } from './paths.mjs'

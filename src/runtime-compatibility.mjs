@@ -1,13 +1,19 @@
 import { createHash } from 'node:crypto'
-import { cp, readFile, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { cp, mkdir, readFile, realpath, writeFile } from 'node:fs/promises'
+import { join, relative } from 'node:path'
+import { createRequire } from 'node:module'
+import { pathToFileURL } from 'node:url'
+import { resolveCore } from './core-resolution.mjs'
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex')
 
 /** Apply only the checked-in, exact-base Core compatibility patch to a private npm copy. */
 export async function applyCompatibility(runtime) {
+  // Package resolution canonicalizes symlinks. Use that same coordinate system
+  // for relative imports so macOS /var -> /private/var aliases remain relocatable.
+  runtime = await realpath(runtime)
   const spec = JSON.parse(await readFile(join(runtime, 'compatibility.json'), 'utf8'))
-  const published = join(runtime, 'node_modules/@x-era/forge-core')
+  const published = resolveCore(join(runtime, 'package.json')).directory
   const core = join(runtime, 'compat-core')
   const pkg = JSON.parse(await readFile(join(published, 'package.json'), 'utf8'))
   if (pkg.version !== spec.version) throw new Error(`Unexpected Core version ${pkg.version}; expected ${spec.version}`)
@@ -15,6 +21,29 @@ export async function applyCompatibility(runtime) {
   if (sha256(patch) !== spec.patchSha256) throw new Error('Core compatibility patch checksum mismatch')
   // Adapt only a plugin-owned copy; the npm installation stays byte-for-byte intact.
   await cp(published, core, { recursive: true, dereference: true })
+  // Preserve resolution of Core's own dependencies even with nested npm installs.
+  const require = createRequire(join(published, 'package.json'))
+  for (const name of Object.keys(pkg.dependencies ?? {})) {
+    const shim = join(core, 'node_modules', name)
+    await mkdir(shim, { recursive: true })
+    const entry = require.resolve(name)
+    let target = relative(shim, entry).split('\\').join('/')
+    if (!target.startsWith('.')) target = `./${target}`
+    // Node 22 cannot infer all named exports from minified CommonJS (notably
+    // tar's c/x/t aliases). Export the actual public properties explicitly.
+    const namespace = await import(pathToFileURL(entry).href)
+    const defaultKeys = namespace.default != null
+      && ['object', 'function'].includes(typeof namespace.default) ? Object.keys(namespace.default) : []
+    const names = [...new Set([...Object.keys(namespace), ...defaultKeys])]
+      .filter(key => key !== 'default' && /^[a-zA-Z_$][\w$]*$/.test(key))
+    const exports = names.map((key, index) => {
+      const property = JSON.stringify(key)
+      return `const value${index} = Object.hasOwn(dependency, ${property}) ? dependency[${property}] : dependency.default[${property}];\nexport { value${index} as ${key} };`
+    })
+    if (Object.hasOwn(namespace, 'default')) exports.push('export default dependency.default;')
+    await writeFile(join(shim, 'package.json'), JSON.stringify({ name, type: 'module', exports: './index.mjs' }))
+    await writeFile(join(shim, 'index.mjs'), `import * as dependency from ${JSON.stringify(target)};\n${exports.join('\n')}\n`)
+  }
   const changes = new Map()
   let file
   let hunk

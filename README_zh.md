@@ -11,7 +11,7 @@
 
 ## 核心特性
 
-- **仅发布插件、复用公共 npm 包**：`mcp/forge-mcp.mjs` 为启动器，`mcp/adapter.mjs` 仅包含 Kimi 适配逻辑，Core 不再内联。首次启动自动以 `npm ci --omit=dev --ignore-scripts` 安装锁定的 `@x-era/forge-core@0.2.2` 及依赖到 `<home>/plugin-runtime/<内容标识>/`，应用兼容层后启动；后续复用本地缓存，无需用户手动构建或发布额外 npm 包。
+- **仅发布插件、复用公共 npm 包**：`mcp/forge-mcp.mjs` 为启动器，`mcp/adapter.mjs` 仅包含 Kimi 适配逻辑，Core 不再内联。首次启动自动以 `npm ci --omit=dev --ignore-scripts` 安装锁定的 `@x-era/dsh-forge@0.2.2`、其传递依赖 `@x-era/forge-core@0.2.2` 及其他锁定依赖到 `<home>/plugin-runtime/<内容标识>/`，应用兼容层后启动；后续复用本地缓存，无需用户手动构建或发布额外 npm 包。
 - **严格的宿主目录隔离**：默认数据根采用 `~/.kimi-code/forge`（自动跟随 `$KIMI_CODE_HOME/forge`），将单写者 `runtime/state.json`、`runtime/forge.lock`、技能目录与隔离 Dora 运行时与 DSH 的 `~/.dsh/forge` 完全物理隔离，互不干扰。
 - **完整暴露 41 个 Forge 工具**：涵盖本机环境体检、Dora 0.4.1 / 1.0.1 一键隔离安装、PAOS Registry 搜索与后台安装、本地技能包校验与打包、节点源码版本追溯、本地模型 SHA256 校验、Dora 运行时启停及 Gateway 异步动作对账。
 - **内置物理安全红线与工作流**：随插件注入 `SYSTEM.md` 物理执行安全规则、2 个专业技能（`/skill:phyagentos:forge-usage`、`/skill:phyagentos:forge-skill-development`）以及 4 个快捷斜杠命令（`/phyagentos:env`、`/phyagentos:skills`、`/phyagentos:doctor`、`/phyagentos:export-skill`）。
@@ -107,6 +107,92 @@ NO_PROXY=localhost,127.0.0.1,::1,192.168.0.0/16,10.0.0.0/8
 }
 ```
 
+## npm 依赖与更新方式
+
+### 依赖关系
+
+在 Forge 系列包中，本插件仅直接依赖 npm 组合包 **`@x-era/dsh-forge@0.2.2`**。**`@x-era/forge-core`** 通过 `@x-era/dsh-forge-skill` 传递引入，不再独立声明于开发或运行时的 `dependencies`。当前锁定的依赖链为 `@x-era/dsh-forge@0.2.2 → @x-era/dsh-forge-skill@0.2.2 → @x-era/forge-core@0.2.2`；`undici` 仍是单独的 npm 直接依赖。安装 DSH 包不代表启动 DSH 宿主；Kimi 继续通过自己的 MCP 适配层使用公共 Core：
+
+```text
+上游 npm 发布依赖链：
+@x-era/dsh-forge → @x-era/dsh-forge-skill → @x-era/forge-core
+
+Kimi 运行调用链：
+Kimi → 本插件的 MCP 适配层 → @x-era/forge-core
+```
+
+已跟随的三个包版本记录在 [`dsh-upstream.json`](dsh-upstream.json)。`package.json` 和 `mcp/package.json` 固定 DSH 组合包版本，`pnpm-lock.yaml` 和 `mcp/package-lock.json` 锁定解析出的 Skill 与 Core 版本，兼容补丁针对该传递依赖 Core 版本应用。首次启动按锁文件安装，后续复用缓存；不会在每次启动时自动安装 npm 最新版本。
+
+### 维护者：手动同步上游发布
+
+仓库不提供定时检查或自动创建升级 PR 的工作流。需要升级时，由维护者显式执行下列本地命令：查询 `@x-era/dsh-forge` 的 npm `latest`，沿依赖链解析 Skill 和 Core 的精确稳定版本，与 `dsh-upstream.json` 比较，并拒绝降级。
+
+有更新时，脚本在临时副本中维护两份清单的 DSH 组合包依赖、两套锁文件、`dsh-upstream.json`，以及解析出的传递依赖 Core 对应的兼容补丁及映射、兼容摘要和 MCP 构建产物，不会添加独立 Core 依赖。通过 `pnpm test` 和 `pnpm run build:check` 后才写回，失败则终止；版本未变且未提供替换补丁时不修改文件。维护者自行审核差异、提交 PR、调整插件版本并发布，详见[发布指南](docs/releasing_zh.md)。
+
+本地维护命令（需安装 **pnpm `12.18.0`**，与 `package.json` 的 `packageManager` 声明一致）：
+
+```sh
+pnpm install --frozen-lockfile
+# 只检查，输出版本比较 JSON，不修改文件
+pnpm run sync:dsh -- --check
+# 执行同步升级和完整验证
+pnpm run sync:dsh
+# 可选：指定 DSH 组合包的精确稳定版本，仍禁止降级
+pnpm run sync:dsh -- --check --version 0.2.2
+pnpm run sync:dsh -- --version 0.2.2
+# 可选：为该组合包的依赖链提供已审核的 Core 替换补丁
+pnpm run sync:dsh -- --version 0.2.2 --patch /path/to/reviewed.patch
+```
+
+`--version` 选择 DSH 组合包版本，不单独选择 Core；检查和执行都使用它可固定目标发布版本。即使包版本未变，提供替换补丁也可触发重建。同步成功后检查 `git diff`，运行 `pnpm install --frozen-lockfile` 更新本地开发依赖。
+
+若 Core 不变而组合包或 Skill 变化，仍会同步 DSH 组合包依赖、锁文件和版本记录并执行验证。DSH 专属界面、工具注册、提示词及 Kimi 新工具适配代码不会自动迁移；插件版本号和文档版本引用仍需人工维护。同步不会修改用户已安装的技能、模型、配置或运行数据。
+
+### 使用者：获取插件更新
+
+维护者发布新版后，通过原安装渠道更新 Kimi 插件；启动器会根据新版插件携带的锁文件准备对应运行时。普通用户无需运行上述维护命令，也无需手动执行 `npm update`。
+
+#### 从本地目录安装后的更新
+
+Kimi 运行的是安装时复制到托管目录的插件副本。修改原始仓库后，**仅执行 `/reload` 不会复制新代码，需要重新安装**。
+
+1. 确认本地插件目录已有最新代码；若改动已直接写入该目录，无需再次拉取。示例路径为 `/home/gx/X-era/PhyAgentOS-Kimi-Plugin`，其他机器请替换。
+2. 如有正在运行的仿真，先在 Kimi 对话框输入以下提示，确认停止后再更新：
+
+   ```text
+   停止 robot-control-sim 的运行实例，并查询运行状态，确认已经停止。
+   ```
+
+3. 在 **Kimi 对话框**逐条输入，重新安装并激活：
+
+   ```text
+   /plugins install /home/gx/X-era/PhyAgentOS-Kimi-Plugin
+   ```
+
+   ```text
+   /reload
+   ```
+
+4. 逐条检查插件与 MCP 状态：
+
+   ```text
+   /plugins info phyagentos
+   ```
+
+   ```text
+   /mcp
+   ```
+
+   确认插件已启用、`forge` MCP 连接成功。如仍加载旧代码，完全退出并重新启动 Kimi，再检查。连接失败时保留完整错误信息，暂停后续功能测试。
+
+#### 从 GitHub 安装后的更新
+
+在 Kimi 输入 `/plugins`，进入 **Installed**，选择本插件；有更新时按 **Enter** 安装，完成后执行 `/reload`，再通过 `/plugins info phyagentos` 和 `/mcp` 检查。更新前同样先停止运行中的仿真。
+
+普通 GitHub 仓库地址默认安装最新 Release，无 Release 时回落到默认分支；因此仅推送分支代码不一定能通过原仓库地址获取更新。显式指定分支、tag 或 commit 的安装源应按该来源更新；若要改用另一个引用，使用对应地址重新安装。
+
+插件管理与托管副本机制见 [Kimi Code 官方插件文档](https://www.kimi.com/code/docs/kimi-code-cli/customization/plugins)。
+
 ## 本地开发与校验
 
 ```sh
@@ -115,6 +201,85 @@ pnpm test
 ```
 
 `pnpm test` 会构建外部 Core 适配层及启动器、校验插件清单/技能/命令/路径边界与双语文档规范，并运行全套自动化测试。托管副本不携带 `node_modules`，测试首次 npm 安装、缓存复用、兼容副本、41 个工具及 `~/.dsh` 零触碰隔离；首次安装测试需要 npm 制品可达或已缓存。
+
+## Kimi 本地手动验收
+
+以下步骤在 **Kimi 对话框**中逐条输入，不是在系统终端执行。示例针对 Linux x86_64、本地仓库 `/home/gx/X-era/PhyAgentOS-Kimi-Plugin`，以及未覆盖数据根路径的新环境；其他机器请替换仓库路径，数据根以实际配置为准。以下为待执行的验收步骤，不代表本机已通过测试。
+
+### 1. 安装插件并确认 MCP 连接
+
+逐条输入：
+
+```text
+/plugins install /home/gx/X-era/PhyAgentOS-Kimi-Plugin
+```
+
+```text
+/reload
+```
+
+```text
+/plugins info phyagentos
+```
+
+```text
+/mcp
+```
+
+**通过标准**：插件已启用，`forge` MCP 连接成功。首次连接需要联网下载 Core 等锁定依赖（已缓存时可复用），清单配置的启动超时为 300 秒。如果失败，保留完整错误信息，不继续后面的测试。
+
+### 2. 检查环境和注册表访问
+
+输入：
+
+```text
+/phyagentos:env
+```
+
+**预期**：在上述示例环境中，平台为 Linux x86_64，Forge 根目录为 `/home/gx/.kimi-code/forge`。检查结果可能识别到全局 Dora，并报告缺少 `dora1`，以实际输出为准；首次启动时创建或重新生成 Forge 目录属于正常现象。
+
+然后输入：
+
+```text
+/phyagentos:skills robot
+```
+
+**通过标准**：全新数据目录中的本地技能列表为空，注册表搜索能够返回结果。已有环境可能列出已安装技能；不要为了满足空列表而删除数据。注册表连通性由这一步实际确认。
+
+### 3. 测试技能安装、诊断和仿真
+
+输入：
+
+```text
+安装 robot-control-sim，并通过 forge_install_status 轮询到终态。
+成功后列出技能的可用 profile；失败则报告错误并停止，不启动仿真。
+```
+
+若返回的 profile 包含 `mujoco-piper`，继续；不包含则记录实际列表，停止本项仿真测试：
+
+```text
+/phyagentos:doctor robot-control-sim mujoco-piper
+```
+
+诊断无阻断项后输入：
+
+```text
+启动 robot-control-sim 的 mujoco-piper profile。
+等待 Gateway 就绪，再调用 sim.get_robot_info 查询信息。
+本次只验证仿真和状态查询，不执行运动动作。
+```
+
+**通过标准**：安装任务成功、诊断无阻断项、Gateway 就绪，查询返回机器人信息。仅返回进程 PID 不算仿真启动验证完成；失败时保留错误，不继续执行后续功能测试。
+
+### 4. 停止实例并确认清理
+
+测试结束后输入；若启动验证失败但已创建进程，也执行此清理步骤：
+
+```text
+停止 robot-control-sim 的运行实例，并查询运行状态，确认已经停止。
+```
+
+**通过标准**：运行状态确认实例已经停止。
 
 ## 许可
 

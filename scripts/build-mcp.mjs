@@ -4,22 +4,29 @@ import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'esbuild'
+import { resolveCore } from '../src/core-resolution.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const checkOnly = process.argv.includes('--check')
 const development = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'))
 const runtime = JSON.parse(await readFile(resolve(root, 'mcp/package.json'), 'utf8'))
 const compatibility = JSON.parse(await readFile(resolve(root, 'mcp/compatibility.json'), 'utf8'))
-const coreVersion = runtime.dependencies['@x-era/forge-core']
-if (!/^\d+\.\d+\.\d+$/.test(coreVersion)
-  || development.dependencies['@x-era/forge-core'] !== coreVersion
-  || compatibility.version !== coreVersion) {
-  throw new Error('Core versions must match in package.json, mcp/package.json and mcp/compatibility.json.')
+const bundleVersion = runtime.dependencies['@x-era/dsh-forge']
+if (!/^\d+\.\d+\.\d+$/.test(bundleVersion) || development.dependencies['@x-era/dsh-forge'] !== bundleVersion) {
+  throw new Error('DSH bundle versions must be pinned and match in development and runtime manifests.')
+}
+const chain = resolveCore()
+const coreVersion = chain.packages['@x-era/forge-core']
+const upstream = JSON.parse(await readFile(resolve(root, 'dsh-upstream.json'), 'utf8'))
+if (development.dependencies['@x-era/forge-core'] || runtime.dependencies['@x-era/forge-core']
+  || compatibility.version !== coreVersion || chain.packages['@x-era/dsh-forge'] !== bundleVersion
+  || Object.entries(chain.packages).some(([name, version]) => upstream.packages[name] !== version)) {
+  throw new Error('Forge dependencies, DSH tracking and Core compatibility must match the installed DSH dependency chain; Core must not be a direct dependency.')
 }
 const result = await build({
   entryPoints: [resolve(root, 'src/forge-mcp.mjs')],
   bundle: true,
-  external: ['@x-era/forge-core'],
+  external: ['./core.mjs'],
   platform: 'node', target: 'node22', format: 'esm', write: false,
   legalComments: 'none',
 })
@@ -30,6 +37,8 @@ const outputs = new Map([
   ['runtime-compatibility.mjs', await readFile(resolve(root, 'src/runtime-compatibility.mjs'), 'utf8')],
   ['runtime-proxy.mjs', await readFile(resolve(root, 'src/runtime-proxy.mjs'), 'utf8')],
   ['proxy-config.mjs', await readFile(resolve(root, 'src/proxy-config.mjs'), 'utf8')],
+  ['core-resolution.mjs', await readFile(resolve(root, 'src/core-resolution.mjs'), 'utf8')],
+  ['core.mjs', await readFile(resolve(root, 'src/core.mjs'), 'utf8')],
   ['core.patch', await readFile(resolve(root, `patches/@x-era__forge-core@${coreVersion}.patch`), 'utf8')],
 ])
 // A rebuilt adapter must never ship with stale compatibility metadata: the

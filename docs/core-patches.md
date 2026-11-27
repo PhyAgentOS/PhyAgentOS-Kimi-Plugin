@@ -1,6 +1,11 @@
 # Forge Core compatibility patch
 
-The plugin uses published `@x-era/forge-core@0.2.2`; Core is no longer bundled into the MCP adapter.
+The plugin uses published `@x-era/forge-core@0.2.2` transitively through
+`@x-era/dsh-forge@0.2.2 → @x-era/dsh-forge-skill@0.2.2 → @x-era/forge-core@0.2.2`.
+Among Forge packages, only the DSH bundle is a direct dependency in development and
+runtime manifests; Core is no longer bundled into the MCP adapter. `undici` remains
+a separate direct npm dependency. Both lockfiles pin the resolved chain, which is
+also recorded in `dsh-upstream.json`.
 Development tests apply `patches/@x-era__forge-core@0.2.2.patch` through pnpm's `patchedDependencies`.
 At first startup, the bootstrap installs locked npm dependencies into a private, versioned runtime,
 copies Core to `compat-core/`, and applies the same exact patch only to that copy. The installed npm
@@ -26,7 +31,7 @@ certificate/transparency chain was not independently validated.
 | Private runtime permissions and payload symlink rejection | Missing |
 
 Core `0.2.2` also adds startup-timeout and live-lock fixes. Development and the
-published runtime now both pin `0.2.2`, with the compatibility patch rebased onto
+published runtime now both lock the transitive Core to `0.2.2`, with the compatibility patch rebased onto
 that exact release. The patch preserves upstream startup handling and unique node
 staging directories while retaining the local archive and integrity restrictions.
 The adapter's use of `ready()` and writable `jobs` still relies on JS members
@@ -83,11 +88,10 @@ ACL enforcement mechanism.
 ## Maintenance
 
 1. Install with `pnpm install --frozen-lockfile`; npm does not apply this pnpm patch.
-2. Change the patch with `pnpm patch @x-era/forge-core@0.2.2` and `pnpm patch-commit`.
-3. Update `mcp/compatibility.json` from verified pristine and patched npm files; refresh `mcp/package-lock.json` only intentionally.
-4. Commit the patch, workspace config, both lockfiles, compatibility metadata and generated MCP payload together. Run `pnpm test` and `pnpm run build:check`; runtime-bootstrap tests verify npm originals stay unchanged and compatibility output matches the hashes.
-5. When upgrading core, check whether upstream incorporates each fix. Remove or
-   rebase the patch explicitly, update the lockfile, and retain the regression tests.
+2. Audit the Core selected by the target DSH bundle and review whether each local fix is still needed. Rebase or remove fixes explicitly and retain the regression tests; do not add an independent Core dependency.
+3. Run `pnpm run sync:dsh -- --check` to inspect the upstream chain, then `pnpm run sync:dsh` to apply it. To fix the target for both commands, add `--version 0.2.2`, replacing the example with the exact stable DSH bundle version. There are no scheduled checks or automatic upgrade PRs.
+4. For a reviewed replacement patch, run `pnpm run sync:dsh -- --version 0.2.2 --patch /path/to/reviewed.patch`. The version selects the DSH bundle; the patch applies to its resolved transitive Core. This also supports rebuilding when package versions are unchanged.
+5. Sync maintains both manifests' bundle pins, both lockfiles, `dsh-upstream.json`, patches and mappings, compatibility hashes, and generated MCP payload in a temporary candidate. It runs `pnpm test` and `pnpm run build:check` before promoting changes. Review and commit these outputs together, refresh local dependencies with `pnpm install --frozen-lockfile`, and follow the [release guide](releasing_en.md). Runtime-bootstrap tests verify npm originals stay unchanged and compatibility output matches the hashes.
 
 Rejecting remote artifacts without integrity metadata is an intentional compatibility
 change. Registry publishers must provide `sha256` and `size`; do not work around a

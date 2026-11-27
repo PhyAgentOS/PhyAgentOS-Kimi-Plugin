@@ -1,0 +1,8 @@
+{
+  "registry": "https://registry.npmjs.org",
+  "packages": {
+    "@x-era/dsh-forge": "0.2.2",
+    "@x-era/dsh-forge-skill": "0.2.2",
+    "@x-era/forge-core": "0.2.2"
+  }
+}

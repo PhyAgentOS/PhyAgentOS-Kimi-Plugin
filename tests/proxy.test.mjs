@@ -9,6 +9,7 @@ import { cp, mkdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createRequire } from 'node:module'
 import test from 'node:test'
+import { resolveCore } from '../src/core-resolution.mjs'
 import { temporaryDirectory, writeBundle } from './helpers/bundle.mjs'
 import { isolatedEnvironment, startMcp } from './helpers/mcp.mjs'
 
@@ -32,7 +33,7 @@ async function listen(t, server) {
 
 test('managed MCP proxies registry and artifact requests through ALL_PROXY without bundled dependencies', async t => {
   const root = await temporaryDirectory(t)
-  const tar = require(createRequire(import.meta.resolve('@x-era/forge-core')).resolve('tar'))
+  const tar = require(createRequire(resolveCore().entry).resolve('tar'))
   const bundle = await writeBundle(join(root, 'bundle'))
   const archive = join(root, 'bundle.tar.gz')
   await tar.create({ gzip: true, cwd: bundle, file: archive }, ['skill.yaml', 'SKILL.md', 'profiles'])
