@@ -11,7 +11,7 @@
 
 ## 核心特性
 
-- **仅发布插件、复用公共 npm 包**：`mcp/forge-mcp.mjs` 为启动器，`mcp/adapter.mjs` 仅包含 Kimi 适配逻辑，Core 不再内联。首次启动自动以 `npm ci --omit=dev --ignore-scripts` 安装锁定的 `@x-era/forge-core@0.2.2` 及依赖到 `<home>/plugin-runtime/<内容标识>/`，应用兼容层后启动；后续复用本地缓存，无需用户手动构建或发布额外 npm 包。
+- **仅发布插件、复用公共 npm 包**：`mcp/forge-mcp.mjs` 为启动器，`mcp/adapter.mjs` 仅包含 Kimi 适配逻辑，Core 不再内联。首次启动自动以 `npm ci --omit=dev --ignore-scripts` 安装锁定的 `@x-era/dsh-forge@0.2.2`、其传递依赖 `@x-era/forge-core@0.2.2` 及其他锁定依赖到 `<home>/plugin-runtime/<内容标识>/`，应用兼容层后启动；后续复用本地缓存，无需用户手动构建或发布额外 npm 包。
 - **严格的宿主目录隔离**：默认数据根采用 `~/.kimi-code/forge`（自动跟随 `$KIMI_CODE_HOME/forge`），将单写者 `runtime/state.json`、`runtime/forge.lock`、技能目录与隔离 Dora 运行时与 DSH 的 `~/.dsh/forge` 完全物理隔离，互不干扰。
 - **完整暴露 41 个 Forge 工具**：涵盖本机环境体检、Dora 0.4.1 / 1.0.1 一键隔离安装、PAOS Registry 搜索与后台安装、本地技能包校验与打包、节点源码版本追溯、本地模型 SHA256 校验、Dora 运行时启停及 Gateway 异步动作对账。
 - **内置物理安全红线与工作流**：随插件注入 `SYSTEM.md` 物理执行安全规则、2 个专业技能（`/skill:phyagentos:forge-usage`、`/skill:phyagentos:forge-skill-development`）以及 4 个快捷斜杠命令（`/phyagentos:env`、`/phyagentos:skills`、`/phyagentos:doctor`、`/phyagentos:export-skill`）。
@@ -111,7 +111,7 @@ NO_PROXY=localhost,127.0.0.1,::1,192.168.0.0/16,10.0.0.0/8
 
 ### 依赖关系
 
-本插件直接依赖公共 npm 包 **`@x-era/forge-core`**，由 Kimi 专用 MCP 适配层调用。**`@x-era/dsh-forge` 是跟随更新的上游发布入口，不是本插件的直接运行时依赖**；它是 DSH 的安装组合包，通过 `@x-era/dsh-forge-skill` 依赖公共 Core：
+在 Forge 系列包中，本插件仅直接依赖 npm 组合包 **`@x-era/dsh-forge@0.2.2`**。**`@x-era/forge-core`** 通过 `@x-era/dsh-forge-skill` 传递引入，不再独立声明于开发或运行时的 `dependencies`。当前锁定的依赖链为 `@x-era/dsh-forge@0.2.2 → @x-era/dsh-forge-skill@0.2.2 → @x-era/forge-core@0.2.2`；`undici` 仍是单独的 npm 直接依赖。安装 DSH 包不代表启动 DSH 宿主；Kimi 继续通过自己的 MCP 适配层使用公共 Core：
 
 ```text
 上游 npm 发布依赖链：
@@ -121,27 +121,13 @@ Kimi 运行调用链：
 Kimi → 本插件的 MCP 适配层 → @x-era/forge-core
 ```
 
-已跟随的三个包版本记录在 [`dsh-upstream.json`](dsh-upstream.json)，实际 Core 版本精确锁定在 `package.json`、`mcp/package.json` 和对应锁文件中。首次启动按锁文件安装，后续复用缓存；不会在每次启动时自动安装 npm 最新版本。
-
-### 维护者：直接手动升级 Core
-
-在仓库根目录的系统终端执行，版本号替换为已发布的目标 Core 精确稳定版本：
-
-```sh
-pnpm upgrade:core 0.2.3
-# 如旧补丁冲突，先人工调整，再传入补丁文件
-pnpm upgrade:core 0.2.3 /path/to/rebased.patch
-```
-
-升级前需提交已跟踪文件的改动。脚本从当前 Git 提交导出临时副本，同步开发与运行时依赖、两套锁文件、补丁映射、兼容摘要及完整 MCP 构建产物，通过 `pnpm test` 和 `pnpm run build:check` 后才写回；验证期间工作区或提交发生变化则停止。失败不会将候选升级写回，临时目录会清理；不支持降级。同版本仅在提供替换补丁时允许重建。需 Node.js、npm、仓库指定版本的 pnpm、Git 和 tar。
-
-成功后检查 `git diff`，运行 `pnpm install --frozen-lockfile` 更新本地开发依赖，再审核提交和发布。该命令不依赖 DSH 发布版本，也不修改 `dsh-upstream.json`：后者仅记录上次同步的 DSH 依赖链，可能与独立升级后的实际 Core 不同。插件版本号及文档引用仍需手动调整。
+已跟随的三个包版本记录在 [`dsh-upstream.json`](dsh-upstream.json)。`package.json` 和 `mcp/package.json` 固定 DSH 组合包版本，`pnpm-lock.yaml` 和 `mcp/package-lock.json` 锁定解析出的 Skill 与 Core 版本，兼容补丁针对该传递依赖 Core 版本应用。首次启动按锁文件安装，后续复用缓存；不会在每次启动时自动安装 npm 最新版本。
 
 ### 维护者：手动同步上游发布
 
 仓库不提供定时检查或自动创建升级 PR 的工作流。需要升级时，由维护者显式执行下列本地命令：查询 `@x-era/dsh-forge` 的 npm `latest`，沿依赖链解析 Skill 和 Core 的精确稳定版本，与 `dsh-upstream.json` 比较，并拒绝降级。
 
-有更新时，脚本在临时副本中更新版本记录；Core 变化时还更新依赖、锁文件、兼容补丁、摘要及 MCP 构建产物。完整测试通过后才写回，失败则终止；无更新不修改文件。维护者自行审核差异、提交 PR、调整插件版本并发布，详见[发布指南](docs/releasing_zh.md)。
+有更新时，脚本在临时副本中维护两份清单的 DSH 组合包依赖、两套锁文件、`dsh-upstream.json`，以及解析出的传递依赖 Core 对应的兼容补丁及映射、兼容摘要和 MCP 构建产物，不会添加独立 Core 依赖。通过 `pnpm test` 和 `pnpm run build:check` 后才写回，失败则终止；版本未变且未提供替换补丁时不修改文件。维护者自行审核差异、提交 PR、调整插件版本并发布，详见[发布指南](docs/releasing_zh.md)。
 
 本地维护命令（需安装 **pnpm `12.18.0`**，与 `package.json` 的 `packageManager` 声明一致）：
 
@@ -152,10 +138,15 @@ pnpm run sync:dsh -- --check
 # 执行同步升级和完整验证
 pnpm run sync:dsh
 # 可选：指定 DSH 组合包的精确稳定版本，仍禁止降级
+pnpm run sync:dsh -- --check --version 0.2.2
 pnpm run sync:dsh -- --version 0.2.2
+# 可选：为该组合包的依赖链提供已审核的 Core 替换补丁
+pnpm run sync:dsh -- --version 0.2.2 --patch /path/to/reviewed.patch
 ```
 
-若 Core 不变，只同步上游版本记录并执行验证。DSH 专属界面、工具注册、提示词及 Kimi 新工具适配代码不会自动迁移；插件版本号和文档版本引用仍需人工维护。同步不会修改用户已安装的技能、模型、配置或运行数据。
+`--version` 选择 DSH 组合包版本，不单独选择 Core；检查和执行都使用它可固定目标发布版本。即使包版本未变，提供替换补丁也可触发重建。同步成功后检查 `git diff`，运行 `pnpm install --frozen-lockfile` 更新本地开发依赖。
+
+若 Core 不变而组合包或 Skill 变化，仍会同步 DSH 组合包依赖、锁文件和版本记录并执行验证。DSH 专属界面、工具注册、提示词及 Kimi 新工具适配代码不会自动迁移；插件版本号和文档版本引用仍需人工维护。同步不会修改用户已安装的技能、模型、配置或运行数据。
 
 ### 使用者：获取插件更新
 

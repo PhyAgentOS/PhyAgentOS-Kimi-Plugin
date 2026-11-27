@@ -19,18 +19,35 @@ test('bundled mcp/forge-mcp.mjs matches source deterministically', async () => {
   assert.match(stdout, /up to date/)
 })
 
-test('development and published runtime pin the same Core and compatibility version', async () => {
+test('development and runtime pin DSH with consistent transitive Core tracking and compatibility', async () => {
   const json = async name => JSON.parse(await readFile(resolve(root, name), 'utf8'))
-  const [development, runtime, lock, compatibility] = await Promise.all([
+  const [development, runtime, lock, compatibility, upstream] = await Promise.all([
     json('package.json'), json('mcp/package.json'), json('mcp/package-lock.json'), json('mcp/compatibility.json'),
+    json('dsh-upstream.json'),
   ])
-  const version = development.dependencies['@x-era/forge-core']
-  assert.match(version, /^\d+\.\d+\.\d+$/)
-  const upstream = await json('dsh-upstream.json')
-  assert.match(upstream.packages['@x-era/forge-core'], /^\d+\.\d+\.\d+$/)
-  assert.equal(runtime.dependencies['@x-era/forge-core'], version)
-  assert.equal(lock.packages[''].dependencies['@x-era/forge-core'], version)
-  assert.equal(lock.packages['node_modules/@x-era/forge-core'].version, version)
+  const bundle = '@x-era/dsh-forge'
+  const skill = '@x-era/dsh-forge-skill'
+  const core = '@x-era/forge-core'
+  for (const manifest of [development, runtime, lock.packages['']]) {
+    for (const field of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
+      assert.equal(Object.hasOwn(manifest[field] ?? {}, core), false, `${field} must not directly declare Core`)
+    }
+    assert.equal(manifest.dependencies[bundle], upstream.packages[bundle])
+  }
+  let parentPath = ''
+  for (const name of [bundle, skill, core]) {
+    const version = upstream.packages[name]
+    assert.match(version, /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/)
+    assert.equal(lock.packages[parentPath].dependencies[name], version)
+    let installedPath = `${parentPath ? `${parentPath}/` : ''}node_modules/${name}`
+    while (!lock.packages[installedPath] && parentPath) {
+      parentPath = parentPath.replace(/(?:^|\/)node_modules\/(?:@[^/]+\/)?[^/]+$/, '')
+      installedPath = `${parentPath ? `${parentPath}/` : ''}node_modules/${name}`
+    }
+    assert.equal(lock.packages[installedPath]?.version, version, `${name} must match tracked upstream`)
+    parentPath = installedPath
+  }
+  const version = upstream.packages[core]
   assert.equal(compatibility.version, version)
   assert.equal(await readFile(resolve(root, 'mcp/core.patch'), 'utf8'),
     await readFile(resolve(root, `patches/@x-era__forge-core@${version}.patch`), 'utf8'))

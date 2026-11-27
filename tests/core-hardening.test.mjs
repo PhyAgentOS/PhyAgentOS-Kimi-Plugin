@@ -4,10 +4,11 @@ import { chmod, cp, mkdir, readFile, readdir, stat, symlink, writeFile } from 'n
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 import test from 'node:test'
-import { bootstrapEnvironment, downloadFile, ForgeCatalog, installSkill, SkillRuntimeManager } from '@x-era/forge-core'
+import { bootstrapEnvironment, downloadFile, ForgeCatalog, installSkill, SkillRuntimeManager } from '../src/core.mjs'
+import { resolveCore } from '../src/core-resolution.mjs'
 import { temporaryDirectory, writeBundle } from './helpers/bundle.mjs'
 
-const requireCore = createRequire(import.meta.resolve('@x-era/forge-core'))
+const requireCore = createRequire(resolveCore().entry)
 const tar = requireCore('tar')
 const fakeExec = async () => ({ stdout: 'uv 0.9.0\n', stderr: '' })
 

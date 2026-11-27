@@ -2,6 +2,7 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CORE, json, stable, upgradeCore } from './core-upgrade.mjs'
+import { resolveCore } from '../src/core-resolution.mjs'
 
 export const REGISTRY = 'https://registry.npmjs.org'
 export const BUNDLE = '@x-era/dsh-forge'
@@ -63,7 +64,7 @@ export function assessUpdate(tracked, target, localCore) {
   const next = target.packages[CORE].split('.').map(BigInt)
   const first = local.findIndex((part, i) => part !== next[i])
   if (first !== -1 && local[first] > next[first]) {
-    throw new Error(`Refusing Core downgrade from manually selected ${localCore} to DSH Core ${target.packages[CORE]}`)
+    throw new Error(`Refusing Core downgrade from local ${localCore} to DSH Core ${target.packages[CORE]}`)
   }
   return {
     updateAvailable: localCore !== target.packages[CORE] || [BUNDLE, SKILL, CORE].some(name => tracked.packages[name] !== target.packages[name]),
@@ -75,8 +76,18 @@ export async function main(args = process.argv.slice(2)) {
   const options = parseArgs(args)
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
   const tracked = json(resolve(root, 'dsh-upstream.json'))
+  const installed = resolveCore(resolve(root, 'package.json'))
+  const development = json(resolve(root, 'package.json'))
+  const runtime = json(resolve(root, 'mcp/package.json'))
+  if (development.dependencies[CORE] || runtime.dependencies[CORE]
+    || development.dependencies[BUNDLE] !== installed.packages[BUNDLE]
+    || runtime.dependencies[BUNDLE] !== installed.packages[BUNDLE]
+    || json(resolve(root, 'mcp/compatibility.json')).version !== installed.packages[CORE]
+    || Object.entries(installed.packages).some(([name, version]) => tracked.packages[name] !== version)) {
+    throw new Error('Local manifests, compatibility and tracking must match the installed DSH dependency chain; run pnpm install --frozen-lockfile and review local changes')
+  }
   const target = await resolveUpstream(options.version)
-  const status = assessUpdate(tracked, target, json(resolve(root, 'package.json')).dependencies[CORE])
+  const status = assessUpdate(tracked, target, installed.packages[CORE])
   let applied = false
   let result
   if (!options.check && (status.updateAvailable || options.patchFile)) {

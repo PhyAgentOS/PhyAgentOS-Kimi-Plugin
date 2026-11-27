@@ -7,6 +7,7 @@ import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { setTimeout as delay } from 'node:timers/promises'
+import { resolveCore } from './core-resolution.mjs'
 import { loadProxyEnvironment, npmProxyEnvironment } from './proxy-config.mjs'
 
 const payload = dirname(fileURLToPath(import.meta.url))
@@ -29,7 +30,7 @@ async function validRuntime(target, key) {
       const bytes = await readFile(join(target, name))
       if (hash(bytes) !== digest) return false
     }
-    await access(join(target, 'node_modules/@x-era/forge-core/lib/index.js'), constants.R_OK)
+    await access(resolveCore(join(target, 'package.json')).entry, constants.R_OK)
     return true
   } catch { return false }
 }
@@ -54,7 +55,7 @@ async function runNpm(directory, env) {
 /** Prepare an immutable, versioned runtime; never install into the plugin checkout. */
 export async function prepareRuntime({ directory = payload, env = process.env, install = runNpm } = {}) {
   env = await loadProxyEnvironment(env)
-  const names = ['package.json', 'package-lock.json', 'adapter.mjs', 'compatibility.json', 'core.patch', 'runtime-compatibility.mjs', 'forge-mcp.mjs', 'runtime-proxy.mjs', 'proxy-config.mjs']
+  const names = ['package.json', 'package-lock.json', 'adapter.mjs', 'compatibility.json', 'core.patch', 'runtime-compatibility.mjs', 'forge-mcp.mjs', 'runtime-proxy.mjs', 'proxy-config.mjs', 'core-resolution.mjs', 'core.mjs']
   const contents = await Promise.all(names.map(name => readFile(join(directory, name))))
   const key = hash(Buffer.concat([Buffer.from(`node${process.versions.node.split('.')[0]}:${process.platform}:${process.arch}\n`), ...contents]))
   const root = runtimeRoot(env)
@@ -96,7 +97,7 @@ export async function prepareRuntime({ directory = payload, env = process.env, i
     const { applyCompatibility } = await import('./runtime-compatibility.mjs')
     await applyCompatibility(staging)
     // Redirect only the adapter's Core imports to the plugin-owned compatibility copy.
-    const adapter = contents[2].toString().replace(/from (["'])@x-era\/forge-core\1/g, 'from "./compat-core/lib/index.js"')
+    const adapter = contents[2].toString().replace(/from (["'])\.\/core\.mjs\1/g, 'from "./compat-core/lib/index.js"')
     await writeFile(join(staging, 'adapter.mjs'), adapter)
     const tracked = { 'adapter.mjs': hash(adapter), 'runtime-proxy.mjs': hash(contents[7]), 'proxy-config.mjs': hash(contents[8]) }
     // Include every runtime dependency file, not only the seven patched files.

@@ -11,7 +11,7 @@ Maintenance: [Core compatibility and npm audit](docs/core-patches.md) · [Accept
 
 ## Highlights
 
-- **Plugin-only Releases, Published npm Dependencies:** `mcp/forge-mcp.mjs` bootstraps the Kimi-only `mcp/adapter.mjs`; Core is external. First startup runs `npm ci --omit=dev --ignore-scripts` for locked `@x-era/forge-core@0.2.2` and its dependencies under `<home>/plugin-runtime/<content-id>/`, prepares compatibility files, and starts MCP. Later starts reuse the local runtime; no additional npm package publication or user compilation is required.
+- **Plugin-only Releases, Published npm Dependencies:** `mcp/forge-mcp.mjs` bootstraps the Kimi-only `mcp/adapter.mjs`; Core is external. First startup runs `npm ci --omit=dev --ignore-scripts` for locked `@x-era/dsh-forge@0.2.2`, its transitive `@x-era/forge-core@0.2.2`, and the other locked dependencies under `<home>/plugin-runtime/<content-id>/`, prepares compatibility files, and starts MCP. Later starts reuse the local runtime; no additional npm package publication or user compilation is required.
 - **Strict Host Isolation:** Defaults its data root to `~/.kimi-code/forge` (following `$KIMI_CODE_HOME/forge`), keeping `runtime/state.json`, `runtime/forge.lock`, skills, and pinned Dora binaries completely isolated from `~/.dsh/forge`.
 - **Full 41-Tool Forge Surface:** Covers environment checks & Dora 0.4.1 / 1.0.1 bootstrap, PAOS Registry discovery, background bundle installation, local bundle validation/packaging, node source provenance, shared model verification, Dora runtime control, and asynchronous Gateway invocation reconciliation.
 - **Built-in Physical Safety Guardrails:** Injects mandatory `SYSTEM.md` runtime safety rules plus two on-demand skills (`/skill:phyagentos:forge-usage`, `/skill:phyagentos:forge-skill-development`) and four slash commands (`/phyagentos:env`, `/phyagentos:skills`, `/phyagentos:doctor`, `/phyagentos:export-skill`).
@@ -111,7 +111,7 @@ Host configuration lives in `<home>/config.json` (managed safely with `0600` ato
 
 ### Dependency Model
 
-This plugin directly depends on the public npm package **`@x-era/forge-core`**, called through its Kimi-specific MCP adapter. **`@x-era/dsh-forge` is the upstream release tracked for updates, not a direct runtime dependency of this plugin.** It is a DSH installation bundle that depends on the shared Core through `@x-era/dsh-forge-skill`:
+Among Forge packages, this plugin directly depends only on the npm bundle **`@x-era/dsh-forge@0.2.2`**. **`@x-era/forge-core`** is a transitive dependency through `@x-era/dsh-forge-skill`, not an independent entry in either development or runtime `dependencies`. The current locked chain is `@x-era/dsh-forge@0.2.2 → @x-era/dsh-forge-skill@0.2.2 → @x-era/forge-core@0.2.2`; `undici` remains a separate direct npm dependency. Installing the DSH package does not launch the DSH host; Kimi continues to call the shared Core through its own adapter:
 
 ```text
 Upstream npm dependency chain:
@@ -121,27 +121,13 @@ Kimi runtime call chain:
 Kimi → this plugin's MCP adapter → @x-era/forge-core
 ```
 
-The three tracked package versions are recorded in [`dsh-upstream.json`](dsh-upstream.json). The actual Core version is pinned exactly in `package.json`, `mcp/package.json`, and their lockfiles. First startup installs the locked dependencies; later starts reuse the cache rather than fetching the newest npm release on every launch.
-
-### Maintainers: Upgrade Core Directly
-
-Run in a system terminal at the repository root, replacing the example with an exact published stable Core version:
-
-```sh
-pnpm upgrade:core 0.2.3
-# If the existing patch conflicts, review and rebase it first
-pnpm upgrade:core 0.2.3 /path/to/rebased.patch
-```
-
-Commit tracked changes before upgrading. The script exports the current Git commit to a temporary copy, updates development and runtime dependencies, both lockfiles, patch mappings, compatibility hashes, and the complete MCP payload, then runs `pnpm test` and `pnpm run build:check` before copying results back. Changes to the checkout or commit during validation stop promotion. Validation failures do not copy the candidate upgrade back, and temporary files are cleaned up. Downgrades are rejected; rebuilding the same version requires a replacement patch. Node.js, npm, the specified pnpm version, Git, and tar are required.
-
-On success, review `git diff`, run `pnpm install --frozen-lockfile` to refresh local development dependencies, then review, commit, and publish. This command is independent of DSH release versions and leaves `dsh-upstream.json` unchanged: that file records the last synchronized DSH dependency chain and may differ from a manually selected Core. Plugin version bumps and documentation references remain manual.
+The three tracked package versions are recorded in [`dsh-upstream.json`](dsh-upstream.json). `package.json` and `mcp/package.json` pin the DSH bundle; `pnpm-lock.yaml` and `mcp/package-lock.json` lock the resolved Skill and Core versions. The compatibility patch targets that transitive Core version. First startup installs the locked dependencies; later starts reuse the cache rather than fetching the newest npm release on every launch.
 
 ### Maintainers: Manually Sync Upstream Releases
 
 The repository has no scheduled update checks or automatic upgrade PR workflow. To upgrade, maintainers explicitly run the local commands below. The script queries the npm `latest` release of `@x-era/dsh-forge`, follows its dependency chain to resolve exact stable Skill and Core versions, compares them with `dsh-upstream.json`, and rejects downgrades.
 
-Updates are prepared in a temporary copy. When Core changes, the script updates dependencies, lockfiles, compatibility patches, hashes, and generated MCP payload as well as the tracking record. Changes are copied back only after full validation; failures stop the upgrade, and an unchanged upstream writes no files. Maintainers review the diff, submit a PR, adjust the plugin version, and publish. See the [release guide](docs/releasing_en.md).
+Updates are prepared in a temporary copy. Sync maintains the DSH bundle dependency in both manifests, both lockfiles, `dsh-upstream.json`, compatibility patches and mappings, compatibility hashes, and generated MCP payload for the resolved transitive Core. It does not add an independent Core dependency. Changes are copied back only after `pnpm test` and `pnpm run build:check` pass; failures stop the upgrade. With no version change or replacement patch, sync writes no files. Maintainers review the diff, submit a PR, adjust the plugin version, and publish. See the [release guide](docs/releasing_en.md).
 
 Local maintenance commands (require **pnpm `12.18.0`**, matching the `packageManager` declaration in `package.json`):
 
@@ -152,10 +138,15 @@ pnpm run sync:dsh -- --check
 # Apply the sync and run full validation
 pnpm run sync:dsh
 # Optional: select an exact stable DSH bundle version; downgrades remain blocked
+pnpm run sync:dsh -- --check --version 0.2.2
 pnpm run sync:dsh -- --version 0.2.2
+# Optional: use a reviewed replacement Core patch for that bundle's dependency chain
+pnpm run sync:dsh -- --version 0.2.2 --patch /path/to/reviewed.patch
 ```
 
-If Core is unchanged, only the upstream tracking record is updated and validation runs. DSH-specific UI, tool registration, prompts, and Kimi adapter code for new tools are not migrated automatically. Plugin version bumps and documentation version references remain manual. Sync does not modify users' installed skills, models, configuration, or runtime data.
+`--version` selects the DSH bundle, not Core independently; use it for both check and apply to keep the selected release fixed. A replacement patch can trigger a rebuild even when package versions are unchanged. After a successful sync, review `git diff` and run `pnpm install --frozen-lockfile` to refresh local development dependencies.
+
+If Core is unchanged, the DSH bundle dependency, lockfiles, and tracking record are still updated and validated when the bundle or Skill changes. DSH-specific UI, tool registration, prompts, and Kimi adapter code for new tools are not migrated automatically. Plugin version bumps and documentation version references remain manual. Sync does not modify users' installed skills, models, configuration, or runtime data.
 
 ### Users: Get Plugin Updates
 

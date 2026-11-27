@@ -1,13 +1,15 @@
 import { createHash } from 'node:crypto'
-import { cp, readFile, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { join, relative } from 'node:path'
+import { createRequire } from 'node:module'
+import { resolveCore } from './core-resolution.mjs'
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex')
 
 /** Apply only the checked-in, exact-base Core compatibility patch to a private npm copy. */
 export async function applyCompatibility(runtime) {
   const spec = JSON.parse(await readFile(join(runtime, 'compatibility.json'), 'utf8'))
-  const published = join(runtime, 'node_modules/@x-era/forge-core')
+  const published = resolveCore(join(runtime, 'package.json')).directory
   const core = join(runtime, 'compat-core')
   const pkg = JSON.parse(await readFile(join(published, 'package.json'), 'utf8'))
   if (pkg.version !== spec.version) throw new Error(`Unexpected Core version ${pkg.version}; expected ${spec.version}`)
@@ -15,6 +17,16 @@ export async function applyCompatibility(runtime) {
   if (sha256(patch) !== spec.patchSha256) throw new Error('Core compatibility patch checksum mismatch')
   // Adapt only a plugin-owned copy; the npm installation stays byte-for-byte intact.
   await cp(published, core, { recursive: true, dereference: true })
+  // Preserve resolution of Core's own dependencies even with nested npm installs.
+  const require = createRequire(join(published, 'package.json'))
+  for (const name of Object.keys(pkg.dependencies ?? {})) {
+    const shim = join(core, 'node_modules', name)
+    await mkdir(shim, { recursive: true })
+    let target = relative(shim, require.resolve(name)).split('\\').join('/')
+    if (!target.startsWith('.')) target = `./${target}`
+    await writeFile(join(shim, 'package.json'), JSON.stringify({ name, type: 'module', exports: './index.mjs' }))
+    await writeFile(join(shim, 'index.mjs'), `export * from ${JSON.stringify(target)}\n`)
+  }
   const changes = new Map()
   let file
   let hunk

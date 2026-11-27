@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { resolveCore } from '../src/core-resolution.mjs'
 
 export const CORE = '@x-era/forge-core'
 export const stable = value => typeof value === 'string' && /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(value)
@@ -77,7 +78,9 @@ export function upgradeCore(root, version, { patchFile, upstream, requireClean =
   const head = requireClean ? git('rev-parse', 'HEAD') : null
   const status = () => git('status', '--porcelain', '--untracked-files=no')
   if (requireClean && status()) throw new Error('Commit tracked changes before upgrading Core')
-  const current = json(join(root, 'package.json')).dependencies[CORE]
+  if (!upstream || upstream.packages?.[CORE] !== version) throw new Error('Core must follow a resolved DSH dependency chain')
+  const current = json(join(root, 'mcp/compatibility.json')).version
+  if (!stable(current)) throw new Error('Invalid current Core compatibility version')
   const coreChanged = current !== version || Boolean(patchFile)
   const oldPatch = patchName(current)
   const nextPatch = patchName(version)
@@ -97,28 +100,38 @@ export function upgradeCore(root, version, { patchFile, upstream, requireClean =
       } })
     }
     const files = ['dsh-upstream.json']
-    if (coreChanged) files.push('package.json', 'pnpm-workspace.yaml', 'pnpm-lock.yaml',
-      'mcp/package.json', 'mcp/package-lock.json', 'mcp/compatibility.json', nextPatch,
+    if (coreChanged || upstream) files.push('package.json', 'pnpm-lock.yaml', 'mcp/package.json', 'mcp/package-lock.json')
+    if (coreChanged) files.push('pnpm-workspace.yaml', 'mcp/compatibility.json', nextPatch,
       'mcp/adapter.mjs', 'mcp/forge-mcp.mjs', 'mcp/runtime-compatibility.mjs',
-      'mcp/runtime-proxy.mjs', 'mcp/proxy-config.mjs', 'mcp/core.patch')
+      'mcp/runtime-proxy.mjs', 'mcp/proxy-config.mjs', 'mcp/core-resolution.mjs', 'mcp/core.mjs', 'mcp/core.patch')
     const touched = [...new Set([...files, ...(coreChanged ? [oldPatch] : [])])]
     const snapshot = path => existsSync(path) ? hash(readFileSync(path)) : null
     const before = new Map(touched.map(file => [file, snapshot(join(root, file))]))
-    if (coreChanged) {
+    if (coreChanged || upstream) {
       const development = json(join(candidate, 'package.json'))
       const runtimePath = join(candidate, 'mcp/package.json')
       const runtime = json(runtimePath)
-      development.dependencies[CORE] = version
-      runtime.dependencies[CORE] = version
+      if (upstream) {
+        const bundleVersion = upstream.packages['@x-era/dsh-forge']
+        if (!stable(bundleVersion)) throw new Error('DSH bundle version must be exact and stable')
+        development.dependencies['@x-era/dsh-forge'] = bundleVersion
+        runtime.dependencies['@x-era/dsh-forge'] = bundleVersion
+      }
+      delete development.dependencies[CORE]
+      delete runtime.dependencies[CORE]
       writeJson(join(candidate, 'package.json'), development)
       writeJson(runtimePath, runtime)
       npm(['install', '--package-lock-only', '--ignore-scripts', '--no-audit', '--no-fund', '--registry=https://registry.npmjs.org'], join(candidate, 'mcp'))
+    }
+    if (coreChanged) {
       const baseline = join(temporary, 'baseline')
       mkdirSync(baseline)
       for (const name of ['package.json', 'package-lock.json']) cpSync(join(candidate, 'mcp', name), join(baseline, name))
       npm(['ci', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund', '--registry=https://registry.npmjs.org'], baseline)
       const pristine = join(temporary, 'a')
-      cpSync(join(baseline, 'node_modules', CORE), pristine, { recursive: true })
+      const installed = resolveCore(join(baseline, 'package.json'))
+      if (Object.entries(upstream.packages).some(([name, value]) => installed.packages[name] !== value)) throw new Error('Installed DSH chain does not match selected release')
+      cpSync(installed.directory, pristine, { recursive: true })
       if (json(join(pristine, 'package.json')).version !== version) throw new Error('Installed Core does not match requested version')
       const patch = readFileSync(patchFile ? resolve(patchFile) : join(root, oldPatch), 'utf8')
       const prepared = prepareCompatibility(pristine, join(temporary, 'b'), patch, version, temporary)

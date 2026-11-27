@@ -1,7 +1,7 @@
 import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 
-import { expandHome } from '@x-era/forge-core'
+import { expandHome } from './core.mjs'
 
 /** Resolve Kimi's user data root (`$KIMI_CODE_HOME` or `~/.kimi-code`). */
 export function resolveKimiCodeHome(env = process.env) {

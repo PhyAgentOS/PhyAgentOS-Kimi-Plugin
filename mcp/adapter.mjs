@@ -7,12 +7,12 @@ import {
   DEFAULT_REGISTRY_URL,
   ForgeOperations,
   ForgeRegistryClient
-} from "@x-era/forge-core";
+} from "./core.mjs";
 
 // src/config-store.mjs
 import { copyFile, mkdir, readFile, readdir, rename, stat, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { diffValues, ForgeError, mergeForgeRowConfig, validateConfig, withLock } from "@x-era/forge-core";
+import { diffValues, ForgeError, mergeForgeRowConfig, validateConfig, withLock } from "./core.mjs";
 var CONFIG_FILE = "config.json";
 var backupSeq = 0;
 function stamp() {
@@ -137,7 +137,7 @@ var KimiConfigStore = class {
 // src/paths.mjs
 import { homedir } from "node:os";
 import { join as join2, resolve } from "node:path";
-import { expandHome } from "@x-era/forge-core";
+import { expandHome } from "./core.mjs";
 function resolveKimiCodeHome(env = process.env) {
   const raw = env.KIMI_CODE_HOME?.trim();
   return raw ? resolve(expandHome(raw)) : join2(homedir(), ".kimi-code");

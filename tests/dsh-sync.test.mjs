@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { CORE, patchPaths, prepareCompatibility, updateWorkspace } from '../scripts/core-upgrade.mjs'
 import { assessUpdate, BUNDLE, metadata, parseArgs, REGISTRY, resolveUpstream, SKILL } from '../scripts/sync-dsh.mjs'
 import { applyCompatibility } from '../src/runtime-compatibility.mjs'
+import { resolveCore } from '../src/core-resolution.mjs'
 
 const record = (bundle = '0.2.2', skill = '0.2.2', core = '0.2.2') => ({
   registry: REGISTRY, packages: { [BUNDLE]: bundle, [SKILL]: skill, [CORE]: core },
@@ -20,6 +21,61 @@ const fixtureFetch = versions => async url => {
   assert.equal(version, pkg === BUNDLE ? 'latest' : data.version)
   return { ok: true, json: async () => ({ name: pkg, ...data }) }
 }
+
+function installedChain(root) {
+  const directories = {}
+  let parent = root
+  for (const [name, version, dependencies] of [
+    [BUNDLE, '0.4.0', { [SKILL]: '0.3.1' }],
+    [SKILL, '0.3.1', { [CORE]: '0.2.3' }],
+    [CORE, '0.2.3', {}],
+  ]) {
+    const directory = join(parent, 'node_modules', name)
+    mkdirSync(join(directory, 'lib'), { recursive: true })
+    writeFileSync(join(directory, 'package.json'), JSON.stringify({ name, version, dependencies, main: 'lib/index.js' }))
+    writeFileSync(join(directory, 'lib/index.js'), 'throw new Error("package entry must not execute during resolution");\n')
+    directories[name] = directory
+    parent = directory
+  }
+  writeFileSync(join(root, 'package.json'), JSON.stringify({ dependencies: { [BUNDLE]: '0.4.0' } }))
+  return directories
+}
+
+test('nested installed DSH chain resolves its Core without executing hosts or selecting unrelated hoisted Core', t => {
+  const root = mkdtempSync(join(tmpdir(), 'kimi-core-resolution-'))
+  t.after(() => rmSync(root, { recursive: true, force: true }))
+  const directories = installedChain(root)
+  const hoisted = join(root, 'node_modules', CORE)
+  mkdirSync(hoisted, { recursive: true })
+  writeFileSync(join(hoisted, 'package.json'), JSON.stringify({ name: CORE, version: '9.9.9' }))
+  assert.deepEqual(resolveCore(join(root, 'package.json')), {
+    packages: record('0.4.0', '0.3.1', '0.2.3').packages,
+    directory: directories[CORE],
+    entry: join(directories[CORE], 'lib/index.js'),
+  })
+})
+
+test('installed DSH resolver rejects mismatches, ranged dependencies and invalid package identities or versions', t => {
+  const root = mkdtempSync(join(tmpdir(), 'kimi-core-chain-invalid-'))
+  t.after(() => rmSync(root, { recursive: true, force: true }))
+  const directories = installedChain(root)
+  const anchor = join(root, 'package.json')
+  for (const [name, mutation, error] of [
+    [BUNDLE, { dependencies: { [SKILL]: '0.3.2' } }, /dependency chain mismatch/],
+    [BUNDLE, { dependencies: { [SKILL]: '^0.3.1' } }, /dependency chain mismatch/],
+    [SKILL, { dependencies: { [CORE]: '0.2.4' } }, /dependency chain mismatch/],
+    [SKILL, { dependencies: { [CORE]: '~0.2.3' } }, /dependency chain mismatch/],
+    [CORE, { name: '@unrelated/core' }, /Invalid installed Forge package/],
+    [CORE, { version: '0.2.3-rc.1' }, /Invalid installed Forge package/],
+    [BUNDLE, { version: '01.4.0' }, /Invalid installed Forge package/],
+  ]) {
+    const path = join(directories[name], 'package.json')
+    const original = readFileSync(path, 'utf8')
+    writeFileSync(path, JSON.stringify({ ...JSON.parse(original), ...mutation }))
+    assert.throws(() => resolveCore(anchor), error, JSON.stringify(mutation))
+    writeFileSync(path, original)
+  }
+})
 
 test('resolve actual dependency chain instead of assuming matching package versions', async () => {
   const result = await resolveUpstream('latest', fixtureFetch({
@@ -63,18 +119,18 @@ test('rebased patch and regenerated hashes work with the real runtime patcher', 
   const patch = 'diff --git a/lib/index.js b/lib/index.js\n--- a/lib/index.js\n+++ b/lib/index.js\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n'
   mkdirSync(join(root, 'a/lib'), { recursive: true })
   writeFileSync(join(root, 'a/lib/index.js'), original)
-  writeFileSync(join(root, 'a/package.json'), JSON.stringify({ version: '0.2.3' }))
+  writeFileSync(join(root, 'a/package.json'), JSON.stringify({ name: CORE, version: '0.2.3' }))
   const prepared = prepareCompatibility(join(root, 'a'), join(root, 'b'), patch, '0.2.3', root)
   assert.deepEqual(patchPaths(prepared.patch), ['lib/index.js'])
   const runtime = join(root, 'runtime')
-  mkdirSync(join(runtime, 'node_modules/@x-era/forge-core/lib'), { recursive: true })
-  writeFileSync(join(runtime, 'node_modules/@x-era/forge-core/lib/index.js'), original)
-  writeFileSync(join(runtime, 'node_modules/@x-era/forge-core/package.json'), JSON.stringify({ version: '0.2.3' }))
+  const directories = installedChain(runtime)
+  const originalCore = join(directories[CORE], 'lib/index.js')
+  writeFileSync(originalCore, original)
   writeFileSync(join(runtime, 'core.patch'), prepared.patch)
   writeFileSync(join(runtime, 'compatibility.json'), JSON.stringify(prepared.compatibility))
   await applyCompatibility(runtime)
   assert.equal(readFileSync(join(runtime, 'compat-core/lib/index.js'), 'utf8'), 'export const value = 2;\n')
-  assert.equal(readFileSync(join(runtime, 'node_modules/@x-era/forge-core/lib/index.js'), 'utf8'), original)
+  assert.equal(readFileSync(originalCore, 'utf8'), original)
 })
 
 test('compatibility generation ignores inherited Git CRLF conversion', () => {

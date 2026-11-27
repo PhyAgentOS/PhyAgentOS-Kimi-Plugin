@@ -10,7 +10,6 @@
     "node": ">=22"
   },
   "scripts": {
-    "upgrade:core": "node ./scripts/upgrade-core.mjs",
     "sync:dsh": "node ./scripts/sync-dsh.mjs",
     "build": "node ./scripts/build-mcp.mjs",
     "build:check": "node ./scripts/build-mcp.mjs --check",
@@ -20,7 +19,7 @@
     "test": "pnpm run build && pnpm run validate && pnpm run test:unit"
   },
   "dependencies": {
-    "@x-era/forge-core": "0.2.2",
+    "@x-era/dsh-forge": "0.2.2",
     "undici": "7.30.2"
   },
   "devDependencies": {

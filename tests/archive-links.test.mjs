@@ -9,13 +9,14 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import test from 'node:test'
 import { gzipSync } from 'node:zlib'
-import { NodeStore, ForgeCatalog, SkillRuntimeManager } from '@x-era/forge-core'
+import { NodeStore, ForgeCatalog, SkillRuntimeManager } from '../src/core.mjs'
+import { resolveCore } from '../src/core-resolution.mjs'
 import { isolatedEnvironment, startMcp } from './helpers/mcp.mjs'
 import { temporaryDirectory, writeBundle } from './helpers/bundle.mjs'
 
-const core = dirname(fileURLToPath(import.meta.resolve('@x-era/forge-core')))
+const core = dirname(resolveCore().entry)
 const { extractArchive } = await import(pathToFileURL(join(core, 'archive.js')))
-const tar = createRequire(import.meta.resolve('@x-era/forge-core'))('tar')
+const tar = createRequire(resolveCore().entry)('tar')
 const platformArch = process.arch === 'x64' ? 'x86_64' : process.arch === 'arm64' ? 'aarch64' : process.arch
 const posixOnly = { skip: process.platform === 'win32' && 'Symlink creation requires Windows host privileges' }
 

@@ -6,11 +6,12 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import test from 'node:test'
 import { createHash } from 'node:crypto'
+import { resolveCore } from '../src/core-resolution.mjs'
 import { temporaryDirectory, writeBundle } from './helpers/bundle.mjs'
 import { isolatedEnvironment, startMcp } from './helpers/mcp.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const tar = createRequire(import.meta.resolve('@x-era/forge-core'))('tar')
+const tar = createRequire(resolveCore().entry)('tar')
 
 async function listen(server) {
   await new Promise((resolve, reject) => {
