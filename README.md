@@ -148,7 +148,48 @@ If Core is unchanged, only the upstream tracking record is updated and validatio
 
 ### Users: Get Plugin Updates
 
-After maintainers publish a new version, update the Kimi plugin through the original installation channel and restart Kimi/MCP. The bootstrap prepares the runtime specified by the new plugin's lockfile. Normal users do not need the maintenance commands above or a manual `npm update`.
+After maintainers publish a new version, update the Kimi plugin through the original installation channel. The bootstrap prepares the runtime specified by the new plugin's lockfile. Normal users do not need the maintenance commands above or a manual `npm update`.
+
+#### Update a Local Directory Installation
+
+Kimi runs a managed copy created during installation. After changing the original checkout, **`/reload` alone does not copy the new code; reinstall the plugin first**.
+
+1. Make sure the local plugin directory contains the latest code. If the changes were made directly in that directory, no additional pull is needed. The example uses `/home/gx/X-era/PhyAgentOS-Kimi-Plugin`; replace it on other machines.
+2. If a simulation is running, enter the following prompt in Kimi and confirm it has stopped before updating:
+
+   ```text
+   Stop the running robot-control-sim instance, then query its runtime status and confirm that it has stopped.
+   ```
+
+3. Enter these commands separately in the **Kimi conversation** to reinstall and activate:
+
+   ```text
+   /plugins install /home/gx/X-era/PhyAgentOS-Kimi-Plugin
+   ```
+
+   ```text
+   /reload
+   ```
+
+4. Check the plugin and MCP status separately:
+
+   ```text
+   /plugins info phyagentos
+   ```
+
+   ```text
+   /mcp
+   ```
+
+   Confirm that the plugin is enabled and the `forge` MCP server connects successfully. If old code is still loaded, fully exit and restart Kimi, then check again. On connection failure, keep the complete error and pause subsequent functional tests.
+
+#### Update a GitHub Installation
+
+Enter `/plugins` in Kimi, open **Installed**, and select this plugin. When an update is available, press **Enter** to install it, run `/reload`, and verify with `/plugins info phyagentos` and `/mcp`. Stop any running simulation before updating.
+
+A plain GitHub repository URL defaults to the latest Release and falls back to the default branch when no Release exists. Pushing branch code alone may therefore not make an update available through the original URL. Installations using an explicit branch, tag, or commit follow that source; reinstall from the appropriate URL to switch references.
+
+See the [official Kimi Code plugin documentation](https://www.kimi.com/code/docs/kimi-code-cli/customization/plugins) for plugin management and managed copies.
 
 ## Development & Verification
 

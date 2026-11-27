@@ -148,7 +148,48 @@ pnpm run sync:dsh -- --version 0.2.2
 
 ### 使用者：获取插件更新
 
-维护者发布新版后，通过原安装渠道更新 Kimi 插件，并重启 Kimi/MCP；启动器会根据新版插件携带的锁文件准备对应运行时。普通用户无需运行上述维护命令，也无需手动执行 `npm update`。
+维护者发布新版后，通过原安装渠道更新 Kimi 插件；启动器会根据新版插件携带的锁文件准备对应运行时。普通用户无需运行上述维护命令，也无需手动执行 `npm update`。
+
+#### 从本地目录安装后的更新
+
+Kimi 运行的是安装时复制到托管目录的插件副本。修改原始仓库后，**仅执行 `/reload` 不会复制新代码，需要重新安装**。
+
+1. 确认本地插件目录已有最新代码；若改动已直接写入该目录，无需再次拉取。示例路径为 `/home/gx/X-era/PhyAgentOS-Kimi-Plugin`，其他机器请替换。
+2. 如有正在运行的仿真，先在 Kimi 对话框输入以下提示，确认停止后再更新：
+
+   ```text
+   停止 robot-control-sim 的运行实例，并查询运行状态，确认已经停止。
+   ```
+
+3. 在 **Kimi 对话框**逐条输入，重新安装并激活：
+
+   ```text
+   /plugins install /home/gx/X-era/PhyAgentOS-Kimi-Plugin
+   ```
+
+   ```text
+   /reload
+   ```
+
+4. 逐条检查插件与 MCP 状态：
+
+   ```text
+   /plugins info phyagentos
+   ```
+
+   ```text
+   /mcp
+   ```
+
+   确认插件已启用、`forge` MCP 连接成功。如仍加载旧代码，完全退出并重新启动 Kimi，再检查。连接失败时保留完整错误信息，暂停后续功能测试。
+
+#### 从 GitHub 安装后的更新
+
+在 Kimi 输入 `/plugins`，进入 **Installed**，选择本插件；有更新时按 **Enter** 安装，完成后执行 `/reload`，再通过 `/plugins info phyagentos` 和 `/mcp` 检查。更新前同样先停止运行中的仿真。
+
+普通 GitHub 仓库地址默认安装最新 Release，无 Release 时回落到默认分支；因此仅推送分支代码不一定能通过原仓库地址获取更新。显式指定分支、tag 或 commit 的安装源应按该来源更新；若要改用另一个引用，使用对应地址重新安装。
+
+插件管理与托管副本机制见 [Kimi Code 官方插件文档](https://www.kimi.com/code/docs/kimi-code-cli/customization/plugins)。
 
 ## 本地开发与校验
 
