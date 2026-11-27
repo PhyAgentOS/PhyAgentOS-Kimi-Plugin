@@ -4,6 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
+import { fileURLToPath } from 'node:url'
 import { CORE, patchPaths, prepareCompatibility, updateWorkspace } from '../scripts/core-upgrade.mjs'
 import { assessUpdate, BUNDLE, metadata, parseArgs, REGISTRY, resolveUpstream, SKILL } from '../scripts/sync-dsh.mjs'
 import { applyCompatibility } from '../src/runtime-compatibility.mjs'
@@ -73,6 +74,21 @@ test('rebased patch and regenerated hashes work with the real runtime patcher', 
   await applyCompatibility(runtime)
   assert.equal(readFileSync(join(runtime, 'compat-core/lib/index.js'), 'utf8'), 'export const value = 2;\n')
   assert.equal(readFileSync(join(runtime, 'node_modules/@x-era/forge-core/lib/index.js'), 'utf8'), original)
+})
+
+test('compatibility generation ignores inherited Git CRLF conversion', () => {
+  execFileSync(process.execPath, [
+    '--test', '--test-name-pattern=^rebased patch and regenerated hashes',
+    fileURLToPath(new URL('./dsh-sync.test.mjs', import.meta.url)),
+  ], {
+    env: {
+      ...process.env,
+      GIT_CONFIG_COUNT: '2',
+      GIT_CONFIG_KEY_0: 'core.autocrlf', GIT_CONFIG_VALUE_0: 'true',
+      GIT_CONFIG_KEY_1: 'core.eol', GIT_CONFIG_VALUE_1: 'crlf',
+    },
+    stdio: 'pipe',
+  })
 })
 
 test('patch conflicts fail without modifying pristine input; unsafe paths fail closed', t => {

@@ -41,13 +41,14 @@ export function prepareCompatibility(pristine, patched, patch, version, work) {
   const input = join(work, 'reviewed.patch')
   writeFileSync(input, patch)
   if (patch.trim()) {
-    run('git', ['apply', '--check', input], patched)
-    run('git', ['apply', input], patched)
+    run('git', ['-c', 'core.autocrlf=false', '-c', 'core.eol=lf', 'apply', '--check', input], patched)
+    run('git', ['-c', 'core.autocrlf=false', '-c', 'core.eol=lf', 'apply', input], patched)
   }
   let normalized = ''
   if (patch.trim()) {
     try {
-      normalized = run('git', ['diff', '--no-index', '--no-ext-diff', '--no-color', '--src-prefix=a/', '--dst-prefix=b/', '--', 'a', 'b'], work, true)
+      // Preserve npm file bytes regardless of the host's Git newline defaults.
+      normalized = run('git', ['-c', 'core.autocrlf=false', '-c', 'core.eol=lf', 'diff', '--no-index', '--no-ext-diff', '--no-color', '--src-prefix=a/', '--dst-prefix=b/', '--', 'a', 'b'], work, true)
     } catch (error) {
       if (error.status !== 1 || !error.stdout) throw error
       normalized = error.stdout
