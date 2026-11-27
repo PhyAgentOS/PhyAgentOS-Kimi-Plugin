@@ -143,7 +143,7 @@ pnpm upgrade:core 0.2.3 /path/to/rebased.patch
 
 有更新时，脚本在临时副本中更新版本记录；Core 变化时还更新依赖、锁文件、兼容补丁、摘要及 MCP 构建产物。完整测试通过后才写回，失败则终止；无更新不修改文件。维护者自行审核差异、提交 PR、调整插件版本并发布，详见[发布指南](docs/releasing_zh.md)。
 
-本地维护命令（需安装仓库指定版本的 pnpm）：
+本地维护命令（需安装 **pnpm `12.18.0`**，与 `package.json` 的 `packageManager` 声明一致）：
 
 ```sh
 pnpm install --frozen-lockfile

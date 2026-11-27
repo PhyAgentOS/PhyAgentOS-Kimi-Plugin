@@ -143,7 +143,7 @@ The repository has no scheduled update checks or automatic upgrade PR workflow. 
 
 Updates are prepared in a temporary copy. When Core changes, the script updates dependencies, lockfiles, compatibility patches, hashes, and generated MCP payload as well as the tracking record. Changes are copied back only after full validation; failures stop the upgrade, and an unchanged upstream writes no files. Maintainers review the diff, submit a PR, adjust the plugin version, and publish. See the [release guide](docs/releasing_en.md).
 
-Local maintenance commands (require the repository's specified pnpm version):
+Local maintenance commands (require **pnpm `12.18.0`**, matching the `packageManager` declaration in `package.json`):
 
 ```sh
 pnpm install --frozen-lockfile
