@@ -155,8 +155,12 @@ test('same-session setup without config persistence can start a synthetic runtim
   }
 })
 
-test('an active install remains cancellable while a config refresh waits, and its job survives restore', { timeout: 20000 }, async t => {
+test('an active install remains cancellable while a config refresh waits, and its job survives restore', { timeout: 300000 }, async t => {
   const { root, home, mcp } = await managedMcp(t)
+  t.after(() => mcp.close())
+  // First-use npm preparation has its own 180-second budget, especially on
+  // Windows. Keep that outside the short cancellation regression deadline.
+  await mcp.request('initialize', { protocolVersion: '2025-06-18' })
   const bundle = await writeBundle(join(root, 'bundle'))
   const archive = join(root, 'bundle.tar.gz')
   await tar.create({ gzip: true, cwd: bundle, file: archive }, ['skill.yaml', 'SKILL.md', 'profiles'])
@@ -180,6 +184,7 @@ test('an active install remains cancellable while a config refresh waits, and it
   })
   url = await listen(server)
   try {
+    await t.test('cancel and restore complete after MCP is ready', { timeout: 20000 }, async () => {
     assert.equal((await mcp.callTool('forge_config_write', { config: { registry: { url } } })).isError, false)
     const install = await mcp.callTool('forge_skill_install', { name: 'audit-demo', nodes: false })
     assert.equal(install.isError, false)
@@ -199,6 +204,7 @@ test('an active install remains cancellable while a config refresh waits, and it
     assert.equal(afterRestore.payload.state, 'cancelled')
     assert.equal((await mcp.callTool('forge_config_read')).payload.config.gateway, undefined)
     await assert.rejects(readFile(join(home, 'skills', 'audit-demo', 'skill.yaml')), { code: 'ENOENT' })
+    })
   } finally {
     server.closeAllConnections()
     await new Promise(resolve => server.close(resolve))

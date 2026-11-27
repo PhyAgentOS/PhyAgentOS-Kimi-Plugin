@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
@@ -50,8 +50,8 @@ test('nested installed DSH chain resolves its Core without executing hosts or se
   writeFileSync(join(hoisted, 'package.json'), JSON.stringify({ name: CORE, version: '9.9.9' }))
   assert.deepEqual(resolveCore(join(root, 'package.json')), {
     packages: record('0.4.0', '0.3.1', '0.2.3').packages,
-    directory: directories[CORE],
-    entry: join(directories[CORE], 'lib/index.js'),
+    directory: realpathSync(directories[CORE]),
+    entry: join(realpathSync(directories[CORE]), 'lib/index.js'),
   })
 })
 
@@ -133,9 +133,15 @@ test('rebased patch and regenerated hashes work with the real runtime patcher', 
   assert.equal(readFileSync(originalCore, 'utf8'), original)
 })
 
-test('compatibility dependency bridge preserves computed CommonJS named exports and default in nested installs', async t => {
-  const root = mkdtempSync(join(tmpdir(), 'kimi-compat-cjs-'))
-  t.after(() => rmSync(root, { recursive: true, force: true }))
+for (const aliased of [false, true]) test(`compatibility dependency bridge preserves CommonJS exports after relocation (${aliased ? 'directory alias' : 'direct path'})`, async t => {
+  const work = mkdtempSync(join(tmpdir(), 'kimi-compat-cjs-'))
+  t.after(() => rmSync(work, { recursive: true, force: true }))
+  const actual = join(realpathSync(work), 'actual')
+  mkdirSync(actual)
+  const alias = join(work, 'alias')
+  if (aliased) symlinkSync(actual, alias, process.platform === 'win32' ? 'junction' : 'dir')
+  const root = join(aliased ? alias : actual, 'runtime.staging')
+  mkdirSync(root)
   const directories = installedChain(root)
   const core = directories[CORE]
   writeFileSync(join(core, 'package.json'), JSON.stringify({ name: CORE, version: '0.2.3', type: 'module', dependencies: { 'archive-fixture': '1.0.0' } }))
@@ -148,9 +154,16 @@ test('compatibility dependency bridge preserves computed CommonJS named exports 
   writeFileSync(join(root, 'core.patch'), '')
   writeFileSync(join(root, 'compatibility.json'), JSON.stringify({ version: '0.2.3', patchSha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', files: {} }))
   await applyCompatibility(root)
-  const compatible = await import(pathToFileURL(join(root, 'compat-core/lib/index.js')).href)
-  assert.deepEqual(compatible.result, ['created', 'created'])
-  assert.equal(readFileSync(join(core, 'lib/index.js'), 'utf8'), original)
+  const ready = join(actual, 'runtime.ready')
+  const bridge = readFileSync(join(root, 'compat-core/node_modules/archive-fixture/index.mjs'), 'utf8')
+  assert.doesNotMatch(bridge, /runtime\.staging/)
+  renameSync(root, ready)
+  const { result } = JSON.parse(execFileSync(process.execPath, [
+    '--input-type=module', '-e',
+    `const module = await import(${JSON.stringify(pathToFileURL(join(ready, 'compat-core/lib/index.js')).href)}); console.log(JSON.stringify(module));`,
+  ], { encoding: 'utf8' }))
+  assert.deepEqual(result, ['created', 'created'])
+  assert.equal(readFileSync(join(ready, 'node_modules', BUNDLE, 'node_modules', SKILL, 'node_modules', CORE, 'lib/index.js'), 'utf8'), original)
 })
 
 test('compatibility generation ignores inherited Git CRLF conversion', () => {

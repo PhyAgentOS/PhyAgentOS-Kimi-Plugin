@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { cp, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { cp, mkdir, readFile, realpath, writeFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import { createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
@@ -9,6 +9,9 @@ const sha256 = bytes => createHash('sha256').update(bytes).digest('hex')
 
 /** Apply only the checked-in, exact-base Core compatibility patch to a private npm copy. */
 export async function applyCompatibility(runtime) {
+  // Package resolution canonicalizes symlinks. Use that same coordinate system
+  // for relative imports so macOS /var -> /private/var aliases remain relocatable.
+  runtime = await realpath(runtime)
   const spec = JSON.parse(await readFile(join(runtime, 'compatibility.json'), 'utf8'))
   const published = resolveCore(join(runtime, 'package.json')).directory
   const core = join(runtime, 'compat-core')
