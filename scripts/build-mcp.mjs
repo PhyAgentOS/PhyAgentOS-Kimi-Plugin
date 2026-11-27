@@ -29,6 +29,7 @@ const outputs = new Map([
   ['forge-mcp.mjs', await readFile(resolve(root, 'src/runtime-bootstrap.mjs'), 'utf8')],
   ['runtime-compatibility.mjs', await readFile(resolve(root, 'src/runtime-compatibility.mjs'), 'utf8')],
   ['runtime-proxy.mjs', await readFile(resolve(root, 'src/runtime-proxy.mjs'), 'utf8')],
+  ['proxy-config.mjs', await readFile(resolve(root, 'src/proxy-config.mjs'), 'utf8')],
   ['core.patch', await readFile(resolve(root, `patches/@x-era__forge-core@${coreVersion}.patch`), 'utf8')],
 ])
 // A rebuilt adapter must never ship with stale compatibility metadata: the

@@ -1,5 +1,6 @@
 import { BlockList, isIP } from 'node:net'
 import { Agent, Dispatcher, EnvHttpProxyAgent, getGlobalDispatcher, setGlobalDispatcher } from 'undici'
+import { resolveProxySettings } from './proxy-config.mjs'
 
 export function isLoopback(hostname) {
   const host = hostname.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '')
@@ -10,24 +11,9 @@ export function isLoopback(hostname) {
 }
 
 /** Supply the proxy initialization that DSH performs in its host, for this MCP process. */
-export function createProxyDispatcher(env = process.env) {
-  const value = name => env[name.toLowerCase()] ?? env[name] ?? ''
-  const all = value('ALL_PROXY')
-  const http = value('HTTP_PROXY') || all
-  const https = value('HTTPS_PROXY') || all || value('HTTP_PROXY')
-  if (!http && !https) return null
-  const normalize = proxy => {
-    if (!proxy) return ''
-    const normalized = proxy.replace(/^socks5h:/i, 'socks5:')
-    let url
-    try { url = new URL(normalized) } catch { throw new Error('Invalid proxy URL; check HTTP_PROXY, HTTPS_PROXY and ALL_PROXY') }
-    if (!['http:', 'https:', 'socks:', 'socks5:'].includes(url.protocol)) throw new Error('Unsupported proxy protocol; use HTTP, HTTPS or SOCKS5')
-    return normalized
-  }
-  // Validate before allocating dispatchers. Never log credentials or proxy URLs.
-  const httpProxy = normalize(http)
-  const httpsProxy = normalize(https)
-  const noProxy = value('NO_PROXY')
+export function createProxyDispatcher(env = process.env, warn) {
+  const { httpProxy, httpsProxy, noProxy, configured } = resolveProxySettings(env, warn)
+  if (!configured) return null
   const subnets = new BlockList()
   for (const entry of noProxy.split(/[,\s]+/)) {
     if (!entry.includes('/')) continue
@@ -44,7 +30,9 @@ export function createProxyDispatcher(env = process.env) {
     dispatch(options, handler) {
       const hostname = new URL(options.origin).hostname.replace(/^\[|\]$/g, '')
       const family = isIP(hostname)
-      const bypass = isLoopback(hostname) || (family && subnets.check(hostname, family === 4 ? 'ipv4' : 'ipv6'))
+      const protocol = new URL(options.origin).protocol
+      const bypass = isLoopback(hostname) || !(protocol === 'https:' ? httpsProxy : httpProxy)
+        || (family && subnets.check(hostname, family === 4 ? 'ipv4' : 'ipv6'))
       return (bypass ? direct : external).dispatch(options, handler)
     }
     async close() { await Promise.all([direct.close(), external.close()]) }

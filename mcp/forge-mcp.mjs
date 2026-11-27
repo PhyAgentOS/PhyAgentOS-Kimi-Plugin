@@ -7,6 +7,7 @@ import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { setTimeout as delay } from 'node:timers/promises'
+import { loadProxyEnvironment, npmProxyEnvironment } from './proxy-config.mjs'
 
 const payload = dirname(fileURLToPath(import.meta.url))
 const log = message => process.stderr.write(`[phyagentos-bootstrap] ${message}\n`)
@@ -24,7 +25,7 @@ async function validRuntime(target, key) {
     const files = JSON.parse(await readFile(join(target, '.files.json'), 'utf8'))
     if (!files['adapter.mjs'] || !files['runtime-proxy.mjs'] || !files['compat-core/lib/index.js']) return false
     for (const [name, digest] of Object.entries(files)) {
-      if (!/^(adapter\.mjs|runtime-proxy\.mjs|(?:compat-core|node_modules)\/[a-zA-Z0-9@_./-]+)$/.test(name) || name.split('/').includes('..')) return false
+      if (!/^(adapter\.mjs|runtime-proxy\.mjs|proxy-config\.mjs|(?:compat-core|node_modules)\/[a-zA-Z0-9@_./-]+)$/.test(name) || name.split('/').includes('..')) return false
       const bytes = await readFile(join(target, name))
       if (hash(bytes) !== digest) return false
     }
@@ -52,7 +53,8 @@ async function runNpm(directory, env) {
 
 /** Prepare an immutable, versioned runtime; never install into the plugin checkout. */
 export async function prepareRuntime({ directory = payload, env = process.env, install = runNpm } = {}) {
-  const names = ['package.json', 'package-lock.json', 'adapter.mjs', 'compatibility.json', 'core.patch', 'runtime-compatibility.mjs', 'forge-mcp.mjs', 'runtime-proxy.mjs']
+  env = await loadProxyEnvironment(env)
+  const names = ['package.json', 'package-lock.json', 'adapter.mjs', 'compatibility.json', 'core.patch', 'runtime-compatibility.mjs', 'forge-mcp.mjs', 'runtime-proxy.mjs', 'proxy-config.mjs']
   const contents = await Promise.all(names.map(name => readFile(join(directory, name))))
   const key = hash(Buffer.concat([Buffer.from(`node${process.versions.node.split('.')[0]}:${process.platform}:${process.arch}\n`), ...contents]))
   const root = runtimeRoot(env)
@@ -90,13 +92,13 @@ export async function prepareRuntime({ directory = payload, env = process.env, i
     log('Installing locked npm dependencies on first use; subsequent starts reuse the local runtime.')
     staging = await mkdtemp(`${target}.staging-`)
     for (let i = 0; i < names.length; i++) await writeFile(join(staging, names[i]), contents[i])
-    await install(staging, env)
+    await install(staging, npmProxyEnvironment(env))
     const { applyCompatibility } = await import('./runtime-compatibility.mjs')
     await applyCompatibility(staging)
     // Redirect only the adapter's Core imports to the plugin-owned compatibility copy.
     const adapter = contents[2].toString().replace(/from (["'])@x-era\/forge-core\1/g, 'from "./compat-core/lib/index.js"')
     await writeFile(join(staging, 'adapter.mjs'), adapter)
-    const tracked = { 'adapter.mjs': hash(adapter), 'runtime-proxy.mjs': hash(contents[7]) }
+    const tracked = { 'adapter.mjs': hash(adapter), 'runtime-proxy.mjs': hash(contents[7]), 'proxy-config.mjs': hash(contents[8]) }
     // Include every runtime dependency file, not only the seven patched files.
     async function trackTree(relative) {
       for (const entry of await readdir(join(staging, relative), { withFileTypes: true })) {
@@ -127,14 +129,15 @@ export async function prepareRuntime({ directory = payload, env = process.env, i
 
 export async function main() {
   if (Number(process.versions.node.split('.')[0]) < 22) throw new Error('Node.js >=22 is required')
-  const target = await prepareRuntime()
+  const env = await loadProxyEnvironment()
+  const target = await prepareRuntime({ env })
   if (process.argv.includes('--prepare-only')) {
     log(`Runtime ready: ${target}`)
     return
   }
   // MCP is a separate process: DSH's host dispatcher cannot be inherited here.
   const { configureProxy } = await import(pathToFileURL(join(target, 'runtime-proxy.mjs')).href)
-  const proxy = configureProxy()
+  const proxy = configureProxy(env)
   log(proxy ? 'Proxy routing enabled from environment; loopback Gateways stay direct.' : 'No proxy configured; preserving host fetch routing.')
   await import(pathToFileURL(join(target, 'adapter.mjs')).href)
 }

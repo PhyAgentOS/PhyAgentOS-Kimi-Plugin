@@ -60,15 +60,21 @@ Preparation is optional: the first MCP startup performs it automatically if need
 
 ### Proxy configuration
 
-Set environment variables before launching Kimi and restart the MCP session after updating:
+Set proxy environment variables before launching Kimi, or place them in `$KIMI_CODE_HOME/.env` (default `~/.kimi-code/.env`; `%USERPROFILE%\.kimi-code\.env` on Windows), then fully restart Kimi/MCP:
 
-```sh
-export ALL_PROXY=socks5://127.0.0.1:7890
-export NO_PROXY=localhost,127.0.0.1,::1,192.168.0.0/16,10.0.0.0/8
+```dotenv
+HTTP_PROXY=http://127.0.0.1:YOUR_HTTP_OR_MIXED_PORT
+HTTPS_PROXY=http://127.0.0.1:YOUR_HTTP_OR_MIXED_PORT
+NO_PROXY=localhost,127.0.0.1,::1,192.168.0.0/16,10.0.0.0/8
 ```
 
-Lowercase names take precedence. HTTP selects HTTP_PROXY then ALL_PROXY; HTTPS selects HTTPS_PROXY, ALL_PROXY, then HTTP_PROXY, matching DSH's selection order. Unlike the inspected DSH host, Kimi also accepts SOCKS5/socks5h for desktop environments that supply only ALL_PROXY. Loopback Gateways always bypass proxies, including redirects. NO_PROXY supports domain rules and CIDR for literal IP origins, without extra DNS lookups. Failed proxies do not silently fall back to direct connections; absent proxy variables leave host routing untouched.
-`undici@7.30.2` remains an external npm dependency; its SOCKS5 support emits an experimental warning. Status logs omit proxy URLs and credentials. This does not read OS/Clash settings or change npm's first-install proxy handling.
+Replace the placeholder with the actual listening port. No port is hardcoded or scanned; OS/Clash settings are not read. The proxy must be reachable from the MCP machine/container; loopback refers to that environment. Only proxy keys are loaded from the user file; project `.env` and DSH files are never read, and no shell commands are executed.
+
+Nonempty inherited process settings take precedence over the user file, across uppercase/lowercase spellings. Within each source, lowercase wins and empty values are unset. HTTP selects HTTP_PROXY, ALL_PROXY, then direct; HTTPS selects HTTPS_PROXY, ALL_PROXY, HTTP_PROXY, then direct. An invalid address or unsupported protocol produces a sanitized warning and makes the corresponding requests direct without trying a lower-priority proxy. Connection failures of valid proxies still fail without direct fallback.
+
+Runtime HTTP/HTTPS and SOCKS5/socks5h support is retained. Loopback Gateways always bypass proxies, including redirects. NO_PROXY supports domain rules and CIDR for literal IP origins without DNS lookups. Absent proxy settings preserve host routing.
+
+The user file is also loaded before the first npm install, and selected HTTP(S) proxies are forwarded to npm. Explicit npm_config_proxy / npm_config_https_proxy settings win. Use an HTTP/Mixed port for npm bootstrap; SOCKS-only settings emit guidance to configure an npm HTTP proxy. `undici@7.30.2` remains an external npm dependency; SOCKS5 support emits an experimental warning. Logs omit proxy URLs and credentials. Machine-specific ports and credentials stay in the user directory rather than the portable plugin payload.
 
 ### First Conversation
 

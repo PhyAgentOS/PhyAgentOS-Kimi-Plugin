@@ -33,10 +33,18 @@ async function fixture(t) {
 
 test('bootstrap installs once, serializes concurrent starts, preserves npm bytes and repairs an altered cache', async t => {
   const f = await fixture(t)
-  const env = { KIMI_FORGE_HOME: join(f.root, 'home') }
+  const kimiHome = join(f.root, 'kimi')
+  await mkdir(kimiHome)
+  await writeFile(join(kimiHome, '.env'), 'ALL_PROXY=http://localhost:12345\n')
+  const env = { KIMI_FORGE_HOME: join(f.root, 'home'), KIMI_CODE_HOME: kimiHome }
+  const install = async (staging, installerEnv) => {
+    assert.equal(installerEnv.npm_config_proxy, 'http://localhost:12345')
+    assert.equal(installerEnv.npm_config_https_proxy, 'http://localhost:12345')
+    await f.install(staging)
+  }
   const [first, second] = await Promise.all([
-    prepareRuntime({ directory: f.directory, env, install: f.install }),
-    prepareRuntime({ directory: f.directory, env, install: f.install }),
+    prepareRuntime({ directory: f.directory, env, install }),
+    prepareRuntime({ directory: f.directory, env, install }),
   ])
   assert.equal(first, second)
   assert.equal(f.calls(), 1)

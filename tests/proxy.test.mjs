@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 import { createServer } from 'node:http'
 import { connect } from 'node:net'
 import { once } from 'node:events'
@@ -70,6 +72,9 @@ test('managed MCP proxies registry and artifact requests through ALL_PROXY witho
   // Fix the host configuration for this test; production keeps the user's settings.
   delete env.NODE_OPTIONS
   env.NODE_USE_ENV_PROXY = '0'
+  // Prepare real npm dependencies before enabling the synthetic artifact-only proxy.
+  // Bootstrap forwarding itself is covered by runtime-bootstrap.test.mjs.
+  await promisify(execFile)(process.execPath, [join(managed, 'mcp/forge-mcp.mjs'), '--prepare-only'], { env })
   env.ALL_PROXY = `http://127.0.0.1:${proxyPort}`
   env.KIMI_FORGE_REGISTRY_URL = 'http://registry.invalid'
   const mcp = startMcp(managed, env)
